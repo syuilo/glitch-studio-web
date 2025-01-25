@@ -1,0 +1,106 @@
+{
+	"Menu": {
+		"File": "File",
+		"Edit": "Edit",
+		"View": "View",
+		"Presets": "Presets",
+		"Help": "Help",
+		"_File": {
+			"OpenImage": "Open Image",
+			"SaveImage": "Save Image",
+			"SavePreset": "Save Preset",
+			"ExportPreset": "Export Preset",
+			"ImportPreset": "Import Preset",
+			"RemovePreset": "Remove Preset",
+			"Preferences": "Preferences",
+			"Exit": "Exit"
+		},
+		"_Edit": {
+			"Undo": "Undo",
+			"Redo": "Redo",
+			"RandomizeAll": "Randomize All",
+			"RandomFx": "Random FX",
+			"Init": "Init"
+		},
+		"_View": {
+			"ShowAllParams": "Show All Params",
+			"ShowHistogram": "Show Histogram",
+			"CollapseAllFx": "Collapse All FX",
+			"ExpandAllFx": "Expand All FX",
+			"ZoomIn": "Zoom In",
+			"ZoomOut": "Zoom Out",
+			"ResetZoom": "Reset Zoom",
+			"ToggleFullscreen": "Toggle Fullscreen"
+		},
+		"_Help": {
+			"OpenDataFolder": "Open Data Folder",
+			"ToggleDeveloperTools": "Toggle Developer Tools",
+			"ReportIssue": "Report Issue",
+			"FeatureRequest": "Feature Request",
+			"SupportUsOnPatreon": "Support Us on Patreon",
+			"About": "About"
+		}
+	},
+	"NoPresets": "No presets",
+	"NoEffects": "No FX",
+	"NoMacros": "No macros",
+	"NoAssets": "No assets",
+	"Fx": "FX",
+	"Macro": "Macro",
+	"Asset": "Aseet",
+	"AddEffect": "Add Effect",
+	"AddMacro": "Add Macro",
+	"AddAsset": "Add Asset",
+	"ClickToDisable": "Click to Disable",
+	"ClickToEnable": "Click to Enable",
+	"RemoveEffect": "Remove Effect",
+	"Randomize": "Randomize",
+	"Language": "Language",
+	"ReplaceAsset": "Replace Asset",
+	"RenameAsset": "Rename Asset",
+	"RemoveAsset": "Remove Asset",
+	"_BlendModes": {
+		"_Categories": {
+			"Basic": "Basic",
+			"Darken": "Darken",
+			"Lighten": "Lighten",
+			"Contrast": "Contrast",
+			"Comparative": "Comparative",
+			"Hsl": "HSL"
+		},
+		"None": "None",
+		"Normal": "Normal",
+		"Darken": "Darken",
+		"Multiply": "Multiply",
+		"ColorBurn": "Color Burn",
+		"Lighten": "Lighten",
+		"Screen": "Screen",
+		"ColorDodge": "Color Dodge",
+		"Overlay": "Overlay",
+		"SoftLight": "Soft Light",
+		"HardLight": "Hard Light",
+		"Difference": "Difference",
+		"Exclusion": "Exclusion",
+		"Hue": "Hue",
+		"Saturation": "Saturation",
+		"Color": "Color",
+		"Luminosity": "Luminosity",
+		"Add": "Add",
+		"Subtract": "Subtract"
+	},
+	"_Macro": {
+		"Name": "Name",
+		"Label": "Label",
+		"Type": "Type",
+		"_Types": {
+			"Number": "Number",
+			"Range": "Range",
+			"Flag": "Flag",
+			"Color": "Color",
+			"Image": "Image"
+		}
+	},
+	"None": "None",
+	"Random": "Random",
+	"PresetVersionWarn": "This preset cannot be imported because it was created with a newer version ({newer}) than your Glitch Studio version ({current}).\nTo import this preset, please update Glitch Studio to the latest version."
+}
