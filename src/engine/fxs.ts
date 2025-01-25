@@ -55,6 +55,7 @@ import { GpuFx } from './types';
 import channelShiftMapping from './fx/channel-shift-mapping';
 import drosteRegression from './fx/drosteRegression';
 import fastGaussianBlur from './fx/fastGaussianBlur';
+import blurMapping from './fx/blurMapping';
 
 const _fxs = {
 	//swap,
@@ -137,6 +138,7 @@ const _fxs = {
 	melt,
 	drosteRegression,
 	fastGaussianBlur,
+	blurMapping,
 	//gif,
 } as Record<string, GpuFx<any>>;
 
