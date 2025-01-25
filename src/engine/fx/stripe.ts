@@ -20,6 +20,13 @@ export default defineGpuFx({
 			max: 1,
 			default: { type: 'literal' as const, value: 0.5 }
 		},
+		phase: {
+			label: 'Phase',
+			type: 'range' as const,
+			step: 0.01,
+			max: 1,
+			default: { type: 'literal' as const, value: 0 }
+		},
 	},
 	shader,
 	setup: ({gl, params, shaderProgram }) => {
@@ -27,5 +34,7 @@ export default defineGpuFx({
 		gl.uniform1f(u_frequency, params.frequency);
 		const u_angle = gl.getUniformLocation(shaderProgram, 'u_angle');
 		gl.uniform1f(u_angle, params.angle);
+		const u_phase = gl.getUniformLocation(shaderProgram, 'u_phase');
+		gl.uniform1f(u_phase, params.phase);
 	},
 });
