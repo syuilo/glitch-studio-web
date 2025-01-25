@@ -5,6 +5,7 @@ import glsl from 'vite-plugin-glsl';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: '/glitch-studio-web/',
   plugins: [vue(), glsl()],
   resolve: {
     alias: {
