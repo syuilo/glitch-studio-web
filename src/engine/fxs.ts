@@ -28,6 +28,7 @@ import nodeGrid from './fx/node-grid';
 import tiling from './fx/tiling';
 import image from './fx/image';
 import mix from './fx/mix';
+import mixMapping from './fx/mixMapping';
 import mask from './fx/mask';
 import pixelShiftMapping from './fx/pixel-shift-mapping';
 import digitalMosaic from './fx/digital-mosaic';
@@ -114,6 +115,7 @@ const _fxs = {
 	tiling,
 	image,
 	mix,
+	mixMapping,
 	mask,
 	pixelShiftMapping,
 	digitalMosaic,
