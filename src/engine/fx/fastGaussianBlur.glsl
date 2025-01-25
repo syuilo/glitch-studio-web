@@ -4,24 +4,30 @@ precision highp float;
 in vec2 in_uv;
 uniform sampler2D u_texture;
 uniform vec2 u_resolution;
+uniform float u_radius;
+uniform vec2 u_dir;
 out vec4 out_color;
-uniform vec2 u_direction;
-
-vec4 blur13(sampler2D image, vec2 uv, vec2 resolution, vec2 direction) {
-	vec4 color = vec4(0.0);
-	vec2 off1 = vec2(1.411764705882353) * direction;
-	vec2 off2 = vec2(3.2941176470588234) * direction;
-	vec2 off3 = vec2(5.176470588235294) * direction;
-	color += texture(image, uv) * 0.1964825501511404;
-	color += texture(image, uv + (off1 / resolution)) * 0.2969069646728344;
-	color += texture(image, uv - (off1 / resolution)) * 0.2969069646728344;
-	color += texture(image, uv + (off2 / resolution)) * 0.09447039785044732;
-	color += texture(image, uv - (off2 / resolution)) * 0.09447039785044732;
-	color += texture(image, uv + (off3 / resolution)) * 0.010381362401148057;
-	color += texture(image, uv - (off3 / resolution)) * 0.010381362401148057;
-	return color;
-}
 
 void main() {
-	out_color = blur13(u_texture, in_uv, u_resolution.xy, u_direction);
+	vec4 sum = vec4(0.0);
+	
+	float hblur = u_radius / u_resolution.x;
+	float vblur = u_radius / u_resolution.y;
+
+	float hstep = u_dir.x;
+	float vstep = u_dir.y;
+
+	sum += texture(u_texture, vec2(in_uv.x - 4.0 * hblur * hstep, in_uv.y - 4.0 * vblur * vstep)) * 0.0162162162;
+	sum += texture(u_texture, vec2(in_uv.x - 3.0 * hblur * hstep, in_uv.y - 3.0 * vblur * vstep)) * 0.0540540541;
+	sum += texture(u_texture, vec2(in_uv.x - 2.0 * hblur * hstep, in_uv.y - 2.0 * vblur * vstep)) * 0.1216216216;
+	sum += texture(u_texture, vec2(in_uv.x - 1.0 * hblur * hstep, in_uv.y - 1.0 * vblur * vstep)) * 0.1945945946;
+	
+	sum += texture(u_texture, vec2(in_uv.x, in_uv.y)) * 0.2270270270;
+	
+	sum += texture(u_texture, vec2(in_uv.x + 1.0 * hblur * hstep, in_uv.y + 1.0 * vblur * vstep)) * 0.1945945946;
+	sum += texture(u_texture, vec2(in_uv.x + 2.0 * hblur * hstep, in_uv.y + 2.0 * vblur * vstep)) * 0.1216216216;
+	sum += texture(u_texture, vec2(in_uv.x + 3.0 * hblur * hstep, in_uv.y + 3.0 * vblur * vstep)) * 0.0540540541;
+	sum += texture(u_texture, vec2(in_uv.x + 4.0 * hblur * hstep, in_uv.y + 4.0 * vblur * vstep)) * 0.0162162162;
+
+	out_color = vec4(sum.rgb, 1.0);
 }

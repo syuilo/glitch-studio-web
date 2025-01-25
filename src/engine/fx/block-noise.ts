@@ -1,5 +1,4 @@
 import { defineGpuFx } from '@/engine/fx-utils';
-import seedrandom from 'seedrandom';
 
 export default defineGpuFx({
 	name: 'blockNoise',
