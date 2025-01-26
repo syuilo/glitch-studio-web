@@ -59,6 +59,7 @@ import fastGaussianBlur from './fx/fastGaussianBlur';
 import blurMapping from './fx/blurMapping';
 import liquidDistort from './fx/liquid-distort';
 import distortMapping from './fx/distort-mapping';
+import chromaticAberration from './fx/chromatic-aberration';
 
 const _fxs = {
 	//swap,
@@ -145,6 +146,7 @@ const _fxs = {
 	blurMapping,
 	liquidDistort,
 	distortMapping,
+	chromaticAberration,
 	//gif,
 } as Record<string, GpuFx<any>>;
 
