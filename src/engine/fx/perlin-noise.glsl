@@ -112,10 +112,15 @@ uniform vec2 u_resolution;
 uniform float u_seed;
 uniform vec2 u_scale;
 uniform float u_time;
+uniform bool u_alpha;
 
 void main() {
-	vec4 pixel = texture(u_texture, in_uv);
 	float noiseX = (in_uv.x + u_seed) * (u_scale.x / 4.0);
 	float noiseY = (in_uv.y + u_seed) * (u_scale.y / 4.0);
-	out_color = vec4(snoise(vec3(noiseX, noiseY, u_time)));
+  float noise = (snoise(vec3(noiseX, noiseY, u_time)) + 1.0) / 2.0;
+  if (u_alpha) {
+    out_color = vec4(noise);
+  } else {
+    out_color = vec4(noise, noise, noise, 1.0);
+  }
 }

@@ -24,6 +24,11 @@ export default defineGpuFx({
 			max: 200,
 			default: { type: 'literal' as const, value: [10, 10] }
 		},
+		alpha: {
+			label: 'Alpha',
+			type: 'bool' as const,
+			default: { type: 'literal' as const, value: false }
+		},
 	},
 	shader,
 	setup: ({ gl, params, shaderProgram }) => {
@@ -33,5 +38,7 @@ export default defineGpuFx({
 		gl.uniform1f(u_seed, params.seed);
 		const u_scale = gl.getUniformLocation(shaderProgram, 'u_scale');
 		gl.uniform2f(u_scale, params.scale[0], params.scale[1]);
+		const u_alpha = gl.getUniformLocation(shaderProgram, 'u_alpha');
+		gl.uniform1i(u_alpha, params.alpha ? 1 : 0);
 	},
 });
