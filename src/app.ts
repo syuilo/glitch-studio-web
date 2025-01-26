@@ -249,7 +249,7 @@ export async function render(noDelay = false, incFrame = false) {
 	} catch (e) {
 		console.error(e);
 		window.alert(e);
-		stop();
+		playing.value = false;
 	}
 	//console.timeEnd('render');
 
