@@ -8,10 +8,7 @@ export default defineGpuFx({
 	paramDefs: {
 		time: {
 			label: 'Time',
-			type: 'range' as const,
-			step: 0.01,
-			max: 1000000,
-			default: { type: 'literal' as const, value: 500000, }
+			type: 'time' as const,
 		},
 		size: {
 			label: 'Size',

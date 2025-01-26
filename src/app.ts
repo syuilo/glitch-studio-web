@@ -219,7 +219,7 @@ function addFx(fx: string) {
 
 export const frameMax = ref(59);
 export const frame = ref(0);
-export const fps = ref(30);
+export const fps = ref(60);
 export const playing = ref(true);
 
 export const rendererEnv = {
@@ -230,7 +230,7 @@ export const glitchRenderer = new GlitchRenderer();
 
 let store: ReturnType<typeof useStore>;
 
-export async function render(noDelay = false, incFrame = false) {
+export async function render() {
 	if (subStore.rendering) {
 		return;
 	}
@@ -248,27 +248,17 @@ export async function render(noDelay = false, incFrame = false) {
 		}
 	} catch (e) {
 		console.error(e);
-		window.alert(e);
+		//window.alert(e);
 		playing.value = false;
 	}
 	//console.timeEnd('render');
 
-	if (incFrame) {
-		if (frame.value + 1 > frameMax.value) {
-			frame.value = 0;
-		} else {
-			frame.value++;
-		}
-	}
-
-	if (!noDelay) {
-		await new Promise(resolve => setTimeout(resolve, 10));
-	}
-
 	subStore.rendering = false;
+
+	window.requestAnimationFrame(render);
 }
 
-let renderIntervalId = null as number | null;
+let tickFrameId = null as number | null;
 
 export function appReady() {
 	store = useStore();
@@ -280,18 +270,10 @@ export function appReady() {
 		if (store.nodes.some(n => n.type === 'fx' && n.fx === 'webcamera')) {
 			glitchRenderer.setupWebcam();
 		}
-
-		if (!playing.value) {
-			render(false, false);
-		}
 	}, { deep: true });
 	
 	watch(() => store.macros, () => {
 		glitchRenderer.macros = store.macros;
-
-		if (!playing.value) {
-			render(false, false);
-		}
 	}, { deep: true });
 	
 	watch(() => store.automations, () => {
@@ -300,20 +282,23 @@ export function appReady() {
 	
 	watch(() => store.assets, () => {
 		glitchRenderer.assets = store.assets;
-		glitchRenderer.bakeAssets().then(() => {
-			if (!playing.value) {
-				render(false, false);
-			}
-		});
+		glitchRenderer.bakeAssets();
 	}, { deep: true });
+
+	window.requestAnimationFrame(render);
 
 	watch(playing, () => {
 		if (playing.value) {
-			render(false, true);
-			renderIntervalId = window.setInterval(render.bind(null, false, true), 1000 / fps.value);
+			tickFrameId = window.setInterval(() => {
+				if (frame.value + 1 > frameMax.value) {
+					frame.value = 0;
+				} else {
+					frame.value++;
+				}
+			}, 1000 / fps.value);
 		} else {
-			window.clearInterval(renderIntervalId!);
-			renderIntervalId = null;
+			window.clearInterval(tickFrameId!);
+			tickFrameId = null;
 		}
 	}, { immediate: true });
 }

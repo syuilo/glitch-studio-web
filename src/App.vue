@@ -139,11 +139,6 @@ async function openImage() {
 	//document.title = `Glitch Studio (${path})`;
 	//glitchRenderer.init(canvas.value!, img.width, img.height, img.data);
 	////(this.$root as any).titleBar.updateTitle(`<b>Glitch Studio</b> <span style="opacity: 0.7;">(${path})</span>`);
-
-	// assetのbakeを待つ
-	nextTick(() => {
-		render();
-	});
 }
 
 onMounted(async () => {
@@ -159,7 +154,6 @@ async function saveImage() {
 		}]
 	});
 	if (path == null) return;
-	await render(true);
 	canvas.value!.toBlob(async blob => {
 		api.saveFile(path, await blob.arrayBuffer());
 	});
@@ -174,7 +168,6 @@ async function saveAnimation() {
 
 	for (let i = 0; i <= frameMax.value; i++) {
 		console.log(`${i} of ${frameMax.value}`);
-		await render(true, true);
 		const path = `${dirPath}/${i.toString().padStart(4, '0')}.png`;
 
 		await new Promise(resolve => {

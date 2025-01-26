@@ -4,7 +4,7 @@ export type Image = {
 	data: Uint8Array;
 };
 
-type FxParamDataType = 'number' | 'range' | 'range2' | 'enum' | 'bool' | 'blendMode' | 'signal' | 'xy' | 'wh' | 'color' | 'seed' | 'image' | 'node' | 'nodes';
+type FxParamDataType = 'number' | 'range' | 'range2' | 'enum' | 'bool' | 'blendMode' | 'signal' | 'xy' | 'wh' | 'color' | 'seed' | 'time' | 'image' | 'node' | 'nodes';
 
 export type FxParamValue = {
 	type: 'literal' | 'expression' | 'automation';

@@ -601,6 +601,7 @@ export class GlitchRenderer {
 		}
 
 		this.frame = args.frame ?? 0;
+		// timeがあまり大きくなるとパーリンノイズなどの生成結果が劣化していくため(バグ？)、現在時刻そのものではなくアプリケーションが起動してからの経過時間を使う
 		this.time = (Date.now() - this.initialTime) / 1000;
 		this.mouseX = args.mouseX ?? 0;
 		this.mouseY = args.mouseY ?? 0;

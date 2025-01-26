@@ -59,7 +59,6 @@ async function replace() {
 			ctx.putImageData(new ImageData(new Uint8ClampedArray(props.asset.data), props.asset.width, props.asset.height), 0, 0);
 		}
 	});
-	(this.$root.$children[0] as any).render();
 }
 
 onMounted(() => {

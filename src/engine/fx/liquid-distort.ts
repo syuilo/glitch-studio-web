@@ -25,10 +25,7 @@ export default defineGpuFx({
 		},
 		time: {
 			label: 'Time',
-			type: 'range' as const,
-			step: 0.01,
-			max: 10,
-			default: { type: 'literal' as const, value: 5, }
+			type: 'time' as const,
 		},
 		wrap: {
 			label: 'Wrap',

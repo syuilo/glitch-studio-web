@@ -12,8 +12,8 @@ export default defineGpuFx({
 			primary: true,
 			default: { type: 'literal' as const, value: null }
 		},
-		shiftMap: {
-			label: 'Shift Map',
+		map: {
+			label: 'Map',
 			type: 'node' as const,
 			default: { type: 'literal' as const, value: null }
 		},
@@ -61,7 +61,7 @@ export default defineGpuFx({
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 
 		gl.activeTexture(gl.TEXTURE1);
-		gl.bindTexture(gl.TEXTURE_2D, inputNodeTexs.shiftMap);
+		gl.bindTexture(gl.TEXTURE_2D, inputNodeTexs.map);
 		const u_map = gl.getUniformLocation(shaderProgram, 'u_map');
 		gl.uniform1i(u_map, 1);
 
