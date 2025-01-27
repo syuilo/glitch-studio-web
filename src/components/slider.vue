@@ -64,6 +64,9 @@ const maxRatio = computed(() => Math.abs(props.max) / (props.max + Math.abs(prop
 const minRatio = computed(() => Math.abs(props.min) / (props.max + Math.abs(props.min)));
 
 const rawValue = ref((props.modelValue - props.min) / (props.max - props.min));
+watch(() => props.modelValue, () => {
+	rawValue.value = (props.modelValue - props.min) / (props.max - props.min);
+});
 const steppedRawValue = computed(() => {
 	if (props.step) {
 		const step = props.step / (props.max - props.min);
