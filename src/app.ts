@@ -258,8 +258,6 @@ export async function render() {
 	window.requestAnimationFrame(render);
 }
 
-let tickFrameId = null as number | null;
-
 export function appReady() {
 	store = useStore();
 
@@ -287,18 +285,29 @@ export function appReady() {
 
 	window.requestAnimationFrame(render);
 
+	let lastTickTime = 0;
+	let frameRequest: number;
+
+	function tick(now: number) {
+		const delta = now - lastTickTime;
+
+		if (playing.value && delta > 1000 / fps.value) {
+			if (frame.value + 1 > frameMax.value) {
+				frame.value = 0;
+			} else {
+				frame.value++;
+			}
+			lastTickTime = now;
+		}
+
+		frameRequest = window.requestAnimationFrame(tick);
+	}
+
 	watch(playing, () => {
 		if (playing.value) {
-			tickFrameId = window.setInterval(() => {
-				if (frame.value + 1 > frameMax.value) {
-					frame.value = 0;
-				} else {
-					frame.value++;
-				}
-			}, 1000 / fps.value);
+			frameRequest = window.requestAnimationFrame(tick);
 		} else {
-			window.clearInterval(tickFrameId!);
-			tickFrameId = null;
+			window.cancelAnimationFrame(frameRequest);
 		}
 	}, { immediate: true });
 }
