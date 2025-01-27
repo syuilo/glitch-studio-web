@@ -5,29 +5,45 @@ in vec2 in_uv;
 uniform sampler2D u_texture;
 uniform vec2 u_resolution;
 uniform float u_radius;
-uniform vec2 u_dir;
+uniform bool u_h;
+uniform bool u_v;
 out vec4 out_color;
 
+float pi = 3.141592653589793;
+
 void main() {
-	vec4 sum = vec4(0.0);
+	float v;
+	float h_step = 1.0 / u_resolution.x;
+	float v_step = 1.0 / u_resolution.y; 
+	int steps = int(u_radius);
 	
-	float hblur = u_radius / u_resolution.x;
-	float vblur = u_radius / u_resolution.y;
+	float t = 1.0 / float(steps * 2 + 1);
+	vec4 sum = texture(u_texture, in_uv) * t;
 
-	float hstep = u_dir.x;
-	float vstep = u_dir.y;
-
-	sum += texture(u_texture, vec2(in_uv.x - 4.0 * hblur * hstep, in_uv.y - 4.0 * vblur * vstep)) * 0.0162162162;
-	sum += texture(u_texture, vec2(in_uv.x - 3.0 * hblur * hstep, in_uv.y - 3.0 * vblur * vstep)) * 0.0540540541;
-	sum += texture(u_texture, vec2(in_uv.x - 2.0 * hblur * hstep, in_uv.y - 2.0 * vblur * vstep)) * 0.1216216216;
-	sum += texture(u_texture, vec2(in_uv.x - 1.0 * hblur * hstep, in_uv.y - 1.0 * vblur * vstep)) * 0.1945945946;
-	
-	sum += texture(u_texture, vec2(in_uv.x, in_uv.y)) * 0.2270270270;
-	
-	sum += texture(u_texture, vec2(in_uv.x + 1.0 * hblur * hstep, in_uv.y + 1.0 * vblur * vstep)) * 0.1945945946;
-	sum += texture(u_texture, vec2(in_uv.x + 2.0 * hblur * hstep, in_uv.y + 2.0 * vblur * vstep)) * 0.1216216216;
-	sum += texture(u_texture, vec2(in_uv.x + 3.0 * hblur * hstep, in_uv.y + 3.0 * vblur * vstep)) * 0.0540540541;
-	sum += texture(u_texture, vec2(in_uv.x + 4.0 * hblur * hstep, in_uv.y + 4.0 * vblur * vstep)) * 0.0162162162;
+	if (u_h && u_v) {
+		int i;
+		for (i = 1; i <= steps; i++) {
+			v = (cos(float(i / (steps + 1)) * pi) + 1.0) * 0.25;
+			sum += texture(u_texture, vec2(in_uv.x + float(i) * h_step, in_uv.y + float(i) * v_step)) * v * t;
+			sum += texture(u_texture, vec2(in_uv.x - float(i) * h_step, in_uv.y - float(i) * v_step)) * v * t;
+			sum += texture(u_texture, vec2(in_uv.x - float(i) * h_step, in_uv.y + float(i) * v_step)) * v * t;
+			sum += texture(u_texture, vec2(in_uv.x + float(i) * h_step, in_uv.y - float(i) * v_step)) * v * t;
+		}
+	} else if (u_h) {
+		int i;
+		for (i = 1; i <= steps; i++) {
+			v = (cos(float(i / (steps + 1)) * pi) + 1.0) * 0.5;
+			sum += texture(u_texture, vec2(in_uv.x + float(i) * h_step, in_uv.y)) * v * t;
+			sum += texture(u_texture, vec2(in_uv.x - float(i) * h_step, in_uv.y)) * v * t;
+		}
+	} else if (u_v) {
+		int i;
+		for (i = 1; i <= steps; i++) {
+			v = (cos(float(i / (steps + 1)) * pi) + 1.0) * 0.5;
+			sum += texture(u_texture, vec2(in_uv.x, in_uv.y + float(i) * v_step)) * v * t;
+			sum += texture(u_texture, vec2(in_uv.x, in_uv.y - float(i) * v_step)) * v * t;
+		}
+	}
 
 	out_color = vec4(sum.rgb, 1.0);
 }

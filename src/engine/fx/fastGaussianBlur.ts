@@ -10,7 +10,6 @@ export default defineGpuFx({
 			label: 'Input',
 			type: 'node' as const,
 			primary: true,
-			default: { type: 'literal' as const, value: null }
 		},
 		radius: {
 			label: 'Radius',
@@ -58,7 +57,10 @@ export default defineGpuFx({
 		const u_radius = gl.getUniformLocation(shaderProgram, 'u_radius');
 		gl.uniform1f(u_radius, params.radius);
 
-		const u_dir = gl.getUniformLocation(shaderProgram, 'u_dir');
-		gl.uniform2f(u_dir, params.h ? 1 : 0, params.v ? 1 : 0);
+		const u_h = gl.getUniformLocation(shaderProgram, 'u_h');
+		gl.uniform1i(u_h, params.h);
+
+		const u_v = gl.getUniformLocation(shaderProgram, 'u_v');
+		gl.uniform1i(u_v, params.v);
 	},
 });
