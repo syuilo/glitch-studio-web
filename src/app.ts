@@ -1,4 +1,5 @@
 import { Ref, ref, markRaw, Component, reactive, watch } from 'vue';
+import type { ComponentProps as CP } from 'vue-component-type-helpers';
 import GsPopupMenu from '@/components/GsPopupMenu.vue';
 import { useStore } from './store';
 import { genId } from './utils';
@@ -43,23 +44,46 @@ export function claimZIndex(priority: keyof typeof zIndexes = 'low'): number {
 	return zIndexes[priority];
 }
 
-export async function popup(component: Component, props: Record<string, any>, events = {}, disposeEvent?: string) {
+// InstanceType<typeof Component>['$emit'] だとインターセクション型が返ってきて
+// 使い物にならないので、代わりに ['$props'] から色々省くことで emit の型を生成する
+// FIXME: 何故か *.ts ファイルからだと型がうまく取れない？ことがあるのをなんとかしたい
+type ComponentEmit<T> = T extends new () => { $props: infer Props }
+	? [keyof Pick<T, Extract<keyof T, `on${string}`>>] extends [never]
+		? Record<string, unknown> // *.ts ファイルから型がうまく取れないとき用（これがないと {} になって型エラーがうるさい）
+		: EmitsExtractor<Props>
+	: T extends (...args: any) => any
+		? ReturnType<T> extends { [x: string]: any; __ctx?: { [x: string]: any; props: infer Props } }
+			? [keyof Pick<T, Extract<keyof T, `on${string}`>>] extends [never]
+				? Record<string, unknown>
+				: EmitsExtractor<Props>
+			: never
+		: never;
+
+// props に ref を許可するようにする
+type ComponentProps<T extends Component> = { [K in keyof CP<T>]: CP<T>[K] | Ref<CP<T>[K]> };
+
+type EmitsExtractor<T> = {
+	[K in keyof T as K extends `onVnode${string}` ? never : K extends `on${infer E}` ? Uncapitalize<E> : K extends string ? never : K]: T[K];
+};
+
+export function popup<T extends Component>(
+	component: T,
+	props: ComponentProps<T>,
+	events: ComponentEmit<T> = {} as ComponentEmit<T>,
+): { dispose: () => void } {
 	markRaw(component);
 
 	const id = ++popupIdCount;
 	const dispose = () => {
 		// このsetTimeoutが無いと挙動がおかしくなる(autocompleteが閉じなくなる)。Vueのバグ？
 		window.setTimeout(() => {
-			popups.value = popups.value.filter(popup => popup.id !== id);
+			popups.value = popups.value.filter(p => p.id !== id);
 		}, 0);
 	};
 	const state = {
 		component,
 		props,
-		events: disposeEvent ? {
-			...events,
-			[disposeEvent]: dispose,
-		} : events,
+		events,
 		id,
 	};
 
@@ -77,8 +101,7 @@ export function popupMenu(items: MenuItem[] | Ref<MenuItem[]>, src?: HTMLElement
 	onClosing?: () => void;
 }): Promise<void> {
 	return new Promise((resolve, reject) => {
-		let dispose;
-		popup(GsPopupMenu, {
+		const { dispose } = popup(GsPopupMenu, {
 			items,
 			src,
 			width: options?.width,
@@ -92,8 +115,6 @@ export function popupMenu(items: MenuItem[] | Ref<MenuItem[]>, src?: HTMLElement
 			closing: () => {
 				if (options?.onClosing) options.onClosing();
 			},
-		}).then(res => {
-			dispose = res.dispose;
 		});
 	});
 }
@@ -101,8 +122,7 @@ export function popupMenu(items: MenuItem[] | Ref<MenuItem[]>, src?: HTMLElement
 export function contextMenu(items: MenuItem[] | Ref<MenuItem[]>, ev: MouseEvent): Promise<void> {
 	ev.preventDefault();
 	return new Promise((resolve, reject) => {
-		let dispose;
-		popup(GsContextMenu, {
+		const { dispose } = popup(GsContextMenu, {
 			items,
 			ev,
 		}, {
@@ -110,8 +130,6 @@ export function contextMenu(items: MenuItem[] | Ref<MenuItem[]>, ev: MouseEvent)
 				resolve();
 				dispose();
 			},
-		}).then(res => {
-			dispose = res.dispose;
 		});
 	});
 }

@@ -267,9 +267,10 @@ onMounted(() => {
 			}
 
 			> label {
+				display: grid;
+				place-content: center left;
 				width: 30%;
 				box-sizing: border-box;
-				padding-top: 4px;
 				padding-right: 8px;
 				flex-shrink: 0;
 				white-space: nowrap;

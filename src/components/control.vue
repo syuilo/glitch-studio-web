@@ -1,7 +1,15 @@
 <template>
 <div class="control-component">
 	<div v-if="type === 'range'">
-		<XSlider :modelValue="value" :step="options.step ?? 1" :min="options.min" :max="options.max" :title="`${options.min} ~ ${options.max}`" @update:modelValue="v => changeValue(parseFloat(v, 10))"/>
+		<XSlider
+			:modelValue="value"
+			:step="options.step ?? 1"
+			:min="options.min"
+			:max="options.max"
+			:title="`${options.min} ~ ${options.max}`"
+			:continuousUpdate="true"
+			@update:modelValue="v => changeValue(parseFloat(v, 10))"
+		/>
 	</div>
 	<div v-if="type === 'range2'">
 		<XSlider2 :modelValue="value" :step="options.step ?? 1" :min="options.min" :max="options.max" :title="`${options.min} ~ ${options.max}`" @update:modelValue="v => changeValue(v)"/>
