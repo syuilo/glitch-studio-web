@@ -2,7 +2,7 @@
 <div class="timctyfi" :class="{ disabled, easing }">
 	<div ref="containerEl" class="container">
 		<div class="track">
-			<div class="highlight right" :style="{ width: ((steppedRawValue - minRatio) * 100) + '%', left: (Math.abs(min) / (max + Math.abs(min))) * 100 + '%' }">
+			<div class="highlight right" :style="{ width: ((steppedRawValue - minRatio) * 100) + '%', left: (Math.abs(Math.min(0, min)) / (max + Math.abs(Math.min(0, min)))) * 100 + '%' }">
 				<div class="shine right"></div>
 			</div>
 			<div class="highlight left" :style="{ width: ((minRatio - steppedRawValue) * 100) + '%', left: (steppedRawValue) * 100 + '%' }">
@@ -13,7 +13,7 @@
 			<div v-for="i in (steps + 1)" class="tick" :style="{ left: (((i - 1) / steps) * 100) + '%' }"></div>
 		</div>
 		<div class="zeroPointTrack">
-			<div class="zeroPoint" :style="{ left: (Math.abs(min) / (max + Math.abs(min))) * 100 + '%' }"></div>
+			<div class="zeroPoint" :style="{ left: (Math.abs(Math.min(0, min)) / (max + Math.abs(Math.min(0, min)))) * 100 + '%' }"></div>
 		</div>
 		<div
 			ref="thumbEl"
@@ -60,8 +60,8 @@ const thumbEl = shallowRef<HTMLElement>();
 
 const dragging = ref(false);
 
-const maxRatio = computed(() => Math.abs(props.max) / (props.max + Math.abs(props.min)));
-const minRatio = computed(() => Math.abs(props.min) / (props.max + Math.abs(props.min)));
+const maxRatio = computed(() => Math.abs(props.max) / (props.max + Math.abs(Math.min(0, props.min))));
+const minRatio = computed(() => Math.abs(Math.min(0, props.min)) / (props.max + Math.abs(Math.min(0, props.min))));
 
 const rawValue = ref((props.modelValue - props.min) / (props.max - props.min));
 watch(() => props.modelValue, () => {
@@ -267,6 +267,7 @@ function onMousedown(ev: MouseEvent | TouchEvent) {
 			width: calc(100% - #{$thumbWidth});
 			pointer-events: none;
 
+			/*
 			> .zeroPoint {
 				position: absolute;
 				top: 0;
@@ -278,8 +279,19 @@ function onMousedown(ev: MouseEvent | TouchEvent) {
 				margin-bottom: auto;
 				background: var(--accent);
 				border-radius: 999px;
-				opacity: 0.5;
+
+				&::before {
+					content: '';
+					position: absolute;
+					top: 2px;
+					bottom: 2px;
+					left: 2px;
+					right: 2px;
+					background: #333;
+					border-radius: 999px;
+				}
 			}
+				*/
 		}
 
 		> .ticks {
@@ -309,10 +321,13 @@ function onMousedown(ev: MouseEvent | TouchEvent) {
 			width: $thumbWidth;
 			height: $thumbHeight;
 			cursor: grab;
-			background: #333;
+			background: linear-gradient(0deg, #222, #444);
 			border-radius: 999px;
-			box-shadow: 0 0 6px 0px rgba(0, 0, 0, 1);
+			box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1), 0 1px 0 rgba(255, 255, 255, 0.1) inset;
+			border: solid 1px rgba(0, 0, 0, 0.7);
+			box-sizing: border-box;
 
+			/*
 			&::before {
 				content: '';
 				position: absolute;
@@ -334,8 +349,22 @@ function onMousedown(ev: MouseEvent | TouchEvent) {
 				background: #333;
 				border-radius: 999px;
 			}
+				*/
+
+			&::before {
+				content: '';
+				position: absolute;
+				top: 7px;
+				bottom: 7px;
+				left: 7px;
+				right: 7px;
+				background: var(--accent);
+				border-radius: 999px;
+			}
 
 			&:hover, &.dragging {
+				background: #555;
+
 				&::before {
 					background: #fff;
 				}
