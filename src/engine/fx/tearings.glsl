@@ -23,5 +23,6 @@ void main() {
 	float r = texture(u_texture, vec2(in_uv.x + (v * (1.0 + channelShift)), in_uv.y)).r;
 	float g = texture(u_texture, vec2(in_uv.x + v, in_uv.y)).g;
 	float b = texture(u_texture, vec2(in_uv.x + (v * (1.0 + (channelShift / 2.0))), in_uv.y)).b;
-	out_color = vec4(r, g, b, 1.0);
+	float a = texture(u_texture, vec2(in_uv.x + v, in_uv.y)).a;
+	out_color = vec4(r, g, b, a);
 }
