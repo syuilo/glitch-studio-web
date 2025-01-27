@@ -64,13 +64,13 @@
 		<XSignal :signal="value" @input="changeValue($event)"/>
 	</div>
 	<div v-else-if="type === 'xy'">
-		<XXy :modelValue="value" @update:modelValue="v => changeValue(v)" :step="options.step ?? 1" :min="options.min" :max="options.max"/>
+		<XXy :modelValue="value" @update:modelValue="v => changeValue(v)" :step="options.step ?? 0.1" :min="options.min" :max="options.max"/>
 	</div>
 	<div v-else-if="type === 'wh'">
-		<XXySlider :modelValue="value" @update:modelValue="v => changeValue(v)" :step="options.step ?? 1" :min="options.min" :max="options.max"/>
+		<XXySlider :modelValue="value" @update:modelValue="v => changeValue(v)" :step="options.step ?? 0.1" :min="options.min" :max="options.max"/>
 	</div>
 	<div v-else-if="type === 'vector'">
-		<XXy :modelValue="value" @update:modelValue="v => changeValue(v)" :step="options.step ?? 1" :min="options.min" :max="options.max"/>
+		<XXy :modelValue="value" @update:modelValue="v => changeValue(v)" :step="options.step ?? 0.1" :min="options.min" :max="options.max"/>
 	</div>
 	<div v-else-if="type === 'color'">
 		<XColor :color="value" @input="changeValue($event)"/>
