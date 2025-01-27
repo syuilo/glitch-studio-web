@@ -18,7 +18,7 @@ export default defineGpuFx({
 			label: 'Amount',
 			type: 'range' as const,
 			max: 100,
-			default: { type: 'literal' as const, value: 5 }
+			default: { type: 'literal' as const, value: 3 }
 		},
 		strength: {
 			label: 'Strength',
@@ -26,7 +26,7 @@ export default defineGpuFx({
 			step: 0.01,
 			min: -100,
 			max: 100,
-			default: { type: 'literal' as const, value: 10 }
+			default: { type: 'literal' as const, value: 5 }
 		},
 		size: {
 			label: 'Size',
@@ -40,11 +40,12 @@ export default defineGpuFx({
 			type: 'range' as const,
 			step: 0.01,
 			max: 10,
-			default: { type: 'literal' as const, value: 0.085 }
+			default: { type: 'literal' as const, value: 0.5 }
 		},
 		seed: {
 			label: 'Seed',
 			type: 'seed' as const,
+			default: { type: 'expression' as const, value: 'TIME' }
 		},
 		wrap: {
 			label: 'Wrap',
@@ -59,7 +60,7 @@ export default defineGpuFx({
 				label: 'Repeat (Mirrored)',
 				value: 'repeatMirrored',
 			}],
-			default: { type: 'literal' as const, value: 'clampToEdge' }
+			default: { type: 'literal' as const, value: 'repeatMirrored' }
 		},
 	},
 	main: ({ renderer, gl, resultFrameBuffer, width, height, params, inputNodeTexs }) => {
