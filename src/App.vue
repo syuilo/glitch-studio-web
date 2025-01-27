@@ -13,11 +13,11 @@
 	</div>
 -->
 	<header class="header">
-		<button @click="importPreset">Import Preset</button>
-		<button @click="saveImage">save</button>
+		<GsButton @click="importPreset">Import Preset</GsButton>
+		<GsButton @click="saveImage">save</GsButton>
 		<!--<button @click="saveAnimationGif">save animation (GIF)</button>-->
-		<button @click="saveAnimation">save animation (連番)</button>
-		<button @click="showAbout = true">about</button>
+		<GsButton @click="saveAnimation">save animation (連番)</GsButton>
+		<GsButton @click="showAbout = true">about</GsButton>
 	</header>
 	<div class="a">
 		<div class="main" @wheel="onViewWheel">
@@ -90,6 +90,7 @@ import { genId } from './utils';
 import * as msgpack from '@msgpack/msgpack';
 import { frame, popups, playing, frameMax, fps, glitchRenderer, render, appReady, rendererEnv } from './app';
 import * as api from '@/api.js';
+import GsButton from './components/GsButton.vue';
 
 const store = useStore();
 

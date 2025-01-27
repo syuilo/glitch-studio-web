@@ -26,6 +26,7 @@
 			<div v-for="v of yTicks" :class="[$style.inTlYTick, { [$style.inTlYTickZero]: v.toFixed(2).replace('-', '') === '0.00', [$style.inTlYTickActive]: snappingY != null && nearlyEqual(snappingY, v) }]" :style="{ top: valueToDomY(v) + 'px' }"></div>
 			<div :class="$style.seekBar" :style="{ left: seekBarPos + 'px' }"><div :class="$style.seekBarFrame">{{ frame }}</div></div>
 			<div :class="$style.valueBar" :style="{ top: valueBarPos + 'px' }"><div :class="$style.valueBarValue">{{ currentValue.toFixed(2) }}</div></div>
+			<div :class="$style.crossPoint" :style="{ left: seekBarPos + 'px', top: valueBarPos + 'px' }"></div>
 			<div v-if="!bezierDragging" :class="$style.cursorBar" :style="{ left: cursorBarPos + 'px' }"></div>
 			<div :class="$style.automation" v-if="selectedAutomation">
 				<svg version="1.1" :viewBox="`0 0 ${tlElWidth} ${tlElHeight}`" :class="$style.lines">
@@ -948,6 +949,7 @@ onMounted(() => {
 	width: 3px;
 	background: #FF5500;
 	cursor: ew-resize;
+	will-change: left;
 
 	&::before {
 		content: "";
@@ -967,6 +969,7 @@ onMounted(() => {
 	width: 1px;
 	background: #FF5500;
 	pointer-events: none;
+	will-change: left;
 
 	&::before {
 		content: "";
@@ -993,12 +996,26 @@ onMounted(() => {
 	height: 1px;
 	background: #FF5500;
 	pointer-events: none;
+	will-change: top;
 }
 .valueBarValue {
 	display: inline-block;
 	background: #FF5500;
 	color: #fff;
 	min-width: 40px;
+}
+
+.crossPoint {
+	position: absolute;
+	z-index: 10;
+	width: 9px;
+	height: 9px;
+	margin-left: -4px;
+	margin-top: -4px;
+	border-radius: 100%;
+	background: #FF5500;
+	pointer-events: none;
+	will-change: top, left;
 }
 
 .cursorBar {
@@ -1042,8 +1059,8 @@ onMounted(() => {
 		position: absolute;
 		top: 2px;
 		left: 2px;
-		width: 10px;
-		height: 10px;
+		width: 11px;
+		height: 11px;
 		background: var(--accent);
 		border-radius: 100%;
 		pointer-events: none;
