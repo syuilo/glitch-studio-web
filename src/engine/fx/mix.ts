@@ -12,7 +12,6 @@ export default defineGpuFx({
 			label: 'A',
 			type: 'node' as const,
 			primary: true,
-			default: { type: 'literal' as const, value: null }
 		},
 		b: {
 			label: 'B',

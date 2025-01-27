@@ -220,7 +220,7 @@ function addFx(fx: string) {
 export const frameMax = ref(59);
 export const frame = ref(0);
 export const fps = ref(60);
-export const playing = ref(true);
+export const playing = ref(false);
 
 export const rendererEnv = {
 	mouseX: 0,

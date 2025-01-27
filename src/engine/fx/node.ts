@@ -11,7 +11,6 @@ export default defineGpuFx({
 			label: 'Input',
 			type: 'node' as const,
 			primary: true,
-			default: { type: 'literal' as const, value: null }
 		},
 	},
 	main: ({ renderer, gl, resultFrameBuffer, width, height, params, inputNodeTexs }) => {
