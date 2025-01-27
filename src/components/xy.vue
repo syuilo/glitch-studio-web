@@ -1,38 +1,59 @@
 <template>
 <div class="xy-component">
-	<input type="number" :value="x" @change="change('x', parseInt($event.target.value, 10))"/>
-	<input type="number" :value="y" @change="change('y', parseInt($event.target.value, 10))"/>
+	<div>
+		<XSlider v-model="x" :step="step" :min="min" :max="max" class="slider" :continuous-update="true"/>
+		<XSlider v-model="y" :step="step" :min="min" :max="max" class="slider" :continuous-update="true"/>
+	</div>
 </div>
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { onMounted, ref, shallowRef, watch } from 'vue';
+import XSlider from './slider.vue';
+import { faLink } from '@fortawesome/free-solid-svg-icons';
+import GsIconButton from './GsIconButton.vue';
 
-const props = defineProps<{
-	xy: [number, number];
-}>();
+const props = withDefaults(defineProps<{
+	modelValue: [number, number];
+	step?: number;
+	min?: number;
+	max: number;
+}>(), {
+	min: 0,
+});
 
 const emit = defineEmits<{
-	(ev: 'input', xy: [number, number]): void;
+	(ev: 'update:modelValue', value: [number, number]): void;
 }>();
 
-const x = computed(() => props.xy[0]);
-const y = computed(() => props.xy[1]);
+const x = ref(props.modelValue[0]);
+const y = ref(props.modelValue[1]);
 
-function change(xy: string, value: number) {
-	emit('input', [
-		xy === 'x' ? value : x.value,
-		xy === 'y' ? value : y.value,
-	]);
-}
+watch(x, () => {
+	emit('update:modelValue', [x.value, y.value]);
+});
+
+watch(y, () => {
+	emit('update:modelValue', [x.value, y.value]);
+});
 </script>
 
 <style scoped lang="scss">
 .xy-component {
-	display: flex;
+	position: relative;
 
-	> *:first-child {
-		margin-right: 4px;
+	> div {
+		display: flex;
+		gap: 8px;
+
+		> .slider {
+			flex: 1;
+		}
+
+		> .keep {
+			flex-grow: 0;
+		}
 	}
 }
 </style>
+	

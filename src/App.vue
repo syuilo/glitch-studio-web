@@ -191,8 +191,8 @@ function onDrop(ev: DragEvent) {
 
 function onMousemove(ev: MouseEvent) {
 	const rect = canvas.value!.getBoundingClientRect();
-	rendererEnv.mouseX = (ev.clientX - rect.left) / rect.width;
-	rendererEnv.mouseY = (ev.clientY - rect.top) / rect.height;
+	rendererEnv.mouseX = ((ev.clientX - rect.left) / rect.width) - 0.5;
+	rendererEnv.mouseY = ((ev.clientY - rect.top) / rect.height) - 0.5;
 }
 
 function onViewWheel(ev: WheelEvent) {

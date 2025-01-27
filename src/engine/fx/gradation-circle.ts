@@ -6,19 +6,13 @@ export default defineGpuFx({
 	displayName: 'Gradation circle',
 	category: 'draw',
 	paramDefs: {
-		posX: {
-			label: 'Pos X',
-			type: 'range' as const,
+		pos: {
+			label: 'Position',
+			type: 'xy' as const,
 			step: 0.01,
+			min: -1,
 			max: 1,
-			default: { type: 'literal' as const, value: 0.5 }
-		},
-		posY: {
-			label: 'Pos Y',
-			type: 'range' as const,
-			step: 0.01,
-			max: 1,
-			default: { type: 'literal' as const, value: 0.5 }
+			default: { type: 'literal' as const, value: [0, 0] }
 		},
 		size: {
 			label: 'Size',
@@ -31,7 +25,7 @@ export default defineGpuFx({
 	shader,
 	setup: ({gl, params, shaderProgram }) => {
 		const u_pos = gl.getUniformLocation(shaderProgram, 'u_pos');
-		gl.uniform2f(u_pos, params.posX, params.posY);
+		gl.uniform2f(u_pos, params.pos[0] + 0.5, params.pos[1] + 0.5);
 		const u_size = gl.getUniformLocation(shaderProgram, 'u_size');
 		gl.uniform2f(u_size, params.size[0], params.size[1]);
 	},
