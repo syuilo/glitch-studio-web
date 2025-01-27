@@ -13,6 +13,9 @@
 	</div>
 -->
 	<header class="header">
+		<GsButton @click="saveProject">Save project</GsButton>
+		<GsButton @click="openProject">Load project</GsButton>
+
 		<GsButton @click="importPreset">Import Preset</GsButton>
 		<GsButton @click="saveImage">save</GsButton>
 		<!--<button @click="saveAnimationGif">save animation (GIF)</button>-->
@@ -35,6 +38,7 @@
 				<div :class="{ active: tab === 'nodes' }" @click="tab = 'nodes'">{{ i18n.ts.Fx }}<span>({{ store.nodes.length }})</span></div>
 				<div :class="{ active: tab === 'macros' }" @click="tab = 'macros'">{{ i18n.ts.Macro }}<span>({{ store.macros.length }})</span></div>
 				<div :class="{ active: tab === 'assets' }" @click="tab = 'assets'">{{ i18n.ts.Asset }}<span>({{ store.assets.length }})</span></div>
+				<div :class="{ active: tab === 'project' }" @click="tab = 'project'">{{ i18n.ts.Project }}</div>
 			</div>
 			<GsNodesTab v-show="tab === 'nodes'" class="_gs-container"/>
 			<XMacros v-show="tab === 'macros'"/>
@@ -66,6 +70,7 @@
 	<XSavePreset v-if="showSavePresetDialog" @ok="showSavePresetDialog = false"/>
 	<XExportPreset v-if="showExportPresetDialog" @ok="showExportPresetDialog = false"/>
 	<XAbout v-if="showAbout" @ok="showAbout = false"/>
+	<XDashboard v-if="showDashboard" @open="openProject" @new="newProject"/>
 </main>
 </template>
 
@@ -76,6 +81,7 @@ import GsNodesTab from '@/components/GsNodesTab.vue';
 import XMacros from '@/components/macros.vue';
 import XAssets from '@/components/assets.vue';
 import XAbout from '@/components/about.vue';
+import XDashboard from '@/components/dashboard.vue';
 import GsTimeline from '@/components/GsTimeline.vue';
 import XSavePreset from '@/components/save-preset.vue';
 import XExportPreset from '@/components/export-preset.vue';
@@ -88,9 +94,11 @@ import { useStore } from '@/store';
 import { i18n } from '@/i18n';
 import { genId } from './utils';
 import * as msgpack from '@msgpack/msgpack';
-import { frame, popups, playing, frameMax, fps, glitchRenderer, render, appReady, rendererEnv } from './app';
+import { frame, popups, playing, frameMax, fps, glitchRenderer, render, appReady, rendererEnv, saveProject } from './app';
 import * as api from '@/api.js';
 import GsButton from './components/GsButton.vue';
+import { loadProjectFile } from '@/api.js';
+import { version } from './version';
 
 const store = useStore();
 
@@ -103,6 +111,7 @@ const progress = ref(0);
 const tab = ref('nodes');
 const presetName = '';
 const showAbout = ref(false);
+const showDashboard = ref(true);
 const showSavePresetDialog = false;
 const showExportPresetDialog = false;
 const ZOOM_STEP = 1.25;
@@ -144,8 +153,34 @@ async function openImage() {
 
 onMounted(async () => {
 	await glitchRenderer.init(canvas.value!, store.renderWidth, store.renderHeight);
-	appReady();
+	//appReady();
 });
+
+async function openProject() {
+	const { project, name } = await loadProjectFile();
+
+	console.log('project', project);
+
+	await appReady(project);
+
+	showDashboard.value = false;
+}
+
+async function newProject() {
+	await appReady({
+		id: genId(),
+		gsVersion: version,
+		name: 'untitled',
+		author: 'TODO',
+		nodes: [],
+		assets: [],
+		macros: [],
+		automations: [],
+		renderWidth: 4096,
+		renderHeight: 4096,
+	});
+	showDashboard.value = false;
+}
 
 async function saveImage() {
 	const path = await api.showSaveDialog({

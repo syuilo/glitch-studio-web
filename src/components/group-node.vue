@@ -148,7 +148,7 @@ function collectAssets(): Asset[] {
 }
 
 async function exportPreset() {
-	await api.exportPreset({
+	await api.exportPresetFile({
 		id: genId(),
 		gsVersion: version,
 		name: props.node.name ?? 'untitled',

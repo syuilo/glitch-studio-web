@@ -8,6 +8,11 @@ import { GlitchRenderer, GsGroupNode } from './engine/renderer';
 import { GsAutomation } from './engine/types';
 import { subStore } from './sub-store';
 //import GsContextMenu from '@/components/GsContextMenu.vue';
+import * as msgpack from '@msgpack/msgpack';
+import { version } from '@/version';
+import { Asset } from './types';
+import { loadProjectFile, saveProjectFile, decodeAssets } from './api';
+import { RawProject } from './settings';
 
 export type MenuAction = (ev: MouseEvent) => void;
 
@@ -276,8 +281,18 @@ export async function render() {
 	window.requestAnimationFrame(render);
 }
 
-export function appReady() {
+export async function appReady(project: RawProject) {
 	store = useStore();
+
+	store.id = project.id;
+	store.name = project.name;
+	store.author = project.author;
+	store.nodes = project.nodes;
+	store.macros = project.macros;
+	store.automations = project.automations;
+	store.renderWidth = project.renderWidth;
+	store.renderHeight = project.renderHeight;
+	store.assets = await decodeAssets(project.assets);
 
 	watch(() => store.nodes, () => {
 		glitchRenderer.nodes = store.nodes;
@@ -286,20 +301,20 @@ export function appReady() {
 		if (store.nodes.some(n => n.type === 'fx' && n.fx === 'webcamera')) {
 			glitchRenderer.setupWebcam();
 		}
-	}, { deep: true });
+	}, { deep: true, immediate: true });
 	
 	watch(() => store.macros, () => {
 		glitchRenderer.macros = store.macros;
-	}, { deep: true });
+	}, { deep: true, immediate: true });
 	
 	watch(() => store.automations, () => {
 		glitchRenderer.automations = store.automations;
-	}, { deep: true });
+	}, { deep: true, immediate: true });
 	
 	watch(() => store.assets, () => {
 		glitchRenderer.assets = store.assets;
 		glitchRenderer.bakeAssets();
-	}, { deep: true });
+	}, { deep: true, immediate: true });
 
 	window.requestAnimationFrame(render);
 
@@ -328,4 +343,27 @@ export function appReady() {
 			window.cancelAnimationFrame(frameRequest);
 		}
 	}, { immediate: true });
+}
+
+export function saveProject() {
+	saveProjectFile({
+		id: store.id,
+		gsVersion: version,
+		name: store.name,
+		author: store.author,
+		macros: store.macros,
+		nodes: store.nodes,
+		automations: store.automations,
+		renderWidth: store.renderWidth,
+		renderHeight: store.renderHeight,
+		assets: store.assets.map(asset => ({
+			id: asset.id,
+			name: asset.name,
+			width: asset.width,
+			height: asset.height,
+			fileDataType: asset.fileDataType,
+			fileData: asset.fileData,
+			hash: asset.hash,
+		})),
+	});
 }

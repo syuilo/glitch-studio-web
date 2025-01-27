@@ -2,10 +2,24 @@ import { encode, decode } from '@msgpack/msgpack';
 import { GsNode } from './glitch';
 import { Macro, Asset } from '@/types';
 import { version } from '@/version';
+import { GsAutomation } from './engine/types';
 
 //export const userDataPath = electron.remote.app.getPath('userData');
 //const filePath = path.join(userDataPath, 'settings');
 const filePath = '';
+
+export type RawProject = {
+	id: string;
+	gsVersion: string;
+	author: string;
+	name: string;
+	nodes: GsNode[];
+	macros: Macro[];
+	automations: GsAutomation[];
+	renderWidth: number;
+	renderHeight: number;
+	assets: Omit<Asset, 'data'>[];
+};
 
 export type RawPreset = {
 	id: string;

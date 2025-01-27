@@ -2,7 +2,7 @@ import type { Asset, Image } from './types';
 import imageType from 'image-type';
 import { PNG } from 'pngjs/browser';
 import JPEG from 'jpeg-js';
-import { Preset, RawPreset } from './settings';
+import { Preset, RawPreset, RawProject } from './settings';
 import * as msgpack from '@msgpack/msgpack';
 
 const TODO = () => {};
@@ -130,14 +130,14 @@ export function openPresetFile(options): Promise<{
 			if (file.stream) {
 				msgpack.decodeAsync(file.stream()).then(parsed => {
 					resolve({
-						preset: parsed,
+						preset: parsed as RawPreset,
 						name: file.name,
 					});
 				});
 			} else {
 				file.arrayBuffer().then(buffer => {
 					resolve({
-						preset: msgpack.decode(buffer),
+						preset: msgpack.decode(buffer) as RawPreset,
 						name: file.name,
 					});
 				});
@@ -147,8 +147,8 @@ export function openPresetFile(options): Promise<{
 	});
 }
 
-export function exportPreset(preset: RawPreset) {
-	console.log('exportPreset', preset);
+export function exportPresetFile(preset: RawPreset) {
+	console.log('exportPresetFile', preset);
 	const buffer = msgpack.encode(preset); // NOTE: バイナリはUint8Arrayである必要がある
 	const blob = new Blob([buffer], { type: 'application/octet-stream' });
 	const url = URL.createObjectURL(blob);
@@ -157,4 +157,48 @@ export function exportPreset(preset: RawPreset) {
 	a.download = `${preset.name}.gspreset`;
 	a.click();
 	URL.revokeObjectURL(url);
+}
+
+export function saveProjectFile(project: RawProject) {
+	console.log('saveProjectFile', project);
+	const buffer = msgpack.encode(project); // NOTE: バイナリはUint8Arrayである必要がある
+	const blob = new Blob([buffer], { type: 'application/octet-stream' });
+	const url = URL.createObjectURL(blob);
+	const a = document.createElement('a');
+	a.href = url;
+	a.download = `${project.name}.gsproj`;
+	a.click();
+	URL.revokeObjectURL(url);
+}
+
+export function loadProjectFile(): Promise<{
+	project: RawProject;
+	name: string;
+}> {
+	return new Promise((resolve, reject) => {
+		const input = document.createElement('input');
+		input.type = 'file';
+		input.accept = '.gsproj';
+		input.multiple = false;
+		input.onchange = () => {
+			const file = input.files?.[0];
+			if (file == null) return;
+			if (file.stream) {
+				msgpack.decodeAsync(file.stream()).then(parsed => {
+					resolve({
+						project: parsed as RawProject,
+						name: file.name,
+					});
+				});
+			} else {
+				file.arrayBuffer().then(buffer => {
+					resolve({
+						project: msgpack.decode(buffer) as RawProject,
+						name: file.name,
+					});
+				});
+			}
+		};
+		input.click();
+	});
 }

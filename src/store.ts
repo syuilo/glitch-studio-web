@@ -10,6 +10,9 @@ import { GpuFx, GsAutomation } from './engine/types';
 import * as api from '@/api.js';
 
 export const useStore = defineStore('main', () => {
+	const id = ref<string | null>(null);
+	const name = ref<string | null>(null);
+	const author = ref<string | null>(null);
 	const macros = ref<Macro[]>([]);
 	const automations = ref<GsAutomation[]>([]);
 	const nodes = ref<GsNode[]>([]);
@@ -327,6 +330,9 @@ export const useStore = defineStore('main', () => {
 	}
 
 	return {
+		id,
+		name,
+		author,
 		nodes,
 		macros,
 		automations,
@@ -334,6 +340,7 @@ export const useStore = defineStore('main', () => {
 		renderNodeId,
 		renderWidth,
 		renderHeight,
+	
 		addFxNode,
 		addGroupNode,
 		removeNode,
