@@ -12,7 +12,7 @@ uniform float u_g_strength;
 uniform float u_b_strength;
 uniform float u_start;
 uniform bool u_normalize;
-//uniform vec2 size;
+uniform vec2 u_vector;
 
 void main() {
 	vec2 size = vec2(u_resolution.x, u_resolution.y);
@@ -23,7 +23,7 @@ void main() {
 
 	//vec2 vector = normalize((in_uv - (size / 2.0)) / size);
 	//vec2 vector = in_uv;
-	vec2 vector = u_normalize ? normalize(in_uv - vec2(0.5)) : in_uv - vec2(0.5);
+	vec2 vector = (u_normalize ? normalize(in_uv - vec2(0.5)) : in_uv - vec2(0.5)) + u_vector;
 	vec2 velocity = vector * strength * u_amount;
 
 	//vec2 rOffset = -vector * strength * (u_amount * 1.0);

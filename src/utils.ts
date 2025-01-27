@@ -26,6 +26,8 @@ export function genEmptyValue(paramDef: Omit<FxParamDef, 'default'>): any {
 		return [0, 0];
 	} else if (paramDef.type === 'wh') {
 		return [1024, 1024];
+	} else if (paramDef.type === 'vector') {
+		return [0, 0];
 	} else if (paramDef.type === 'color') {
 		return [0, 0, 0];
 	} else if (paramDef.type === 'seed') {

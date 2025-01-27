@@ -57,6 +57,11 @@ export default defineGpuFx({
 			max: 1,
 			default: { type: 'literal' as const, value: 0 }
 		},
+		vector: {
+			label: 'Vector',
+			type: 'vector' as const,
+			default: { type: 'literal' as const, value: [0, 0] }
+		},
 		normalize: {
 			label: 'Normalize',
 			type: 'bool' as const,
@@ -87,6 +92,9 @@ export default defineGpuFx({
 
 		const start = gl.getUniformLocation(shaderProgram, 'u_start');
 		gl.uniform1f(start, params.start);
+
+		const vector = gl.getUniformLocation(shaderProgram, 'u_vector');
+		gl.uniform2fv(vector, params.vector);
 
 		const normalize = gl.getUniformLocation(shaderProgram, 'u_normalize');
 		gl.uniform1i(normalize, params.normalize ? 1 : 0);

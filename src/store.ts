@@ -41,14 +41,14 @@ export const useStore = defineStore('main', () => {
 		const params = {} as GsFxNode['params'];
 
 		for (const [k, v] of Object.entries(paramDefs)) {
-			if (v.type === 'seed') {
+			if (v.default != null) {
+				params[k] = v.default;
+			} else if (v.type === 'seed') {
 				params[k] = { type: 'literal', value: Math.floor(Math.random() * 16384) };
 			} else if (v.type === 'time') {
 				params[k] = { type: 'expression', value: 'TIME' };
 			} else if (v.type === 'node' && v.primary && (group ? group.nodes : nodes.value).length > 0) {
 				params[k] = { type: 'literal', value: (group ? group.nodes : nodes.value).at(-1).id };
-			} else {
-				params[k] = v.default!;
 			}
 		}
 
