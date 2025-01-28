@@ -19,8 +19,9 @@ export default defineGpuFx({
 			label: 'Threshold',
 			type: 'range' as const,
 			min: 0,
-			max: 100,
-			default: { type: 'literal' as const, value: 50 }
+			max: 1,
+			step: 0.01,
+			default: { type: 'literal' as const, value: 0.5 }
 		},
 		direction: {
 			label: 'Direction',
@@ -109,7 +110,7 @@ export default defineGpuFx({
 			gl.enableVertexAttribArray(positionLocation);
 
 			const threshold = gl.getUniformLocation(bufferShader, 'u_threshold');
-			gl.uniform1f(threshold, params.shadow ? params.threshold / 100 : 1 - (params.threshold / 100));
+			gl.uniform1f(threshold, params.shadow ? params.threshold : 1 - params.threshold);
 
 			const vertical = gl.getUniformLocation(bufferShader, 'u_vertical');
 			gl.uniform1f(vertical, params.direction === 'v' ? 1 : 0);

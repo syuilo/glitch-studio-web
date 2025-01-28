@@ -281,8 +281,10 @@ export async function render() {
 	window.requestAnimationFrame(render);
 }
 
-export async function appReady(project: RawProject) {
+export async function appReady(canvas: HTMLCanvasElement, project: RawProject) {
 	document.title = `Glitch Studio (${project.name})`;
+
+	await glitchRenderer.init(canvas, project.renderWidth, project.renderHeight);
 
 	store = useStore();
 

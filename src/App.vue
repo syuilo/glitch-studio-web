@@ -143,23 +143,18 @@ async function onViewClick() {
 	}
 }
 
-onMounted(async () => {
-	await glitchRenderer.init(canvas.value!, store.renderWidth, store.renderHeight);
-	//appReady();
-});
-
 async function openProject() {
 	const { project, name } = await loadProjectFile();
 
 	console.log('project', project);
 
-	await appReady(project);
+	await appReady(canvas.value!, project);
 
 	showDashboard.value = false;
 }
 
 async function newProject() {
-	await appReady({
+	await appReady(canvas.value!, {
 		id: genId(),
 		gsVersion: version,
 		name: 'untitled',
@@ -180,7 +175,7 @@ async function newProjectFromImage() {
 
 	const assetId = genId();
 
-	await appReady({
+	await appReady(canvas.value!, {
 		id: genId(),
 		gsVersion: version,
 		name: result.name,
