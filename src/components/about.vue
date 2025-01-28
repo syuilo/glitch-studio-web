@@ -2,13 +2,14 @@
 <XDialog>
 	<div class="about-componet">
 		<div class="section">
+			<img src="/gs.svg" style="display: block; margin: 0 auto 8px auto; width: 64px; height: 64px;">
 			<div><b>Glitch Studio for Web</b></div>
 			<div>{{ version }}</div>
 		</div>
 		<div class="section">
 			<small style="display: block;">
-				<div>Copyright (c) 2024 syuilo</div>
-				<a class="_gs-link" @click="open('https://github.com/syuilo/glitch-studio-web')">https://github.com/syuilo/glitch-studio-web</a>
+				<div>Copyright (c) 2024-2025 syuilo</div>
+				<a class="_gs-link" href="https://github.com/syuilo/glitch-studio-web" target="_blank">https://github.com/syuilo/glitch-studio-web</a>
 			</small>
 		</div>
 		<GsButton inline @click="emit('ok')">OK</GsButton>

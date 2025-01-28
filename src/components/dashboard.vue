@@ -5,8 +5,9 @@
 			<div><b>Glitch Studio</b></div>
 			<div>{{ version }}</div>
 		</div>
-		<GsButton inline @click="emit('new')">New project</GsButton>
-		<GsButton inline @click="emit('open')">Open project file</GsButton>
+		<GsButton inline @click="emit('newProject')">New project</GsButton>
+		<GsButton inline @click="emit('newProjectFromImage')">New project from image</GsButton>
+		<GsButton inline @click="emit('openProject')">Open project</GsButton>
 	</div>
 </XDialog>
 </template>
@@ -17,8 +18,9 @@ import XDialog from './dialog.vue';
 import GsButton from './GsButton.vue';
 
 const emit = defineEmits<{
-	(ev: 'open'): void;
-	(ev: 'new'): void;
+	(ev: 'openProject'): void;
+	(ev: 'newProject'): void;
+	(ev: 'newProjectFromImage'): void;
 }>();
 </script>
 

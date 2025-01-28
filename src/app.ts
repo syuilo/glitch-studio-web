@@ -282,6 +282,8 @@ export async function render() {
 }
 
 export async function appReady(project: RawProject) {
+	document.title = `Glitch Studio (${project.name})`;
+
 	store = useStore();
 
 	store.id = project.id;

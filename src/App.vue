@@ -28,7 +28,7 @@
 				<div class="scaling">
 					<div class="zoom">ZOOM: {{ Math.round(zoom * 100) }}%</div>
 				</div>
-				<div class="container" @click="img ? () => {} : openImage()" @mousemove="onMousemove">
+				<div class="container" @click="onViewClick()" @mousemove="onMousemove">
 					<canvas ref="canvas"/>
 				</div>
 			</div>
@@ -70,7 +70,7 @@
 	<XSavePreset v-if="showSavePresetDialog" @ok="showSavePresetDialog = false"/>
 	<XExportPreset v-if="showExportPresetDialog" @ok="showExportPresetDialog = false"/>
 	<XAbout v-if="showAbout" @ok="showAbout = false"/>
-	<XDashboard v-if="showDashboard" @open="openProject" @new="newProject"/>
+	<XDashboard v-if="showDashboard" @openProject="openProject" @newProject="newProject" @newProjectFromImage="newProjectFromImage"/>
 </main>
 </template>
 
@@ -117,38 +117,30 @@ const showExportPresetDialog = false;
 const ZOOM_STEP = 1.25;
 const zoom = ref(1 / ZOOM_STEP / ZOOM_STEP / ZOOM_STEP);
 
-async function openImage() {
-	const result = await api.openImageFile({});
-	if (result == null) return;
-
+async function onViewClick() {
 	if (store.nodes.length === 0) {
-		store.renderWidth = result.img.width;
-		store.renderHeight = result.img.height;
-		glitchRenderer.changeSize(result.img.width, result.img.height);
+		const result = await api.openImageFile({});
+		if (result == null) return;
+
+		const assetId = genId();
+		store.addAsset({
+			id: assetId,
+			name: result.name,
+			width: result.img.width,
+			height: result.img.height,
+			data: result.img.data,
+			fileDataType: result.type,
+			fileData: result.fileData,
+			hash: result.hash,
+		});
+		store.addFxNode({
+			fx: 'image',
+			id: genId(),
+			params: {
+				image: { type: 'literal', value: assetId }
+			}
+		});
 	}
-	const assetId = genId();
-	store.addAsset({
-		id: assetId,
-		name: result.name,
-		width: result.img.width,
-		height: result.img.height,
-		data: result.img.data,
-		fileDataType: result.type,
-		fileData: result.fileData,
-		hash: result.hash,
-	});
-	store.addFxNode({
-		fx: 'image',
-		id: genId(),
-		params: {
-			image: { type: 'literal', value: assetId }
-		}
-	});
-	//img = result.img;
-	//imgHash = result.hash;
-	//document.title = `Glitch Studio (${path})`;
-	//glitchRenderer.init(canvas.value!, img.width, img.height, img.data);
-	////(this.$root as any).titleBar.updateTitle(`<b>Glitch Studio</b> <span style="opacity: 0.7;">(${path})</span>`);
 }
 
 onMounted(async () => {
@@ -179,6 +171,47 @@ async function newProject() {
 		renderWidth: 4096,
 		renderHeight: 4096,
 	});
+	showDashboard.value = false;
+}
+
+async function newProjectFromImage() {
+	const result = await api.openImageFile({});
+	if (result == null) return;
+
+	const assetId = genId();
+
+	await appReady({
+		id: genId(),
+		gsVersion: version,
+		name: result.name,
+		author: 'TODO',
+		nodes: [],
+		assets: [],
+		macros: [],
+		automations: [],
+		renderWidth: result.img.width,
+		renderHeight: result.img.height,
+	});
+
+	store.addAsset({
+		id: assetId,
+		name: result.name,
+		width: result.img.width,
+		height: result.img.height,
+		data: result.img.data,
+		fileDataType: result.type,
+		fileData: result.fileData,
+		hash: result.hash,
+	});
+
+	store.addFxNode({
+		fx: 'image',
+		id: genId(),
+		params: {
+			image: { type: 'literal', value: assetId }
+		}
+	});
+
 	showDashboard.value = false;
 }
 
