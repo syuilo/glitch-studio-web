@@ -17,33 +17,27 @@ async function loadImageFromBuffer(image: Uint8Array, type: string): Promise<Ima
 	console.log('image', image);
 	console.log('type', type);
 
-	if (type === 'image/png') {
-		const png = PNG.sync.read(image);
-		return {
-			width: png.width,
-			height: png.height,
-			data: new Uint8Array(png.data),
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader();
+		reader.onload = () => {
+			const img = new Image();
+			img.onload = async () => {
+				const canvas = document.createElement('canvas');
+				canvas.width = img.width;
+				canvas.height = img.height;
+				const ctx = canvas.getContext('2d');
+				ctx?.drawImage(img, 0, 0);
+				const data = ctx?.getImageData(0, 0, img.width, img.height).data;
+				resolve({
+					width: img.width,
+					height: img.height,
+					data: new Uint8Array(data),
+				});
+			};
+			img.src = reader.result as string;
 		};
-	} else if (type === 'image/gif') {
-		const gif = GIF.parseGIF(image);
-		return {
-			width: gif.lsd.width,
-			height: gif.lsd.height,
-			data: null,
-		};
-	} else if (type === 'image/jpeg') {
-		return JPEG.decode(image, { useTArray: true });
-	//} else if (type === 'image/tiff') {
-	//	const ifds = TIFF.decode(image)[0];
-	//	TIFF.decodeImage(image, ifds);
-	//	return {
-	//		width: ifds.width,
-	//		height: ifds.height,
-	//		data: TIFF.toRGBA8(ifds),
-	//	};
-	} else {
-		throw new Error('Unsupported image type: ' + type);
-	}
+		reader.readAsDataURL(new Blob([image]));
+	});
 }
 
 export function decodeAssets(assets: Omit<Asset, 'data'>[]) {
