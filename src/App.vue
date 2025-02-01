@@ -7,11 +7,6 @@
 		v-bind="popup.props"
 		v-on="popup.events"
 	/>
-	<!--
-	<div class="histogram" v-if="histogram && showHistogram">
-		<XHistogram :histogram="histogram"/>
-	</div>
--->
 	<header class="header">
 		<GsButton @click="saveProject">Save project</GsButton>
 		<GsButton @click="openProject">Load project</GsButton>
@@ -27,6 +22,9 @@
 			<div class="_gs-container viewer" dropzone="copy" @dragover.prevent="e => { e.dataTransfer.dropEffect = 'copy'; }" @drop.prevent="onDrop">
 				<div class="scaling">
 					<div class="zoom">ZOOM: {{ Math.round(zoom * 100) }}%</div>
+				</div>
+				<div class="histogram">
+					<XHistogram v-if="canvas != null" :src="canvas"/>
 				</div>
 				<div class="container" @click="onViewClick()" @mousemove="onMousemove">
 					<canvas ref="canvas"/>
@@ -76,7 +74,7 @@
 
 <script lang="ts" setup>
 import * as semver from 'semver';
-import { Ref, nextTick, onMounted, ref, shallowRef, watch } from 'vue';
+import { Ref, nextTick, onMounted, ref, shallowRef, useTemplateRef, watch } from 'vue';
 import GsNodesTab from '@/components/GsNodesTab.vue';
 import XMacros from '@/components/macros.vue';
 import XAssets from '@/components/assets.vue';
@@ -102,7 +100,7 @@ import { version } from './version';
 
 const store = useStore();
 
-const canvas = shallowRef<HTMLCanvasElement>();
+const canvas = useTemplateRef('canvas');
 let img = null as Image | null;
 let imgHash = null as string | null;
 const histogram = null as Histogram | null;
@@ -294,18 +292,6 @@ async function importPreset() {
 	background: #181818;
 	overflow: clip;
 
-	> .histogram {
-		position: fixed;
-		bottom: 64px + 8px;
-		left: 32px + 8px;
-		padding: 16px;
-		pointer-events: none;
-		background: rgba(0, 0, 0, 0.5);
-		backdrop-filter: blur(8px);
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
-		border-radius: 4px;
-	}
-
 	> .header {
 		display: flex;
 		height: 32px;
@@ -337,6 +323,18 @@ async function importPreset() {
 					right: 0;
 					padding: 4px 8px;
 					background: #0008;
+				}
+
+				> .histogram {
+					position: absolute;
+					z-index: 1;
+					bottom: 12px;
+					left: 12px;
+					padding: 16px;
+					pointer-events: none;
+					background: rgba(0, 0, 0, 0.5);
+					backdrop-filter: blur(8px);
+					border-radius: 8px;
 				}
 
 				> .container {

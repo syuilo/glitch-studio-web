@@ -115,7 +115,7 @@ export class GlitchRenderer {
 		this.renderHeight = height;
 
 		this.gl = this.canvas.getContext('webgl2', {
-			preserveDrawingBuffer: false,
+			preserveDrawingBuffer: true, // パフォーマンス上 false にしたいけど true にしないとヒストグラム描画できない
 			alpha: true,
 			premultipliedAlpha: false,
 		})!;

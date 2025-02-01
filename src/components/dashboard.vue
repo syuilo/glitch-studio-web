@@ -5,9 +5,15 @@
 			<div><b>Glitch Studio</b></div>
 			<div>{{ version }}</div>
 		</div>
-		<GsButton inline @click="emit('newProject')">New project</GsButton>
-		<GsButton inline @click="emit('newProjectFromImage')">New project from image</GsButton>
-		<GsButton inline @click="emit('openProject')">Open project</GsButton>
+		<div>
+			<GsButton inline @click="emit('newProject')">New project</GsButton>
+		</div>
+		<div>
+			<GsButton inline @click="emit('newProjectFromImage')">New project from image</GsButton>
+		</div>
+		<div>
+			<GsButton inline @click="emit('openProject')">Open project</GsButton>
+		</div>
 	</div>
 </XDialog>
 </template>
