@@ -25,25 +25,6 @@ export type GsGroupNode = {
 
 export type GsNode = GsFxNode | GsGroupNode;
 
-export type Histogram = {
-	bins: {
-		r: number[]; g: number[]; b: number[];
-	};
-	max: number;
-	rAmount: number;
-	gAmount: number;
-	bAmount: number;
-	amountMax: number;
-	amountMin: number;
-	rMax: number;
-	gMax: number;
-	bMax: number;
-	rgbMax: number;
-};
-
-//const cpuRendererWorker = new CpuRendererWorker();
-//const histogramWorker = new Worker(new URL('../../main/workers/histogram', import.meta.url));
-
 const evaluate = (expression: string, scope: Record<string, any>) => {
 	const value = math.evaluate(expression, scope);
 	if (value != null && value.toArray) {
@@ -52,9 +33,6 @@ const evaluate = (expression: string, scope: Record<string, any>) => {
 		return value;
 	}
 };
-
-const renderCache = {} as Record<string, Uint8ClampedArray>;
-const histogramCache = {} as Record<string, any>;
 
 function serializeAsset(asset: Asset | undefined) {
 	if (asset == null) return null;
