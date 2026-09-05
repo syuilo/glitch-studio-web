@@ -82,7 +82,7 @@ export default defineEffect({
 			entries: [
 				{ binding: 1, resource: { buffer: uniformBuffer }},
 				{ binding: 2, resource: sampler },
-				{ binding: 3, resource: params.image.data },
+				{ binding: 3, resource: params.image.createView() },
 			],
 		});
 

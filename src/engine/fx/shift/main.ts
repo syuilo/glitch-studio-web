@@ -67,7 +67,7 @@ export default defineEffect({
 			entries: [
 				{ binding: 1, resource: { buffer: uniformBuffer }},
 				{ binding: 2, resource: sampler },
-				{ binding: 3, resource: params.input },
+				{ binding: 3, resource: params.input.createView() },
 			],
 		});
 

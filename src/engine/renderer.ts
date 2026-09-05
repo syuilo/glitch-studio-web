@@ -349,8 +349,8 @@ export class GlitchRenderer {
 
 		const paramsWithOuts = Object.fromEntries(Object.entries(params).map(([k, v]) =>
 			[k,
-				effect.paramDefs[k].type === 'node' ? { data: this.effectOuts.get(params[k])!.createView(), width: this.resolution.width, height: this.resolution.height } :
-				effect.paramDefs[k].type === 'image' ? { data: this.assetTextures.get(params[k])!.createView(), width: this.assets.find(a => a.id === params[k])!.width, height: this.assets.find(a => a.id === params[k])!.height } :
+				effect.paramDefs[k].type === 'node' ? this.effectOuts.get(params[k])! :
+				effect.paramDefs[k].type === 'image' ? this.assetTextures.get(params[k])! :
 				v]));
 
 		let effectInstance = this.effectInstances.get(node.id);
