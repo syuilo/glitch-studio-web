@@ -5,7 +5,7 @@ import { fxs } from '@/engine/fxs';
 import { genEmptyValue } from '@/utils';
 import { Preset } from './settings';
 import { Macro, Asset, FxParamDefs } from '@/types';
-import { GsFxNode, GsGroupNode, GsNode } from '@/engine/renderer';
+import { GsFxNode, GsGroupNode, GsNode } from '@/engine/renderer-legacy';
 import { GpuFx, GsAutomation } from './engine/types';
 import * as api from '@/api.js';
 
@@ -42,10 +42,11 @@ export const useStore = defineStore('main', () => {
 		const paramDefs = fxs[payload.fx].paramDefs as FxParamDefs;
 		
 		const params = {} as GsFxNode['params'];
+		const defaultParams = fxs[payload.fx].getDefaultParams();
 
 		for (const [k, v] of Object.entries(paramDefs)) {
-			if (v.default != null) {
-				params[k] = v.default;
+			if (defaultParams[k] != null) {
+				params[k] = defaultParams[k];
 			} else if (v.type === 'seed') {
 				params[k] = { type: 'literal', value: Math.floor(Math.random() * 16384) };
 			} else if (v.type === 'time') {

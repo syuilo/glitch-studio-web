@@ -1,6 +1,3 @@
-import { Asset, FxParamDefs } from '@/types';
-import { EvaledParams, GpuFx, InputNodeTexs } from './types';
-import { GlitchRenderer } from './renderer';
 
 export const basicParamDefs = {
 	_wh: {
@@ -10,38 +7,97 @@ export const basicParamDefs = {
 	},
 };
 
-export type GpuFxDef<Ps extends FxParamDefs> = {
+type NumberOptionSchema = {
+	type: 'number';
+	label: string;
+	min?: number;
+	max?: number;
+	step?: number;
+};
+
+type BooleanOptionSchema = {
+	type: 'boolean';
+	label: string;
+};
+
+type ColorOptionSchema = {
+	type: 'color';
+	label: string;
+};
+
+type EnumOptionSchema = {
+	type: 'enum';
+	label: string;
+	enum: {
+		value: string | number | null;
+		label: string;
+	}[];
+};
+
+type RangeOptionSchema = {
+	type: 'range';
+	label: string;
+	min: number;
+	max: number;
+	step?: number;
+};
+
+type NodeOptionSchema = {
+	type: 'node';
+	label: string;
+};
+
+type EffectOptionsSchema = Record<string, NumberOptionSchema | BooleanOptionSchema | ColorOptionSchema | EnumOptionSchema | RangeOptionSchema | NodeOptionSchema>;
+
+type GetEffectOptionsSchemaValues<T extends EffectOptionsSchema> = {
+	[K in keyof T]:
+	T[K] extends NumberOptionSchema ? number :
+	T[K] extends BooleanOptionSchema ? boolean :
+	T[K] extends ColorOptionSchema ? Readonly<[number, number, number]> :
+	T[K] extends EnumOptionSchema ? T[K]['enum'][number]['value'] :
+	T[K] extends RangeOptionSchema ? number :
+	T[K] extends NodeOptionSchema ? GPUTextureView :
+	never;
+};
+
+type EffectOptionsSchemaDefaultValues<T extends EffectOptionsSchema> = {
+	[K in keyof T]:
+		{ type: 'literal'; value: GetEffectOptionsSchemaValues<T>[K] } |
+		{ type: 'expression'; value: string } |
+		{ type: 'automation'; value: string };
+};
+
+
+export type EffectInstance<Options = any> = {
+	render: (ctx: {
+		time: number;
+		timeDelta: number;
+		commandEncoder: GPUCommandEncoder;
+		createPassEncoder: (commandEncoder: GPUCommandEncoder, descriptor?: GPURenderPassDescriptor) => GPURenderPassEncoder;
+	}) => void;
+	dispose: () => void;
+};
+
+export type Effect<OpSc extends EffectOptionsSchema = EffectOptionsSchema> = {
 	name: string;
 	displayName: string;
 	category: string;
-	paramDefs: Ps;
+	paramDefs: OpSc;
+	getDefaultParams: () => EffectOptionsSchemaDefaultValues<OpSc>;
+	getOut: (args: { resolution: { width: number; height: number; } }) => GPUTexture;
 	shader?: string;
-	setup?: (args: {
-		gl: WebGL2RenderingContext;
-		shaderProgram: WebGLProgram;
-		w: number;
-		h: number;
-		params: EvaledParams<Ps>;
-		inputNodeTexs: InputNodeTexs<Ps>;
-	}) => void;
-	main?: (args: {
-		renderer: GlitchRenderer;
-		gl: WebGL2RenderingContext;
-		resultFrameBuffer: WebGLFramebuffer;
-		width: number;
-		height: number;
-		params: EvaledParams<Ps>;
-		inputNodeTexs: InputNodeTexs<Ps>;
-	}) => void;
+	init: (args: {
+		canvas: HTMLCanvasElement;
+		resolution: { width: number; height: number; },
+		wgpu: {
+			device: GPUDevice;
+			context: GPUCanvasContext;
+			defaultVertexShaderModule: GPUShaderModule;
+		};
+		params: GetEffectOptionsSchemaValues<OpSc>;
+	}) => Promise<EffectInstance<GetEffectOptionsSchemaValues<OpSc>>>;
 };
 
-export function defineGpuFx<Ps extends FxParamDefs>(def: GpuFxDef<Ps>): GpuFx<Ps> {
-	return {
-		...def,
-		paramDefs: {
-			...def.paramDefs,
-			...basicParamDefs,
-		},
-		isGpu: true,
-	};
+export function defineEffect<const OpSc extends EffectOptionsSchema>(def: Effect<OpSc>): Effect<OpSc> {
+	return def;
 }

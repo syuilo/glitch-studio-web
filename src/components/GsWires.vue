@@ -9,7 +9,7 @@
 <script lang="ts" setup>
 import { wireMap } from '@/app';
 import { fxs } from '@/engine/fxs';
-import { GsNode } from '@/engine/renderer';
+import { GsNode } from '@/engine/renderer-legacy';
 import { useStore } from '@/store';
 import { version } from '@/version';
 import { onMounted, ref, shallowRef, watch } from 'vue';

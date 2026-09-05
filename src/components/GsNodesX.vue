@@ -14,7 +14,7 @@ import XGroupNode from './group-node.vue';
 import { fxs } from '@/engine/fxs';
 import { useStore } from '@/store';
 import { i18n } from '@/i18n';
-import { GsGroupNode, GsNode } from '@/engine/renderer';
+import { GsGroupNode, GsNode } from '@/engine/renderer-legacy.ts';
 import { genId } from '@/utils';
 import { popupMenu } from '@/app';
 

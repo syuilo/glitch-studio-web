@@ -31,7 +31,7 @@ import { defineAsyncComponent, ref, shallowRef, watch } from 'vue';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { fxs } from '@/engine/fxs';
 import { i18n } from '@/i18n';
-import { GsGroupNode, GsNode } from '@/engine/renderer';
+import { GsGroupNode, GsNode } from '@/engine/renderer-legacy.ts';
 import { ulid } from 'ulid';
 import { useStore } from '@/store';
 import GsButton from './GsButton.vue';

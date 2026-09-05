@@ -284,7 +284,13 @@ export async function render() {
 export async function appReady(canvas: HTMLCanvasElement, project: RawProject) {
 	document.title = `Glitch Studio (${project.name})`;
 
-	await glitchRenderer.init(canvas, project.renderWidth, project.renderHeight);
+	await glitchRenderer.init({
+		canvas,
+		resolution: {
+			width: project.renderWidth,
+			height: project.renderHeight,
+		}
+	});
 
 	store = useStore();
 
@@ -299,7 +305,7 @@ export async function appReady(canvas: HTMLCanvasElement, project: RawProject) {
 	store.assets = await decodeAssets(project.assets);
 
 	watch(() => store.nodes, () => {
-		glitchRenderer.nodes = store.nodes;
+		glitchRenderer.updateNodes(JSON.parse(JSON.stringify(store.nodes))); // proxy解除
 	
 		// TODO: グループ考慮
 		if (store.nodes.some(n => n.type === 'fx' && n.fx === 'webcamera')) {

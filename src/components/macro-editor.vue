@@ -35,7 +35,7 @@ import { useStore } from '@/store';
 import { i18n } from '@/i18n';
 import { Macro } from '@/types';
 import { genId } from '@/utils';
-import { GsGroupNode } from '@/engine/renderer';
+import { GsGroupNode } from '@/engine/renderer-legacy.ts';
 import GsSelect from './GsSelect.vue';
 
 const store = useStore();

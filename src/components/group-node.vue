@@ -46,7 +46,7 @@ import { fxs } from '@/engine/fxs';
 import { subStore } from '@/sub-store';
 import { useStore } from '@/store';
 import { i18n } from '@/i18n';
-import { GsGroupNode } from '@/engine/renderer';
+import { GsGroupNode } from '@/engine/renderer-legacy.ts';
 import XControl from './control.vue';
 import { Asset, Macro } from '@/types';
 import XMacroEditor from './macro-editor.vue';

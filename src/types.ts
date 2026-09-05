@@ -7,8 +7,14 @@ export type Image = {
 type FxParamDataType = 'number' | 'range' | 'range2' | 'enum' | 'bool' | 'blendMode' | 'signal' | 'xy' | 'wh' | 'color' | 'vector' | 'seed' | 'time' | 'image' | 'node' | 'nodes';
 
 export type FxParamValue = {
-	type: 'literal' | 'expression' | 'automation';
+	type: 'literal';
 	value: any;
+} | {
+	type: 'expression';
+	value: string;
+} | {
+	type: 'automation';
+	value: string;
 };
 
 export type Macro = {

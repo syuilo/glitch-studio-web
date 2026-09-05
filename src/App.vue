@@ -92,7 +92,7 @@ import { useStore } from '@/store';
 import { i18n } from '@/i18n';
 import { genId } from './utils';
 import * as msgpack from '@msgpack/msgpack';
-import { frame, popups, playing, frameMax, fps, glitchRenderer, render, appReady, rendererEnv, saveProject } from './app';
+import { frame, popups, playing, frameMax, fps, render, appReady, rendererEnv, saveProject } from './app';
 import * as api from '@/api.js';
 import GsButton from './components/GsButton.vue';
 import { loadProjectFile } from '@/api.js';

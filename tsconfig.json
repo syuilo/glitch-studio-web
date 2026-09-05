@@ -21,12 +21,13 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
-    "baseUrl": ".",
     "paths": {
 			"@/*": [
-				"src/*"
+				"./src/*"
 			]
 		},
+
+    "types": ["@webgpu/types"]
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"],
   "references": [{ "path": "./tsconfig.node.json" }]

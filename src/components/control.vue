@@ -119,7 +119,7 @@ import XNodesInput from './nodes-input.vue';
 import { fxs } from '@/engine/fxs';
 import { useStore } from '@/store';
 import { i18n } from '@/i18n';
-import { GsGroupNode, GsNode } from '@/engine/renderer';
+import { GsGroupNode, GsNode } from '@/engine/renderer-legacy.ts';
 import GsButton from './GsButton.vue';
 import GsSelect from './GsSelect.vue';
 import { wireMap } from '@/app';

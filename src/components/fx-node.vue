@@ -38,7 +38,7 @@ import { fxs } from '@/engine/fxs';
 import { subStore } from '@/sub-store';
 import { useStore } from '@/store';
 import { i18n } from '@/i18n';
-import { GsFxNode, GsGroupNode } from '@/engine/renderer';
+import { GsFxNode, GsGroupNode } from '@/engine/renderer-legacy.ts';
 import GsIconButton from './GsIconButton.vue';
 import GsButton from './GsButton.vue';
 import { popupMenu, wireMap } from '@/app';
