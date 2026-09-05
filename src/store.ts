@@ -1,13 +1,10 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia'
-import { PiniaUndo } from 'pinia-undo'
 import { fxs } from '@/engine/fxs';
 import { genEmptyValue } from '@/utils';
-import { Preset } from './settings';
 import { Macro, Asset, FxParamDefs } from '@/types';
 import { GsFxNode, GsGroupNode, GsNode } from '@/engine/renderer-legacy';
 import { GsAutomation } from './engine/types';
-import * as api from '@/api.js';
 
 export const useStore = defineStore('main', () => {
 	const id = ref<string | null>(null);

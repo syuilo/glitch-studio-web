@@ -1,12 +1,13 @@
-import { FxParamValue } from "@/types.ts";
+import { Asset, FxParamValue, Macro } from "@/types.ts";
 import { EffectInstance } from "./fx-utils.ts";
 import defaultVertexShaderCode from './vertex.wgsl?raw';
 import TimingHelper from './TimingHelper.ts';
 import { fxs } from "./fxs.ts";
-import { makeShaderDataDefinitions, makeStructuredView } from "webgpu-utils";
+import { createTextureFromSource, makeShaderDataDefinitions, makeStructuredView } from "webgpu-utils";
 import finalRenderShaderCode from './render.wgsl?raw';
 import { NonNegativeRollingAverage } from "./NonNegativeRollingAverage.ts";
 import { ref } from "vue";
+import { GsAutomation } from "./types.ts";
 
 export type GsFxNode = {
 	id: string;
@@ -42,6 +43,10 @@ export class GlitchRenderer {
 	private enableStats: boolean = true;
 	private hasAlpha: boolean = false;
 	private nodes: GsNode[] = [];
+	public assets: Asset[] = [];
+	public macros: Macro[] = [];
+	public automations: GsAutomation[] = [];
+	public assetTextures: Map<string, GPUTexture> = new Map();
 	private effectInstances: Map<GsFxNode['id'], EffectInstance | null> = new Map();
 	private effectOuts: Map<GsFxNode['id'], GPUTexture> = new Map();
 	private timingHelper: TimingHelper | null = null;
@@ -342,7 +347,8 @@ export class GlitchRenderer {
 		//	}
 		//}
 
-		const paramsWithOuts = Object.fromEntries(Object.entries(params).map(([k, v]) => [k, effect.paramDefs[k].type === 'node' ? this.effectOuts.get(params[k])!.createView() : v]));
+		const paramsWithOuts = Object.fromEntries(Object.entries(params).map(([k, v]) =>
+			[k, effect.paramDefs[k].type === 'node' ? this.effectOuts.get(params[k])!.createView() : effect.paramDefs[k].type === 'image' ? this.assetTextures.get(params[k])!.createView() : v]));
 
 		let effectInstance = this.effectInstances.get(node.id);
 		if (effectInstance == null) {
@@ -462,42 +468,38 @@ export class GlitchRenderer {
 	}
 
 	public async bakeAssets() {
-		//for (const [k, v] of this.assetTextures.entries()) {
-		//	gl.deleteTexture(v);
-		//	this.assetTextures.delete(k);
-		//}
+		for (const [k, v] of this.assetTextures.entries()) {
+			v.destroy();
+			this.assetTextures.delete(k);
+		}
 
-	//	for (const asset of this.assets) {
-	//		const tex = this.createTexture();
-	//		gl.activeTexture(gl.TEXTURE0);
-	//		gl.bindTexture(gl.TEXTURE_2D, tex);
-	//		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, asset.width, asset.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, asset.data);
-	//		gl.bindTexture(gl.TEXTURE_2D, null);
-//
-	//		this.assetTextures.set(asset.id, tex);
-//
-	//		/*
-	//		// gif
-	//		const gif = GIF.parseGIF(asset.buffer);
-	//		const frames = GIF.decompressFrames(gif, true);
-	//		const canvas = document.createElement('canvas');
-	//		const gifCanvas = document.createElement('canvas');
-	//		const tempCanvas = document.createElement('canvas');
-	//		document.body.appendChild(canvas);
-	//		this.gifs.set(asset.id, {
-	//			gif,
-	//			frames,
-	//			canvas,
-	//			canvasCtx: canvas.getContext('2d')!,
-	//			gifCanvas,
-	//			gifCanvasCtx: gifCanvas.getContext('2d')!,
-	//			tempCanvas,
-	//			tempCanvasCtx: tempCanvas.getContext('2d')!,
-	//		});
-	//		*/
-	//	}
-//
-	//	this.clearNodeCache();
+		for (const asset of this.assets) {
+			const tex = createTextureFromSource(this.gpuDevice!, asset.data);
+
+			this.assetTextures.set(asset.id, tex);
+
+			/*
+			// gif
+			const gif = GIF.parseGIF(asset.buffer);
+			const frames = GIF.decompressFrames(gif, true);
+			const canvas = document.createElement('canvas');
+			const gifCanvas = document.createElement('canvas');
+			const tempCanvas = document.createElement('canvas');
+			document.body.appendChild(canvas);
+			this.gifs.set(asset.id, {
+				gif,
+				frames,
+				canvas,
+				canvasCtx: canvas.getContext('2d')!,
+				gifCanvas,
+				gifCanvasCtx: gifCanvas.getContext('2d')!,
+				tempCanvas,
+				tempCanvasCtx: tempCanvas.getContext('2d')!,
+			});
+			*/
+		}
+
+		//this.clearNodeCache();
 	}
 
 	public destroy() {

@@ -1,5 +1,4 @@
 import { FxParamDefs } from "@/types";
-import { GlitchRenderer } from "./renderer-legacy";
 
 type OmitNever<T> = { [K in keyof T as T[K] extends never ? never : K]: T[K] }
 

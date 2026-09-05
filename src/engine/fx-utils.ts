@@ -42,12 +42,17 @@ type RangeOptionSchema = {
 	step?: number;
 };
 
+type ImageOptionSchema = {
+	type: 'image';
+	label: string;
+};
+
 type NodeOptionSchema = {
 	type: 'node';
 	label: string;
 };
 
-type EffectOptionsSchema = Record<string, NumberOptionSchema | BooleanOptionSchema | ColorOptionSchema | EnumOptionSchema | RangeOptionSchema | NodeOptionSchema>;
+type EffectOptionsSchema = Record<string, NumberOptionSchema | BooleanOptionSchema | ColorOptionSchema | EnumOptionSchema | RangeOptionSchema | ImageOptionSchema | NodeOptionSchema>;
 
 type GetEffectOptionsSchemaValues<T extends EffectOptionsSchema> = {
 	[K in keyof T]:
@@ -56,7 +61,8 @@ type GetEffectOptionsSchemaValues<T extends EffectOptionsSchema> = {
 	T[K] extends ColorOptionSchema ? Readonly<[number, number, number]> :
 	T[K] extends EnumOptionSchema ? T[K]['enum'][number]['value'] :
 	T[K] extends RangeOptionSchema ? number :
-	T[K] extends NodeOptionSchema ? GPUTextureView :
+	T[K] extends ImageOptionSchema ? GPUTextureView | null :
+	T[K] extends NodeOptionSchema ? GPUTextureView | null :
 	never;
 };
 
@@ -66,7 +72,6 @@ type EffectOptionsSchemaDefaultValues<T extends EffectOptionsSchema> = {
 		{ type: 'expression'; value: string } |
 		{ type: 'automation'; value: string };
 };
-
 
 export type EffectInstance<Options = any> = {
 	render: (ctx: {
