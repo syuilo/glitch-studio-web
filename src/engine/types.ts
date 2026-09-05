@@ -20,32 +20,6 @@ export type InputNodeTexs<T extends FxParamDefs> = OmitNever<{
 		never;
 }>;
 
-export type GpuFx<Ps extends FxParamDefs> = {
-	name: string;
-	displayName: string;
-	category: string;
-	paramDefs: Ps;
-	isGpu: true;
-	shader?: string;
-	setup?: (args: {
-		gl: WebGL2RenderingContext;
-		shaderProgram: WebGLProgram;
-		w: number;
-		h: number;
-		params: EvaledParams<Ps>;
-		inputNodeTexs: InputNodeTexs<Ps>;
-	}) => void;
-	main?: (args: {
-		renderer: GlitchRenderer;
-		gl: WebGL2RenderingContext;
-		resultFrameBuffer: WebGLFramebuffer;
-		width: number;
-		height: number;
-		params: EvaledParams<Ps>;
-		inputNodeTexs: InputNodeTexs<Ps>;
-	}) => void;
-};
-
 export type GsKeyframe = {
 	id: string;
 	frame: number;

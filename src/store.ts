@@ -6,7 +6,7 @@ import { genEmptyValue } from '@/utils';
 import { Preset } from './settings';
 import { Macro, Asset, FxParamDefs } from '@/types';
 import { GsFxNode, GsGroupNode, GsNode } from '@/engine/renderer-legacy';
-import { GpuFx, GsAutomation } from './engine/types';
+import { GsAutomation } from './engine/types';
 import * as api from '@/api.js';
 
 export const useStore = defineStore('main', () => {

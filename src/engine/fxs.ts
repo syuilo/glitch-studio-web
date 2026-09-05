@@ -3,7 +3,7 @@ import fill from './fx/fill/main.ts';
 import shift from './fx/shift/main.ts';
 import snoise from './fx/snoise/main.ts';
 import multiply from './fx/multiply/main.ts';
-import { GpuFx } from './types';
+import { Effect } from './fx-utils.ts';
 
 const _fxs = {
 	test,
@@ -11,7 +11,7 @@ const _fxs = {
 	shift,
 	snoise,
 	multiply,
-} as Record<string, GpuFx<any>>;
+} as Record<string, Effect<any>>;
 
 const fxs = {} as typeof _fxs;
 Object.keys(_fxs).sort().forEach(key => {
