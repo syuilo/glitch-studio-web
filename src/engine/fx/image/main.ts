@@ -18,17 +18,17 @@ export default defineEffect({
 				label: 'Stretch',
 				value: 0,
 			}, {
-				label: 'Contain',
+				label: 'Cover',
 				value: 1,
 			}, {
-				label: 'Cover',
+				label: 'Contain',
 				value: 2,
 			}],
 		},
 	},
 	getDefaultParams: () => ({
 		image: { type: 'literal', value: null },
-		sizeMode: { type: 'literal', value: 0 },
+		sizeMode: { type: 'literal', value: 1 },
 	}),
 	getOut: ({ wgpu, resolution }) => {
 		const out = wgpu.device.createTexture({
@@ -82,7 +82,7 @@ export default defineEffect({
 			entries: [
 				{ binding: 1, resource: { buffer: uniformBuffer }},
 				{ binding: 2, resource: sampler },
-				{ binding: 3, resource: params.image },
+				{ binding: 3, resource: params.image.data },
 			],
 		});
 
@@ -90,6 +90,8 @@ export default defineEffect({
 			render: (ctx) => {
 				uniformValues.set({
 					aspectRatio: resolution.width / resolution.height,
+					sourceAspectRatio: ctx.params.image.width / ctx.params.image.height,
+					mode: ctx.params.sizeMode,
 				});
 				wgpu.device.queue.writeBuffer(uniformBuffer, 0, uniformValues.arrayBuffer);
 				

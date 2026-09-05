@@ -348,7 +348,10 @@ export class GlitchRenderer {
 		//}
 
 		const paramsWithOuts = Object.fromEntries(Object.entries(params).map(([k, v]) =>
-			[k, effect.paramDefs[k].type === 'node' ? this.effectOuts.get(params[k])!.createView() : effect.paramDefs[k].type === 'image' ? this.assetTextures.get(params[k])!.createView() : v]));
+			[k,
+				effect.paramDefs[k].type === 'node' ? { data: this.effectOuts.get(params[k])!.createView(), width: this.resolution.width, height: this.resolution.height } :
+				effect.paramDefs[k].type === 'image' ? { data: this.assetTextures.get(params[k])!.createView(), width: this.assets.find(a => a.id === params[k])!.width, height: this.assets.find(a => a.id === params[k])!.height } :
+				v]));
 
 		let effectInstance = this.effectInstances.get(node.id);
 		if (effectInstance == null) {
@@ -474,7 +477,11 @@ export class GlitchRenderer {
 		}
 
 		for (const asset of this.assets) {
-			const tex = createTextureFromSource(this.gpuDevice!, asset.data);
+			const tex = createTextureFromSource(this.gpuDevice!, {
+				data: asset.data,
+				width: asset.width,
+				height: asset.height,
+			});
 
 			this.assetTextures.set(asset.id, tex);
 
