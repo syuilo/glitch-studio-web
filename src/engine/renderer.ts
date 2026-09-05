@@ -42,7 +42,6 @@ export class GlitchRenderer {
 	private finalRenderPipeline: GPURenderPipeline | null = null;
 	private finalRenderUniformValues: ReturnType<typeof makeStructuredView> | null = null;
 	private finalRenderUniformBuffer: GPUBuffer | null = null;
-	private finalRenderSampler: GPUSampler | null = null;
 	private finalRenderBindGroup: GPUBindGroup | null = null;
 	private finalRenderInputTexture: GPUTexture | null = null;
 	public evaledNodeParams: Map<GsNode['id'], Record<string, any>> = new Map();
@@ -124,15 +123,6 @@ export class GlitchRenderer {
 		this.finalRenderUniformBuffer = this.gpuDevice.createBuffer({
 			size: this.finalRenderUniformValues!.arrayBuffer.byteLength,
 			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-		});
-
-		this.finalRenderSampler = this.gpuDevice.createSampler({
-			magFilter: 'linear',
-			minFilter: 'linear',
-			mipmapFilter: 'linear',
-			addressModeU: 'mirror-repeat',
-			addressModeV: 'mirror-repeat',
-			addressModeW: 'mirror-repeat',
 		});
 	}
 
