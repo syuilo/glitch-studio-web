@@ -5,6 +5,8 @@ import TimingHelper from './TimingHelper.ts';
 import { fxs } from "./fxs.ts";
 import { makeShaderDataDefinitions, makeStructuredView } from "webgpu-utils";
 import finalRenderShaderCode from './render.wgsl?raw';
+import { NonNegativeRollingAverage } from "./NonNegativeRollingAverage.ts";
+import { ref } from "vue";
 
 export type GsFxNode = {
 	id: string;
@@ -33,7 +35,7 @@ export class GlitchRenderer {
 	private gpuContext: GPUCanvasContext | null = null;
 	private gpuDevice: GPUDevice | null = null;
 	private defaultVertexShaderModule: GPUShaderModule | null = null;
-	private enableStats: boolean = false;
+	private enableStats: boolean = true;
 	private hasAlpha: boolean = false;
 	private nodes: GsNode[] = [];
 	private effectInstances: Map<GsFxNode['id'], EffectInstance | null> = new Map();
@@ -45,6 +47,12 @@ export class GlitchRenderer {
 	private finalRenderBindGroup: GPUBindGroup | null = null;
 	private finalRenderInputTexture: GPUTexture | null = null;
 	private enableFloat32Filtering = false;
+	private gpuAverageFast = new NonNegativeRollingAverage(10);
+	private gpuAverageMedium = new NonNegativeRollingAverage(100);
+	private gpuAverageSlow = new NonNegativeRollingAverage(1000);
+	public gpuAverageDisplayFast = ref(0);
+	public gpuAverageDisplayMedium = ref(0);
+	public gpuAverageDisplaySlow = ref(0);
 
 	public evaledNodeParams: Map<GsNode['id'], Record<string, any>> = new Map();
 
@@ -403,6 +411,18 @@ export class GlitchRenderer {
 		passEncoder.end();
 
 		this.gpuDevice!.queue.submit([commandEncoder.finish()]);
+
+		if (this.enableStats) {
+			this.timingHelper!.getResult().then(gpuTime => {
+				this.gpuAverageFast.addSample(gpuTime / 1000);
+				this.gpuAverageMedium.addSample(gpuTime / 1000);
+				this.gpuAverageSlow.addSample(gpuTime / 1000);
+			});
+
+			this.gpuAverageDisplayFast.value = this.gpuAverageFast.get();
+			this.gpuAverageDisplayMedium.value = this.gpuAverageMedium.get();
+			this.gpuAverageDisplaySlow.value = this.gpuAverageSlow.get();
+		}
 	}
 
 	public updateNodes(newNodes: GsNode[]) {
