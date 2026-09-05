@@ -31,6 +31,10 @@ export type GsNode = GsFxNode | GsGroupNode;
 
 
 export class GlitchRenderer {
+	private resolution: {
+		width: number;
+		height: number;
+	} | null = null;
 	private canvas: HTMLCanvasElement | null = null;
 	private gpuContext: GPUCanvasContext | null = null;
 	private gpuDevice: GPUDevice | null = null;
@@ -67,9 +71,10 @@ export class GlitchRenderer {
 			height: number;
 		};
 	}) {
+		this.resolution = options.resolution;
 		this.canvas = options.canvas;
-		this.canvas.width = options.resolution.width;
-		this.canvas.height = options.resolution.height;
+		this.canvas.width = this.resolution.width;
+		this.canvas.height = this.resolution.height;
 
 		const adapter = await navigator.gpu?.requestAdapter({
 			//powerPreference: 'low-power',
@@ -159,8 +164,8 @@ export class GlitchRenderer {
 
 	private evalNodeParams(nodes: GsNode[], provideVars: Record<string, any> = {}) {
 		const scope = {
-			WIDTH: this.renderWidth,
-			HEIGHT: this.renderHeight,
+			WIDTH: this.resolution.width,
+			HEIGHT: this.resolution.height,
 			TIME: this.time,
 			FRAME: this.frame,
 			MOUSE_X: this.mouseX,
@@ -337,13 +342,14 @@ export class GlitchRenderer {
 		//	}
 		//}
 
+		const paramsWithOuts = Object.fromEntries(Object.entries(params).map(([k, v]) => [k, effect.paramDefs[k].type === 'node' ? this.effectOuts.get(params[k])!.createView() : v]));
+
 		let effectInstance = this.effectInstances.get(node.id);
 		if (effectInstance == null) {
 			effectInstance = await effect.init({
-				canvas: this.canvas,
-				resolution: { width: this.canvas.width, height: this.canvas.height },
+				resolution: { width: this.resolution.width, height: this.resolution.height },
 				wgpu: { device: this.gpuDevice!, context: this.gpuContext!, defaultVertexShaderModule: this.defaultVertexShaderModule!, enableFloat32Filtering: this.enableFloat32Filtering },
-				params: Object.fromEntries(Object.entries(params).map(([k, v]) => [k, effect.paramDefs[k].type === 'node' ? this.effectOuts.get(params[k])!.createView() : v])),
+				params: paramsWithOuts,
 			});
 			this.effectInstances.set(node.id, effectInstance);
 		}
@@ -351,7 +357,7 @@ export class GlitchRenderer {
 		effectInstance.render({
 			time: performance.now() / 1000,
 			timeDelta: 0,
-			params: Object.fromEntries(Object.entries(params).map(([k, v]) => [k, effect.paramDefs[k].type === 'node' ? this.effectOuts.get(params[k])!.createView() : v])),
+			params: paramsWithOuts,
 			commandEncoder: commandEncoder,
 			createPassEncoder: (commandEncoder, descriptor) => {
 				const _descriptor = descriptor ?? {
@@ -381,6 +387,7 @@ export class GlitchRenderer {
 
 		await this.renderNode(node, commandEncoder, []);
 
+		//#region nodeのoutをcanvasに描画
 		if (this.finalRenderBindGroup == null || this.finalRenderInputTexture != this.effectOuts.get(node.id)) {
 			this.finalRenderInputTexture = this.effectOuts.get(node.id)!;
 			this.finalRenderBindGroup = this.gpuDevice!.createBindGroup({
@@ -411,6 +418,7 @@ export class GlitchRenderer {
 		passEncoder.end();
 
 		this.gpuDevice!.queue.submit([commandEncoder.finish()]);
+		//#endregion
 
 		if (this.enableStats) {
 			this.timingHelper!.getResult().then(gpuTime => {
@@ -434,7 +442,7 @@ export class GlitchRenderer {
 				const effect = fxs[node.fx]; 
 				const out = effect.getOut({
 					wgpu: { device: this.gpuDevice!, enableFloat32Filtering: this.enableFloat32Filtering },
-					resolution: { width: this.canvas.width, height: this.canvas.height }
+					resolution: { width: this.resolution.width, height: this.resolution.height }
 				});
 				this.effectOuts.set(node.id, out);
 			}

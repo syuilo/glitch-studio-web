@@ -93,7 +93,6 @@ export type Effect<OpSc extends EffectOptionsSchema = EffectOptionsSchema> = {
 	}) => GPUTexture;
 	shader?: string;
 	init: (args: {
-		canvas: HTMLCanvasElement;
 		resolution: { width: number; height: number; },
 		wgpu: {
 			device: GPUDevice;
