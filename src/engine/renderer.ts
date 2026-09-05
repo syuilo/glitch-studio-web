@@ -371,7 +371,7 @@ export class GlitchRenderer {
 			createPassEncoder: (commandEncoder, descriptor) => {
 				const _descriptor = descriptor ?? {
 					colorAttachments: [{
-						view: this.effectOuts.get(node.id)!.createView(),
+						view: this.effectOuts.get(node.id)!.createView(), // TODO: cache view
 						clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
 						loadOp: 'clear',
 						storeOp: 'store',
@@ -403,7 +403,7 @@ export class GlitchRenderer {
 				layout: this.finalRenderPipeline!.getBindGroupLayout(0),
 				entries: [
 					{ binding: 1, resource: { buffer: this.finalRenderUniformBuffer! }},
-					{ binding: 2, resource: this.finalRenderInputTexture.createView() },
+					{ binding: 2, resource: this.finalRenderInputTexture.createView() }, // TODO: cache view
 				],
 			});
 		}
