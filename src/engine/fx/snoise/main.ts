@@ -17,7 +17,7 @@ export default defineEffect({
 	getOut: ({ wgpu, resolution }) => {
 		const out = wgpu.device.createTexture({
 			size: resolution,
-			format: 'r32float',
+			format: wgpu.enableFloat32Filtering ? 'r32float' : 'r16float',
 			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
 		});
 		return out;
@@ -36,7 +36,7 @@ export default defineEffect({
 			fragment: {
 				module: shaderModule,
 				targets: [{
-					format: 'r32float',
+					format: wgpu.enableFloat32Filtering ? 'r32float' : 'r16float',
 				}],
 			},
 			primitive: {

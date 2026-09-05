@@ -44,6 +44,8 @@ export class GlitchRenderer {
 	private finalRenderUniformBuffer: GPUBuffer | null = null;
 	private finalRenderBindGroup: GPUBindGroup | null = null;
 	private finalRenderInputTexture: GPUTexture | null = null;
+	private enableFloat32Filtering = false;
+
 	public evaledNodeParams: Map<GsNode['id'], Record<string, any>> = new Map();
 
 	constructor() {
@@ -64,8 +66,12 @@ export class GlitchRenderer {
 		const adapter = await navigator.gpu?.requestAdapter({
 			//powerPreference: 'low-power',
 		});
+
+		this.enableFloat32Filtering = adapter?.features.has('float32-filterable') ?? false;
+
 		const _device = await adapter?.requestDevice({
 			requiredFeatures: [
+				...(this.enableFloat32Filtering ? ['float32-filterable'] as const : []),
 				...(this.enableStats ? ['timestamp-query'] as const : []),
 			],
 		});
@@ -328,7 +334,7 @@ export class GlitchRenderer {
 			effectInstance = await effect.init({
 				canvas: this.canvas,
 				resolution: { width: this.canvas.width, height: this.canvas.height },
-				wgpu: { device: this.gpuDevice!, context: this.gpuContext!, defaultVertexShaderModule: this.defaultVertexShaderModule! },
+				wgpu: { device: this.gpuDevice!, context: this.gpuContext!, defaultVertexShaderModule: this.defaultVertexShaderModule!, enableFloat32Filtering: this.enableFloat32Filtering },
 				params: Object.fromEntries(Object.entries(params).map(([k, v]) => [k, effect.paramDefs[k].type === 'node' ? this.effectOuts.get(params[k])!.createView() : v])),
 			});
 			this.effectInstances.set(node.id, effectInstance);
@@ -407,7 +413,7 @@ export class GlitchRenderer {
 			if (node.type === 'fx') {
 				const effect = fxs[node.fx]; 
 				const out = effect.getOut({
-					wgpu: { device: this.gpuDevice! },
+					wgpu: { device: this.gpuDevice!, enableFloat32Filtering: this.enableFloat32Filtering },
 					resolution: { width: this.canvas.width, height: this.canvas.height }
 				});
 				this.effectOuts.set(node.id, out);

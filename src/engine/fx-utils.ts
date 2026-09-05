@@ -84,7 +84,13 @@ export type Effect<OpSc extends EffectOptionsSchema = EffectOptionsSchema> = {
 	category: string;
 	paramDefs: OpSc;
 	getDefaultParams: () => EffectOptionsSchemaDefaultValues<OpSc>;
-	getOut: (args: { resolution: { width: number; height: number; } }) => GPUTexture;
+	getOut: (args: {
+		resolution: { width: number; height: number; },
+		wgpu: {
+			device: GPUDevice;
+			enableFloat32Filtering: boolean;
+		};
+	}) => GPUTexture;
 	shader?: string;
 	init: (args: {
 		canvas: HTMLCanvasElement;
@@ -93,6 +99,7 @@ export type Effect<OpSc extends EffectOptionsSchema = EffectOptionsSchema> = {
 			device: GPUDevice;
 			context: GPUCanvasContext;
 			defaultVertexShaderModule: GPUShaderModule;
+			enableFloat32Filtering: boolean;
 		};
 		params: GetEffectOptionsSchemaValues<OpSc>;
 	}) => Promise<EffectInstance<GetEffectOptionsSchemaValues<OpSc>>>;
