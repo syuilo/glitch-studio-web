@@ -3,6 +3,8 @@ import { EffectInstance } from "./fx-utils.ts";
 import defaultVertexShaderCode from './vertex.wgsl?raw';
 import TimingHelper from './TimingHelper.ts';
 import { fxs } from "./fxs.ts";
+import { makeShaderDataDefinitions, makeStructuredView } from "webgpu-utils";
+import finalRenderShaderCode from './render.wgsl?raw';
 
 export type GsFxNode = {
 	id: string;
@@ -37,6 +39,12 @@ export class GlitchRenderer {
 	private effectInstances: Map<GsFxNode['id'], EffectInstance | null> = new Map();
 	private effectOuts: Map<GsFxNode['id'], GPUTexture> = new Map();
 	private timingHelper: TimingHelper | null = null;
+	private finalRenderPipeline: GPURenderPipeline | null = null;
+	private finalRenderUniformValues: ReturnType<typeof makeStructuredView> | null = null;
+	private finalRenderUniformBuffer: GPUBuffer | null = null;
+	private finalRenderSampler: GPUSampler | null = null;
+	private finalRenderBindGroup: GPUBindGroup | null = null;
+	private finalRenderInputTexture: GPUTexture | null = null;
 	public evaledNodeParams: Map<GsNode['id'], Record<string, any>> = new Map();
 
 	constructor() {
@@ -82,11 +90,49 @@ export class GlitchRenderer {
 			format: navigator.gpu.getPreferredCanvasFormat(),
 			alphaMode: this.hasAlpha ? 'premultiplied' : 'opaque',
 			colorSpace: 'display-p3',
-			usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_DST,
+			usage: GPUTextureUsage.RENDER_ATTACHMENT,
 		});
 
 		this.defaultVertexShaderModule = this.gpuDevice.createShaderModule({
 			code: defaultVertexShaderCode,
+		});
+
+		const finalRenderShaderModule = this.gpuDevice.createShaderModule({
+			code: finalRenderShaderCode,
+		});
+
+		const finalRenderShaderDataDefinitions = makeShaderDataDefinitions(finalRenderShaderCode);
+
+		this.finalRenderPipeline = this.gpuDevice.createRenderPipeline({
+			vertex: {
+				module: this.defaultVertexShaderModule,
+			},
+			fragment: {
+				module: finalRenderShaderModule,
+				targets: [{
+					format: navigator.gpu.getPreferredCanvasFormat(),
+				}],
+			},
+			primitive: {
+				topology: 'triangle-list',
+			},
+			layout: 'auto',
+		});
+
+		this.finalRenderUniformValues = makeStructuredView(finalRenderShaderDataDefinitions.uniforms.uniforms);
+
+		this.finalRenderUniformBuffer = this.gpuDevice.createBuffer({
+			size: this.finalRenderUniformValues!.arrayBuffer.byteLength,
+			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+		});
+
+		this.finalRenderSampler = this.gpuDevice.createSampler({
+			magFilter: 'linear',
+			minFilter: 'linear',
+			mipmapFilter: 'linear',
+			addressModeU: 'mirror-repeat',
+			addressModeV: 'mirror-repeat',
+			addressModeW: 'mirror-repeat',
 		});
 	}
 
@@ -331,11 +377,34 @@ export class GlitchRenderer {
 
 		await this.renderNode(node, commandEncoder, []);
 
-		commandEncoder.copyTextureToTexture(
-			{ texture: this.effectOuts.get(node.id)! },
-			{ texture: this.gpuContext!.getCurrentTexture() },
-			{ width: this.canvas.width, height: this.canvas.height, depthOrArrayLayers: 1 }
-		);
+		if (this.finalRenderBindGroup == null || this.finalRenderInputTexture != this.effectOuts.get(node.id)) {
+			this.finalRenderInputTexture = this.effectOuts.get(node.id)!;
+			this.finalRenderBindGroup = this.gpuDevice!.createBindGroup({
+				layout: this.finalRenderPipeline!.getBindGroupLayout(0),
+				entries: [
+					{ binding: 1, resource: { buffer: this.finalRenderUniformBuffer! }},
+					{ binding: 2, resource: this.finalRenderInputTexture.createView() },
+				],
+			});
+		}
+
+		this.finalRenderUniformValues!.set({
+			test: 1,
+		});
+		this.gpuDevice!.queue.writeBuffer(this.finalRenderUniformBuffer!, 0, this.finalRenderUniformValues!.arrayBuffer);
+
+		const passEncoder = commandEncoder.beginRenderPass({
+			colorAttachments: [{
+				view: this.gpuContext!.getCurrentTexture().createView(),
+				clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+				loadOp: 'clear',
+				storeOp: 'store',
+			}],
+		});
+		passEncoder.setPipeline(this.finalRenderPipeline!);
+		passEncoder.setBindGroup(0, this.finalRenderBindGroup);
+		passEncoder.draw(6);
+		passEncoder.end();
 
 		this.gpuDevice!.queue.submit([commandEncoder.finish()]);
 	}

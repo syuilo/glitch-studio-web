@@ -16,7 +16,7 @@ export default defineEffect({
 		const out = wgpu.device.createTexture({
 			size: resolution,
 			format: navigator.gpu.getPreferredCanvasFormat(),
-			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC,
+			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
 		});
 		return out;
 	},

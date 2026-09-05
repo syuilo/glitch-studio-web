@@ -3,11 +3,10 @@ import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
 import code from './shader.wgsl?raw';
 
 export default defineEffect({
-	name: 'shift',
-	displayName: 'Shift',
+	name: 'snoise',
+	displayName: 'snoise',
 	category: 'utility',
 	paramDefs: {
-		input: { type: 'node', label: 'Input', primary: true },
 		x: { type: 'range', min: -1, max: 1, step: 0.01, label: 'X' },
 		y: { type: 'range', min: -1, max: 1, step: 0.01, label: 'Y' },
 	},
@@ -18,7 +17,7 @@ export default defineEffect({
 	getOut: ({ wgpu, resolution }) => {
 		const out = wgpu.device.createTexture({
 			size: resolution,
-			format: navigator.gpu.getPreferredCanvasFormat(),
+			format: 'r32float',
 			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
 		});
 		return out;
@@ -37,7 +36,7 @@ export default defineEffect({
 			fragment: {
 				module: shaderModule,
 				targets: [{
-					format: navigator.gpu.getPreferredCanvasFormat(),
+					format: 'r32float',
 				}],
 			},
 			primitive: {
@@ -53,31 +52,18 @@ export default defineEffect({
 			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
 		});
 
-		const sampler = wgpu.device.createSampler({
-			magFilter: 'linear',
-			minFilter: 'linear',
-			mipmapFilter: 'linear',
-			addressModeU: 'mirror-repeat',
-			addressModeV: 'mirror-repeat',
-			addressModeW: 'mirror-repeat',
-		});
-
 		const bindGroup = wgpu.device.createBindGroup({
 			layout: pipeline.getBindGroupLayout(0),
 			entries: [
 				{ binding: 1, resource: { buffer: uniformBuffer }},
-				{ binding: 2, resource: sampler },
-				{ binding: 3, resource: params.input },
 			],
 		});
 
 		return {
 			render: (ctx) => {
 				uniformValues.set({
-					aspectRatio: resolution.width / resolution.height,
+					scale: 1,
 					time: ctx.time,
-					x: ctx.params.x,
-					y: ctx.params.y,
 				});
 				wgpu.device.queue.writeBuffer(uniformBuffer, 0, uniformValues.arrayBuffer);
 				
