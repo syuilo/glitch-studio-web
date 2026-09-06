@@ -9,7 +9,7 @@
 			<GsButton inline @click="emit('newProject')">New project</GsButton>
 		</div>
 		<div>
-			<GsButton inline @click="emit('newProjectFromImage')">New project from image</GsButton>
+			<GsButton inline @click="emit('newProjectFromImageOrVideo')">New project from image/video</GsButton>
 		</div>
 		<div>
 			<GsButton inline @click="emit('openProject')">Open project</GsButton>
@@ -26,7 +26,7 @@ import GsButton from './common/GsButton.vue';
 const emit = defineEmits<{
 	(ev: 'openProject'): void;
 	(ev: 'newProject'): void;
-	(ev: 'newProjectFromImage'): void;
+	(ev: 'newProjectFromImageOrVideo'): void;
 }>();
 </script>
 

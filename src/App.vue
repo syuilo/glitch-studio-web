@@ -68,7 +68,7 @@
 	<XSavePreset v-if="showSavePresetDialog" @ok="showSavePresetDialog = false"/>
 	<XExportPreset v-if="showExportPresetDialog" @ok="showExportPresetDialog = false"/>
 	<XAbout v-if="showAbout" @ok="showAbout = false"/>
-	<XDashboard v-if="showDashboard" @openProject="openProject" @newProject="newProject" @newProjectFromImage="newProjectFromImage"/>
+	<XDashboard v-if="showDashboard" @openProject="openProject" @newProject="newProject" @newProjectFromImageOrVideo="newProjectFromImageOrVideo"/>
 </main>
 </template>
 
@@ -165,8 +165,8 @@ async function newProject() {
 	showDashboard.value = false;
 }
 
-async function newProjectFromImage() {
-	const result = await api.openImageFile({});
+async function newProjectFromImageOrVideo() {
+	const result = await api.openImageOrVideoFile({});
 	if (result == null) return;
 
 	const assetId = genId();
@@ -180,16 +180,16 @@ async function newProjectFromImage() {
 		assets: [],
 		macros: [],
 		automations: [],
-		renderWidth: result.img.width,
-		renderHeight: result.img.height,
+		renderWidth: result.width,
+		renderHeight: result.height,
 	});
 
 	store.addAsset({
 		id: assetId,
 		name: result.name,
-		width: result.img.width,
-		height: result.img.height,
-		data: result.img.data,
+		width: result.width,
+		height: result.height,
+		data: result.data,
 		fileDataType: result.type,
 		fileData: result.fileData,
 		hash: result.hash,
