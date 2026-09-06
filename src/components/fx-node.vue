@@ -4,9 +4,9 @@
 	<header class="drag-handle" @dblclick="expanded = !expanded">{{ name }}</header>
 	<div class="indicator" :class="{ active: node.isEnabled, processing: subStore.processingFxId === node.id }"></div>
 	<div class="buttons">
-		<GsButton class="expand" @click="expanded = !expanded"><Fa :icon="expanded ? faChevronUp : faChevronDown"/></GsButton>
-		<GsButton class="active" :primary="node.isEnabled" @click="toggleEnable()" :title="node.isEnabled ? i18n.ts.ClickToDisable : i18n.ts.ClickToEnable"><Fa :icon="node.isEnabled ? faEye : faEyeSlash"/></GsButton>
-		<GsButton class="remove" @click="remove()" :title="i18n.ts.RemoveEffect"><Fa :icon="faTimes"/></GsButton>
+		<GsButton class="expand" @click="expanded = !expanded"><i class="ti" :class="expanded ? 'ti-chevron-up' : 'ti-chevron-down'"></i></GsButton>
+		<GsButton class="active" :primary="node.isEnabled" @click="toggleEnable()" :title="node.isEnabled ? i18n.ts.ClickToDisable : i18n.ts.ClickToEnable"><i class="ti" :class="node.isEnabled ? 'ti-eye' : 'ti-eye-off'"></i></GsButton>
+		<GsButton class="remove" @click="remove()" :title="i18n.ts.RemoveEffect"><i class="ti ti-x"></i></GsButton>
 	</div>
 
 	<div class="params" v-show="expanded">

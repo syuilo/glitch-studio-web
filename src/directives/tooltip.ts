@@ -22,7 +22,7 @@ type TooltipDirectiveState = {
 
 const states = new WeakMap<HTMLElement, TooltipDirectiveState>();
 
-type TooltipDirectiveModifiers = 'left' | 'right' | 'top' | 'bottom' | 'mfm' | 'noDelay';
+type TooltipDirectiveModifiers = 'left' | 'right' | 'top' | 'bottom' | 'noDelay';
 type TooltipDirectiveArg = 'dialog';
 
 export const tooltipDirective = {
@@ -67,7 +67,6 @@ export const tooltipDirective = {
 			const { dispose } = popup(defineAsyncComponent(() => import('@/components/common/GsTooltip.vue')), {
 				showing,
 				text: state.text,
-				asMfm: binding.modifiers.mfm,
 				direction: binding.modifiers.left ? 'left' : binding.modifiers.right ? 'right' : binding.modifiers.top ? 'top' : binding.modifiers.bottom ? 'bottom' : 'top',
 				anchorElement: el,
 			}, {

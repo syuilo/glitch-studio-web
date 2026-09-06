@@ -2,7 +2,7 @@
 <div class="xy-slider-component">
 	<div>
 		<GsRange v-model="x" :step="step" :min="min" :max="max" class="slider" :continuous-update="true"/>
-		<GsButton @click="keepAspectRatio = !keepAspectRatio" class="keep" :primary="keepAspectRatio"><Fa :icon="faLink"/></GsButton>
+		<GsButton @click="keepAspectRatio = !keepAspectRatio" class="keep" :primary="keepAspectRatio"><i class="ti ti-link"></i></GsButton>
 		<GsRange v-model="y" :step="step" :min="min" :max="max" class="slider" :continuous-update="true"/>
 	</div>
 </div>

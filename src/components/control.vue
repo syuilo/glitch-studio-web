@@ -76,10 +76,10 @@
 		<XColor :color="value" @input="changeValue($event)"/>
 	</div>
 	<div v-else-if="type === 'seed'" class="seed">
-		<input type="number" :value="value" @change="changeValue(parseInt($event.target.value, 10))"/><button :title="i18n.ts.Random" @click="() => changeValue(Math.floor(Math.random() * 16384))"><Fa :icon="faRandom"/></button>
+		<input type="number" :value="value" @change="changeValue(parseInt($event.target.value, 10))"/><button :title="i18n.ts.Random" @click="() => changeValue(Math.floor(Math.random() * 16384))"><i class="ti ti-dice-5"></i></button>
 	</div>
 	<div v-else-if="type === 'time'" class="time">
-		<input type="number" :value="value" @change="changeValue(parseInt($event.target.value, 10))"/><button :title="i18n.ts.Random" @click="() => changeValue(Math.floor(Math.random() * 16384))"><Fa :icon="faRandom"/></button>
+		<input type="number" :value="value" @change="changeValue(parseInt($event.target.value, 10))"/><button :title="i18n.ts.Random" @click="() => changeValue(Math.floor(Math.random() * 16384))"><i class="ti ti-dice-5"></i></button>
 	</div>
 	<div v-else-if="type === 'node'" style="display: flex;">
 		<div ref="portEl">・</div>

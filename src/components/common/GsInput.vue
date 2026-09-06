@@ -6,7 +6,6 @@
 		<input
 			ref="inputEl"
 			v-model="v"
-			v-adaptive-border
 			:class="$style.inputCore"
 			:type="type"
 			:disabled="disabled"

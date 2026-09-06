@@ -13,7 +13,6 @@
 		<div ref="prefixEl" :class="$style.prefix"><slot name="prefix"></slot></div>
 		<div
 			ref="inputEl"
-			v-adaptive-border
 			tabindex="-1"
 			:class="$style.inputCore"
 			:disabled="disabled"

@@ -4,9 +4,9 @@
 	<header class="drag-handle" @dblclick="expanded = !expanded">Group: {{ node.name }}</header>
 	<div class="indicator" :class="{ active: node.isEnabled, processing: subStore.processingFxId === node.id }"></div>
 	<div class="buttons">
-		<GsButton class="expand" @click="expanded = !expanded"><Fa :icon="expanded ? faChevronUp : faChevronDown"/></GsButton>
-		<GsButton class="showSettings" @click="showSettings = !showSettings"><Fa :icon="faCog"/></GsButton>
-		<GsButton class="remove" @click="remove()" :title="i18n.ts.RemoveEffect"><Fa :icon="faTimes"/></GsButton>
+		<GsButton class="expand" @click="expanded = !expanded"><i class="ti" :class="expanded ? 'ti-chevron-up' : 'ti-chevron-down'"></i></GsButton>
+		<GsButton class="showSettings" @click="showSettings = !showSettings"><i class="ti ti-settings"></i></GsButton>
+		<GsButton class="remove" @click="remove()" :title="i18n.ts.RemoveEffect"><i class="ti ti-x"></i></GsButton>
 	</div>
 
 	<div v-if="showSettings" v-show="expanded" style="margin: 4px; padding: 4px;" class="_gaps_s">

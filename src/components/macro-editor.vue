@@ -10,7 +10,7 @@
 			<option value="color">{{ i18n.ts._Macro._Types.Color }}</option>
 			<option value="image">{{ i18n.ts._Macro._Types.Image }}</option>
 		</GsSelect>
-		<button class="remove" title="Remove macro" @click="remove(macro.id)"><Fa :icon="faTimes"/></button>
+		<button class="remove" title="Remove macro" @click="remove(macro.id)"><i class="ti ti-x"></i></button>
 	</div>
 	<div class="minmax" v-if="['number', 'range'].includes(macro.type)">
 		<label>Min/Max</label>

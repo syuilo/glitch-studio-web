@@ -2,9 +2,9 @@
 <div class="asset-component">
 	<header>{{ asset.name }}</header>
 	<div class="buttons">
-		<button class="replace" @click="replace()" :title="i18n.ts.ReplaceAsset"><Fa :icon="faSyncAlt"/></button>
-		<button class="rename" @click="rename()" :title="i18n.ts.RenameAsset"><Fa :icon="faICursor"/></button>
-		<button class="remove" @click="remove()" :title="i18n.ts.RemoveAsset"><Fa :icon="faTrashAlt"/></button>
+		<button class="replace" @click="replace()" :title="i18n.ts.ReplaceAsset"><i class="ti ti-refresh"></i></button>
+		<button class="rename" @click="rename()" :title="i18n.ts.RenameAsset"><i class="ti ti-cursor-text"></i></button>
+		<button class="remove" @click="remove()" :title="i18n.ts.RemoveAsset"><i class="ti ti-trash"></i></button>
 	</div>
 	<div class="body">
 		<canvas :width="asset.width" :height="asset.height" ref="canvas"/>

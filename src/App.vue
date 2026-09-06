@@ -1,12 +1,13 @@
 <template>
-<main id="root">
-	<component
-		:is="popup.component"
-		v-for="popup in popups"
-		:key="popup.id"
-		v-bind="popup.props"
-		v-on="popup.events"
-	/>
+<component
+	:is="popup.component"
+	v-for="popup in ui.popups.value"
+	:key="popup.id"
+	v-bind="popup.props"
+	v-on="popup.events"
+/>
+
+<main id="main">
 	<header class="header">
 		<GsButton @click="saveProject">Save project</GsButton>
 		<GsButton @click="openProject">Load project</GsButton>
@@ -70,7 +71,6 @@
 </template>
 
 <script lang="ts" setup>
-import * as semver from 'semver';
 import { Ref, nextTick, onMounted, ref, shallowRef, useTemplateRef, watch } from 'vue';
 import GsNodesTab from '@/components/GsNodesTab.vue';
 import XMacros from '@/components/macros.vue';
@@ -92,6 +92,7 @@ import * as api from '@/api.js';
 import GsButton from '@/components/common/GsButton.vue';
 import { loadProjectFile } from '@/api.js';
 import { version } from './version';
+import * as ui from '@/ui.js';
 
 const store = useStore();
 
@@ -276,7 +277,7 @@ async function importPreset() {
 </script>
 
 <style lang="scss">
-#root {
+#main {
 	position: absolute;
 	display: flex;
 	flex-direction: column;

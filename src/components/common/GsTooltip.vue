@@ -10,8 +10,7 @@
 	<div v-show="showing" ref="el" :class="$style.root" class="_acrylic _shadow" :style="{ zIndex, maxWidth: maxWidth + 'px' }">
 		<slot>
 			<template v-if="text">
-				<Mfm v-if="asMfm" :text="text"/>
-				<span v-else>{{ text }}</span>
+				<span>{{ text }}</span>
 			</template>
 		</slot>
 	</div>
@@ -30,7 +29,6 @@ const props = withDefaults(defineProps<{
 	x?: number;
 	y?: number;
 	text?: string;
-	asMfm?: boolean;
 	maxWidth?: number;
 	direction?: 'top' | 'bottom' | 'right' | 'left';
 	innerMargin?: number;

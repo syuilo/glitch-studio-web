@@ -10,7 +10,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<textarea
 			ref="inputEl"
 			v-model="v"
-			v-adaptive-border
 			:class="[$style.textarea, { _monospace: code }]"
 			:disabled="disabled"
 			:required="required"
@@ -26,10 +25,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 		></textarea>
 	</div>
 	<div :class="$style.caption"><slot name="caption"></slot></div>
-	<button v-if="mfmPreview" style="font-size: 0.85em;" class="_textButton" type="button" @click="preview = !preview">{{ i18n.ts.preview }}</button>
-	<div v-if="mfmPreview" v-show="preview" v-panel :class="$style.mfmPreview">
-		<Mfm :text="v"/>
-	</div>
 
 	<GsButton v-if="manualSave && changed" primary :class="$style.save" @click="updated"><i class="ti ti-device-floppy"></i> {{ i18n.ts.save }}</GsButton>
 </div>
@@ -52,8 +47,6 @@ const props = defineProps<{
 	placeholder?: string;
 	autofocus?: boolean;
 	autocomplete?: string;
-	mfmAutocomplete?: boolean | SuggestionType[],
-	mfmPreview?: boolean;
 	spellcheck?: boolean;
 	debounce?: boolean;
 	manualSave?: boolean;
@@ -232,13 +225,5 @@ onUnmounted(() => {
 
 .save {
 	margin: 8px 0 0 0;
-}
-
-.mfmPreview {
-  padding: 12px;
-  border-radius: var(--MI-radius);
-  box-sizing: border-box;
-  min-height: 130px;
-	pointer-events: none;
 }
 </style>

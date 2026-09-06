@@ -3,7 +3,7 @@
 	<div class="label">
 		<slot name="label"></slot>
 	</div>
-	<div v-adaptive-border class="body" :class="{ 'disabled': disabled }">
+	<div class="body" :class="{ 'disabled': disabled }">
 		<slot name="prefix"></slot>
 		<div ref="containerEl" class="container">
 			<div class="track">

@@ -1,8 +1,8 @@
 <template>
 <div :class="$style.root">
 	<div :class="$style.header">
-		<GsButton v-if="playing" @click="stop"><Fa :icon="faPause"/> Stop</GsButton>
-		<GsButton v-else @click="play"><Fa :icon="faPlay"/> Play</GsButton>
+		<GsButton v-if="playing" @click="stop"><i class="ti ti-player-pause"></i> Stop</GsButton>
+		<GsButton v-else @click="play"><i class="ti ti-player-play"></i> Play</GsButton>
 		<div :class="$style.frameCount">{{ frame.toString().padStart(5, '0') }}</div>
 	</div>
 	<div :class="$style.body">
@@ -72,11 +72,11 @@
 
 			<div v-if="!nowSelecting && contextmenuKeyframe" :class="$style.keyframeContextmenu" :style="{ left: keyframeContextmenuDomPos[0] + 'px', top: keyframeContextmenuDomPos[1] + 'px' }">
 				<div>
-					<div :class="$style.keyframeContextmenuHandle" style="cursor: ns-resize;" @mousedown="onKeyframeYHandleMousedown"><Fa :icon="faArrowsUpDown"/></div>
+					<div :class="$style.keyframeContextmenuHandle" style="cursor: ns-resize;" @mousedown="onKeyframeYHandleMousedown"><i class="ti ti-arrows-vertical"></i></div>
 					<div :class="$style.keyframeContextmenuInput">V: {{ contextmenuKeyframe.value.toFixed(2) }}</div>
 				</div>
 				<div>
-					<div :class="$style.keyframeContextmenuHandle" style="cursor: ew-resize;" @mousedown="onKeyframeXHandleMousedown"><Fa :icon="faArrowsLeftRight"/></div>
+					<div :class="$style.keyframeContextmenuHandle" style="cursor: ew-resize;" @mousedown="onKeyframeXHandleMousedown"><i class="ti ti-arrows-horizontal"></i></div>
 					<div :class="$style.keyframeContextmenuInput">F: {{ contextmenuKeyframe.frame }}</div>
 				</div>
 			</div>
