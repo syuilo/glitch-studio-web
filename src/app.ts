@@ -8,6 +8,7 @@ import { loadProjectFile, saveProjectFile, decodeAssets } from './api';
 import { RawProject } from './settings';
 import { Engine } from './engine/engine.ts';
 import * as ui from '@/ui.js';
+import { deepClone } from './utility/deep-clone.ts';
 
 export const wireMap = reactive<{
 	in: Record<string, any>;
@@ -147,7 +148,7 @@ export async function appReady(canvas: HTMLCanvasElement, project: RawProject) {
 	store.assets = await decodeAssets(project.assets);
 
 	watch(() => store.nodes, () => {
-		engine.updateNodes(JSON.parse(JSON.stringify(store.nodes))); // proxy解除
+		engine.updateNodes(deepClone(store.nodes));
 	
 		// TODO: グループ考慮
 		if (store.nodes.some(n => n.type === 'fx' && n.fx === 'webcamera')) {
@@ -156,15 +157,15 @@ export async function appReady(canvas: HTMLCanvasElement, project: RawProject) {
 	}, { deep: true, immediate: true });
 	
 	watch(() => store.macros, () => {
-		engine.updateMacros(store.macros);
+		engine.updateMacros(deepClone(store.macros));
 	}, { deep: true, immediate: true });
 	
 	watch(() => store.automations, () => {
-		engine.updateAutomations(store.automations);
+		engine.updateAutomations(deepClone(store.automations));
 	}, { deep: true, immediate: true });
 	
 	watch(() => store.assets, () => {
-		engine.updateAssets(store.assets);
+		engine.updateAssets(deepClone(store.assets));
 	}, { deep: true, immediate: true });
 
 	engine.startRenderLoop();

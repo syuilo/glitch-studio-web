@@ -2,6 +2,8 @@ import { Asset, Macro } from "@/types.ts";
 import { GsNode, Renderer } from "./renderer.ts";
 import { ref } from "vue";
 import { GsAutomation } from "./types.ts";
+import { deepClone } from "@/utility/deep-clone.ts";
+import { playVideoAfterFirstFrameIsReady } from "@/utility/video.ts";
 
 export class Engine {
 	private renderer: Renderer | null = null;
@@ -13,6 +15,7 @@ export class Engine {
 	private automations: GsAutomation[] = [];
 	private histogramCanvas: HTMLCanvasElement | null = null;
 	private waveformCanvas: HTMLCanvasElement | null = null;
+	private videoElements: Map<string, HTMLVideoElement> = new Map();
 	public fps: number | null = 60;
 	public gpuAverageDisplayFast = ref(0);
 	public gpuAverageDisplayMedium = ref(0);
@@ -108,23 +111,46 @@ export class Engine {
 	}
 
 	public updateNodes(newNodes: GsNode[]) {
-		this.nodes = newNodes;
+		this.nodes = deepClone(newNodes);
 		this.renderer?.updateNodes(this.nodes);
 	}
 
-	public updateMacros(newMacros: any[]) {
-		this.macros = newMacros;
+	public updateMacros(newMacros: Macro[]) {
+		this.macros = deepClone(newMacros);
 		this.renderer?.updateMacros(this.macros);
 	}
 
-	public updateAutomations(newAutomations: any[]) {
-		this.automations = newAutomations;
+	public updateAutomations(newAutomations: GsAutomation[]) {
+		this.automations = deepClone(newAutomations);
 		this.renderer?.updateAutomations(this.automations);
 	}
 
-	public updateAssets(newAssets: any[]) {
-		this.assets = newAssets;
-		this.renderer?.updateAssets(this.assets);
+	public async updateAssets(newAssets: Asset[]) {
+		const addedAssets = newAssets.filter(asset => !this.assets.some(a => a.id === asset.id));
+		const removedAssets = this.assets.filter(a => !newAssets.some(asset => asset.id === a.id));
+
+		for (const asset of removedAssets) {
+			if (this.videoElements.has(asset.id)) {
+				const video = this.videoElements.get(asset.id);
+				video?.pause();
+				this.videoElements.delete(asset.id);
+				URL.revokeObjectURL(video?.src);
+			}
+		}
+
+		for (const asset of addedAssets) {
+			if (asset.fileDataType.startsWith('video/')) {
+				const video = document.createElement('video');
+				video.src = URL.createObjectURL(new Blob([asset.fileData], { type: asset.fileDataType }));
+				video.loop = true;
+				this.videoElements.set(asset.id, video);
+				await playVideoAfterFirstFrameIsReady(video);
+			}
+		}
+
+		this.assets = deepClone(newAssets);
+		
+		this.renderer?.updateAssets(this.assets, this.videoElements);
 	}
 
 	public setHistogramCanvas(canvas: HTMLCanvasElement | null) {

@@ -11,6 +11,8 @@ import { GpuHistogram } from "./GpuHistogram.ts";
 import { GpuWaveform } from "./GpuWaveform.ts";
 import { evalAutomationValue, genEmptyValue } from "@/utils.ts";
 import { evaluate } from "mathjs";
+import { deepClone } from "@/utility/deep-clone.ts";
+import { isVideoFrameAvailable } from "@/utility/video.ts";
 
 export type GsFxNode = {
 	id: string;
@@ -48,6 +50,7 @@ export class Renderer {
 	private macros: Macro[];
 	private automations: GsAutomation[];
 	private assetTextures: Map<string, GPUTexture> = new Map();
+	private videoElements: Map<string, HTMLVideoElement> = new Map();
 	private effectInstances: Map<GsFxNode['id'], EffectInstance | null> = new Map();
 	private effectOuts: Map<GsFxNode['id'], GPUTexture> = new Map();
 	private timingHelper: TimingHelper;
@@ -383,6 +386,20 @@ export class Renderer {
 		const node = this.findNode(renderNodeId);
 		if (node == null) return;
 
+		for (const [textureId, texture] of this.assetTextures.entries()) {
+			if (this.assets.find(a => a.id === textureId).fileDataType.startsWith('video/')) {
+				const videoEl = this.videoElements.get(textureId);
+				if (isVideoFrameAvailable(videoEl)) {
+					// TODO: 動画のフレームが更新された場合のみcopyExternalImageToTextureするようにする
+					this.gpuDevice.queue.copyExternalImageToTexture(
+						{ source: videoEl },
+						{ texture: texture },
+						{ width: texture.width, height: texture.height },
+					);
+				}
+			}
+		}
+
 		this.evalNodeParams(this.nodes);
 
 		const commandEncoder = this.gpuDevice.createCommandEncoder();
@@ -459,20 +476,21 @@ export class Renderer {
 			}
 		}
 
-		this.nodes = newNodes;
+		this.nodes = deepClone(newNodes);
 	}
 
-	public updateAssets(newAssets: Asset[]) {
-		this.assets = newAssets;
+	public updateAssets(newAssets: Asset[], videoElements: Map<string, HTMLVideoElement>) {
+		this.assets = deepClone(newAssets);
+		this.videoElements = videoElements;
 		this.bakeAssets();
 	}
 
 	public updateMacros(newMacros: Macro[]) {
-		this.macros = newMacros;
+		this.macros = deepClone(newMacros);
 	}
 
 	public updateAutomations(newAutomations: GsAutomation[]) {
-		this.automations = newAutomations;
+		this.automations = deepClone(newAutomations);
 	}
 
 	public async bakeAssets() {
@@ -482,13 +500,21 @@ export class Renderer {
 		}
 
 		for (const asset of this.assets) {
-			const tex = createTextureFromSource(this.gpuDevice, {
-				data: asset.data,
-				width: asset.width,
-				height: asset.height,
-			});
-
-			this.assetTextures.set(asset.id, tex);
+			console.log(asset);
+			if (asset.fileDataType.startsWith('image/')) {
+				const tex = createTextureFromSource(this.gpuDevice, {
+					data: asset.data,
+					width: asset.width,
+					height: asset.height,
+				});
+				this.assetTextures.set(asset.id, tex);
+			} else if (asset.fileDataType.startsWith('video/')) {
+				const tex = createTextureFromSource(this.gpuDevice, this.videoElements.get(asset.id)!, {
+					mips: false,
+				});
+				console.log(tex, this.videoElements.get(asset.id));
+				this.assetTextures.set(asset.id, tex);
+			}
 
 			/*
 			// gif

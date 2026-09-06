@@ -1,5 +1,5 @@
 <template>
-<div class="control-component">
+<div :class="$style.root">
 	<div v-if="type === 'range'">
 		<GsRange
 			:modelValue="value"
@@ -149,6 +149,9 @@
 			]"
 			@update:modelValue="v => changeValue(v)"
 		/>
+		<div :class="$style.player" v-if="store.assets.find(asset => asset.id === value)?.fileDataType.startsWith('video/')">
+			TODO
+		</div>
 	</div>
 </div>
 </template>
@@ -199,16 +202,20 @@ onMounted(() => {
 });
 </script>
 
-<style scoped lang="scss">
-.control-component {
-	> .seed {
-		display: flex;
+<style module lang="scss">
+.root {
+}
 
-		> button {
-			width: 38px;
-			height: 25px;
-			margin-left: 6px;
-		}
-	}
+.seed {
+	display: flex;
+}
+
+.seedButton {
+	width: 38px;
+	height: 25px;
+	margin-left: 6px;
+}
+
+.player {
 }
 </style>

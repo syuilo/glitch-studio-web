@@ -7,12 +7,6 @@ import * as msgpack from '@msgpack/msgpack';
 
 const TODO = () => {};
 
-export type GsImage = {
-	width: number;
-	height: number;
-	data: Uint8Array;
-};
-
 async function loadImageFromBuffer(image: Uint8Array, type: string): Promise<Image> {
 	console.log('image', image);
 	console.log('type', type);
@@ -65,8 +59,10 @@ export function encodeAssets(assets: Asset[]): Omit<Asset, 'data'>[] {
 	}));
 }
 
-export function openImageFile(options): Promise<{
-	img: GsImage;
+export function openImageOrVideoFile(options): Promise<{
+	width: number;
+	height: number;
+	data: Uint8Array;
 	name: string;
 	type: string;
 	fileData: Uint8Array;
@@ -74,34 +70,48 @@ export function openImageFile(options): Promise<{
 	return new Promise((resolve, reject) => {
 		const input = document.createElement('input');
 		input.type = 'file';
-		input.accept = 'image/*';
+		input.accept = 'image/*,video/*';
 		input.multiple = options.multiple ?? false;
 		input.onchange = () => {
 			const file = input.files?.[0];
 			if (file == null) return;
 			const reader = new FileReader();
 			reader.onload = () => {
-				const img = new Image();
-				img.onload = async () => {
-					const canvas = document.createElement('canvas');
-					canvas.width = img.width;
-					canvas.height = img.height;
-					const ctx = canvas.getContext('2d');
-					ctx?.drawImage(img, 0, 0);
-					const data = ctx?.getImageData(0, 0, img.width, img.height).data;
-					console.log(file.type + ' ' + file.name);
-					resolve({
-						img: {
+				if (file.type.startsWith('image/')) {
+					const img = new Image();
+					img.onload = async () => {
+						const canvas = document.createElement('canvas');
+						canvas.width = img.width;
+						canvas.height = img.height;
+						const ctx = canvas.getContext('2d');
+						ctx?.drawImage(img, 0, 0);
+						const data = ctx?.getImageData(0, 0, img.width, img.height).data;
+						console.log(file.type + ' ' + file.name);
+						resolve({
 							width: img.width,
 							height: img.height,
 							data: new Uint8Array(data),
-						},
-						name: file.name,
-						type: file.type,
-						fileData: new Uint8Array(await file.arrayBuffer()),
-					});
-				};
-				img.src = reader.result as string;
+							name: file.name,
+							type: file.type,
+							fileData: new Uint8Array(await file.arrayBuffer()),
+						});
+					};
+					img.src = reader.result as string;
+				} else if (file.type.startsWith('video/')) {
+					const video = document.createElement('video');
+					video.onloadeddata = async () => {
+						resolve({
+							width: video.videoWidth,
+							height: video.videoHeight,
+							data: null,
+							name: file.name,
+							type: file.type,
+							fileData: new Uint8Array(await file.arrayBuffer()),
+						});
+						video.remove();
+					};
+					video.src = reader.result as string;
+				}
 			};
 			reader.readAsDataURL(file);
 		};

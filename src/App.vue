@@ -115,16 +115,16 @@ const zoom = ref(1 / ZOOM_STEP / ZOOM_STEP / ZOOM_STEP);
 
 async function onViewClick() {
 	if (store.nodes.length === 0) {
-		const result = await api.openImageFile({});
+		const result = await api.openImageOrVideoFile({});
 		if (result == null) return;
 
 		const assetId = genId();
 		store.addAsset({
 			id: assetId,
 			name: result.name,
-			width: result.img.width,
-			height: result.img.height,
-			data: result.img.data,
+			width: result.width,
+			height: result.height,
+			data: result.data,
 			fileDataType: result.type,
 			fileData: result.fileData,
 			hash: result.hash,
