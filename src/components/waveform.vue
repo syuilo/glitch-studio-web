@@ -1,11 +1,11 @@
 <template>
-<section class="waveform-component _gs-container">
-	<header>
+<div class="_gs-container" :class="$style.root">
+	<div :class="$style.header">
 		<strong>{{ i18n.ts.Waveform }}</strong>
-		<span>RGB</span>
-	</header>
-	<div class="scope">
-		<canvas
+		<span style="opacity: 0.5;">RGB</span>
+	</div>
+	<div :class="$style.scope">
+		<canvas :class="$style.canvas"
 			ref="canvas"
 			:width="width"
 			:height="height"
@@ -13,7 +13,7 @@
 			:aria-label="i18n.ts.RgbWaveform"
 		/>
 	</div>
-</section>
+</div>
 </template>
 
 <script lang="ts" setup>
@@ -38,8 +38,8 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<style scoped lang="scss">
-.waveform-component {
+<style module lang="scss">
+.root {
 	display: flex;
 	flex-direction: column;
 	box-sizing: border-box;
@@ -48,20 +48,12 @@ onBeforeUnmount(() => {
 	padding: 12px;
 }
 
-header {
+.header {
 	display: flex;
 	align-items: baseline;
 	justify-content: space-between;
 	padding: 2px 4px 10px;
 	font-size: 12px;
-
-	strong {
-		font-weight: 600;
-	}
-
-	span {
-		opacity: 0.45;
-	}
 }
 
 .scope {
@@ -71,11 +63,11 @@ header {
 	background: #101010;
 	box-shadow: 0 2px 2px rgba(0, 0, 0, 0.55) inset;
 	overflow: hidden;
+}
 
-	> canvas {
-		display: block;
-		width: 100%;
-		height: 100%;
-	}
+.canvas {
+	display: block;
+	width: 100%;
+	height: 100%;
 }
 </style>
