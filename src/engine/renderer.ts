@@ -6,7 +6,6 @@ import { fxs } from "./fxs.ts";
 import { createTextureFromSource, makeShaderDataDefinitions, makeStructuredView } from "webgpu-utils";
 import finalRenderShaderCode from './render.wgsl?raw';
 import { NonNegativeRollingAverage } from "./NonNegativeRollingAverage.ts";
-import { ref } from "vue";
 import { GsAutomation } from "./types.ts";
 import { GpuHistogram } from "./GpuHistogram.ts";
 import { evalAutomationValue, genEmptyValue } from "@/utils.ts";
@@ -31,21 +30,18 @@ export type GsGroupNode = {
 
 export type GsNode = GsFxNode | GsGroupNode;
 
-
-
-
-export class GlitchRenderer {
+export class Renderer {
+	private gpuContext: GPUCanvasContext;
+	private gpuDevice: GPUDevice;
 	private resolution: {
 		width: number;
 		height: number;
-	} | null = null;
-	private canvas: HTMLCanvasElement | null = null;
-	private histogramCanvas: HTMLCanvasElement | null = null;
-	private gpuHistogram: GpuHistogram | null = null;
-	private gpuContext: GPUCanvasContext | null = null;
-	private gpuDevice: GPUDevice | null = null;
-	private defaultVertexShaderModule: GPUShaderModule | null = null;
-	private fallbackTexture: GPUTexture | null = null;
+	};
+	private canvas: HTMLCanvasElement;
+	private histogramCanvas: HTMLCanvasElement;
+	private gpuHistogram: GpuHistogram;
+	private defaultVertexShaderModule: GPUShaderModule;
+	private fallbackTexture: GPUTexture;
 	private enableStats: boolean = true;
 	private hasAlpha: boolean = false;
 	private nodes: GsNode[] = [];
@@ -55,72 +51,36 @@ export class GlitchRenderer {
 	public assetTextures: Map<string, GPUTexture> = new Map();
 	private effectInstances: Map<GsFxNode['id'], EffectInstance | null> = new Map();
 	private effectOuts: Map<GsFxNode['id'], GPUTexture> = new Map();
-	private timingHelper: TimingHelper | null = null;
-	private finalRenderPipeline: GPURenderPipeline | null = null;
-	private finalRenderUniformValues: ReturnType<typeof makeStructuredView> | null = null;
-	private finalRenderUniformBuffer: GPUBuffer | null = null;
-	private finalRenderBindGroup: GPUBindGroup | null = null;
-	private finalRenderInputTexture: GPUTexture | null = null;
+	private timingHelper: TimingHelper;
+	private finalRenderPipeline: GPURenderPipeline;
+	private finalRenderUniformValues: ReturnType<typeof makeStructuredView>;
+	private finalRenderUniformBuffer: GPUBuffer;
+	private finalRenderBindGroup: GPUBindGroup;
+	private finalRenderInputTexture: GPUTexture;
 	private enableFloat32Filtering = false;
-	private gpuAverageFast = new NonNegativeRollingAverage(10);
-	private gpuAverageMedium = new NonNegativeRollingAverage(100);
-	private gpuAverageSlow = new NonNegativeRollingAverage(1000);
-	public gpuAverageDisplayFast = ref(0);
-	public gpuAverageDisplayMedium = ref(0);
-	public gpuAverageDisplaySlow = ref(0);
+	public gpuAverageFast = new NonNegativeRollingAverage(10);
+	public gpuAverageMedium = new NonNegativeRollingAverage(100);
+	public gpuAverageSlow = new NonNegativeRollingAverage(1000);
 
 	public evaledNodeParams: Map<GsNode['id'], Record<string, any>> = new Map();
 
-	constructor() {
-		
-	}
-
-	public setHistogramCanvas(canvas: HTMLCanvasElement | null) {
-		this.gpuHistogram?.dispose();
-		this.gpuHistogram = null;
-		this.histogramCanvas = canvas;
-		this.initHistogram();
-	}
-
-	private initHistogram() {
-		if (!this.gpuDevice || !this.histogramCanvas) return;
-		this.gpuHistogram?.dispose();
-		this.gpuHistogram = new GpuHistogram(
-			this.gpuDevice,
-			this.histogramCanvas,
-			navigator.gpu.getPreferredCanvasFormat(),
-		);
-	}
-
-	public async init(options: {
+	constructor(options: {
+		gpuDevice: GPUDevice;
 		canvas: HTMLCanvasElement;
 		resolution: {
 			width: number;
 			height: number;
 		};
+		enableFloat32Filtering: boolean;
+		enableStats: boolean;
 	}) {
 		this.resolution = options.resolution;
 		this.canvas = options.canvas;
 		this.canvas.width = this.resolution.width;
 		this.canvas.height = this.resolution.height;
-
-		const adapter = await navigator.gpu?.requestAdapter({
-			//powerPreference: 'low-power',
-		});
-
-		this.enableFloat32Filtering = adapter?.features.has('float32-filterable') ?? false;
-
-		const _device = await adapter?.requestDevice({
-			requiredFeatures: [
-				...(this.enableFloat32Filtering ? ['float32-filterable'] as const : []),
-				...(this.enableStats ? ['timestamp-query'] as const : []),
-			],
-		});
-		if (!_device) {
-			window.alert('need a browser that supports WebGPU');
-			throw new Error('need a browser that supports WebGPU');
-		}
-		this.gpuDevice = _device as GPUDevice;
+		this.enableStats = options.enableStats;
+		this.enableFloat32Filtering = options.enableFloat32Filtering;
+		this.gpuDevice = options.gpuDevice;
 		this.initHistogram();
 
 		this.timingHelper = new TimingHelper(this.gpuDevice);
@@ -175,9 +135,26 @@ export class GlitchRenderer {
 		this.finalRenderUniformValues = makeStructuredView(finalRenderShaderDataDefinitions.uniforms.uniforms);
 
 		this.finalRenderUniformBuffer = this.gpuDevice.createBuffer({
-			size: this.finalRenderUniformValues!.arrayBuffer.byteLength,
+			size: this.finalRenderUniformValues.arrayBuffer.byteLength,
 			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
 		});
+	}
+
+	public setHistogramCanvas(canvas: HTMLCanvasElement | null) {
+		this.gpuHistogram?.dispose();
+		this.gpuHistogram = null;
+		this.histogramCanvas = canvas;
+		this.initHistogram();
+	}
+
+	private initHistogram() {
+		if (!this.gpuDevice || !this.histogramCanvas) return;
+		this.gpuHistogram?.dispose();
+		this.gpuHistogram = new GpuHistogram(
+			this.gpuDevice,
+			this.histogramCanvas,
+			navigator.gpu.getPreferredCanvasFormat(),
+		);
 	}
 
 	public findNode(nodeId: string, nodes: GsNode[] = this.nodes): GsNode | undefined {
@@ -346,7 +323,7 @@ export class GlitchRenderer {
 			if (node.nodes.length === 0) {
 				return this.placeholderTexture;
 			}
-			return await this.renderNode(node.nodes.at(-1), commandEncoder, [...visited, node.id]);
+			return this.renderNode(node.nodes.at(-1), commandEncoder, [...visited, node.id]);
 		}
 
 		const key = this.evalCacheKey(node);
@@ -362,7 +339,7 @@ export class GlitchRenderer {
 			}
 			const targetNode = this.findNode(v);
 			if (targetNode) {
-				await this.renderNode(targetNode, commandEncoder, [...visited, node.id]);
+				this.renderNode(targetNode, commandEncoder, [...visited, node.id]);
 			}
 		}
 		//for (const [k, _] of Object.entries(fx.paramDefs).filter(([k, v]) => v.type === 'nodes')) {
@@ -370,7 +347,7 @@ export class GlitchRenderer {
 		//	for (const v of params[k]) {
 		//		const targetNode = this.findNode(v);
 		//		if (targetNode) {
-		//			inputNodeTexs[k].push(await this.renderNode(targetNode, [...visited, node.id]));
+		//			inputNodeTexs[k].push(this.renderNode(targetNode, [...visited, node.id]));
 		//		} else {
 		//			inputNodeTexs[k].push(this.placeholderTexture);
 		//		}
@@ -385,9 +362,9 @@ export class GlitchRenderer {
 
 		let effectInstance = this.effectInstances.get(node.id);
 		if (effectInstance == null) {
-			effectInstance = await effect.init({
+			effectInstance = effect.init({
 				resolution: { width: this.resolution.width, height: this.resolution.height },
-				wgpu: { device: this.gpuDevice!, context: this.gpuContext!, defaultVertexShaderModule: this.defaultVertexShaderModule!, enableFloat32Filtering: this.enableFloat32Filtering },
+				wgpu: { device: this.gpuDevice, context: this.gpuContext, defaultVertexShaderModule: this.defaultVertexShaderModule, enableFloat32Filtering: this.enableFloat32Filtering },
 				params: paramsWithOuts,
 				fallbackTexture: this.fallbackTexture,
 			});
@@ -408,12 +385,12 @@ export class GlitchRenderer {
 						storeOp: 'store',
 					}],
 				} satisfies GPURenderPassDescriptor;
-				return this.enableStats ? this.timingHelper!.beginRenderPass(commandEncoder, _descriptor) : commandEncoder.beginRenderPass(_descriptor);
+				return this.enableStats ? this.timingHelper.beginRenderPass(commandEncoder, _descriptor) : commandEncoder.beginRenderPass(_descriptor);
 			},
 		});
 	}
 
-	public async render(renderNodeId: string, args: {
+	public render(renderNodeId: string, args: {
 		mouseX?: number;
 		mouseY?: number;
 		frame?: number;
@@ -423,55 +400,51 @@ export class GlitchRenderer {
 
 		this.evalNodeParams(this.nodes);
 
-		const commandEncoder = this.gpuDevice!.createCommandEncoder();
+		const commandEncoder = this.gpuDevice.createCommandEncoder();
 
-		await this.renderNode(node, commandEncoder, []);
+		this.renderNode(node, commandEncoder, []);
 
 		//#region nodeのoutをcanvasに描画
 		if (this.finalRenderBindGroup == null || this.finalRenderInputTexture != this.effectOuts.get(node.id)) {
 			this.finalRenderInputTexture = this.effectOuts.get(node.id)!;
-			this.finalRenderBindGroup = this.gpuDevice!.createBindGroup({
-				layout: this.finalRenderPipeline!.getBindGroupLayout(0),
+			this.finalRenderBindGroup = this.gpuDevice.createBindGroup({
+				layout: this.finalRenderPipeline.getBindGroupLayout(0),
 				entries: [
-					{ binding: 1, resource: { buffer: this.finalRenderUniformBuffer! }},
+					{ binding: 1, resource: { buffer: this.finalRenderUniformBuffer }},
 					{ binding: 2, resource: this.finalRenderInputTexture.createView() }, // TODO: cache view
 				],
 			});
 		}
 
-		this.finalRenderUniformValues!.set({
+		this.finalRenderUniformValues.set({
 			test: 1,
 		});
-		this.gpuDevice!.queue.writeBuffer(this.finalRenderUniformBuffer!, 0, this.finalRenderUniformValues!.arrayBuffer);
+		this.gpuDevice.queue.writeBuffer(this.finalRenderUniformBuffer, 0, this.finalRenderUniformValues.arrayBuffer);
 
 		const passEncoder = commandEncoder.beginRenderPass({
 			colorAttachments: [{
-				view: this.gpuContext!.getCurrentTexture().createView(),
+				view: this.gpuContext.getCurrentTexture().createView(),
 				clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
 				loadOp: 'clear',
 				storeOp: 'store',
 			}],
 		});
-		passEncoder.setPipeline(this.finalRenderPipeline!);
+		passEncoder.setPipeline(this.finalRenderPipeline);
 		passEncoder.setBindGroup(0, this.finalRenderBindGroup);
 		passEncoder.draw(6);
 		passEncoder.end();
 
 		this.gpuHistogram?.render(commandEncoder, this.finalRenderInputTexture);
 
-		this.gpuDevice!.queue.submit([commandEncoder.finish()]);
+		this.gpuDevice.queue.submit([commandEncoder.finish()]);
 		//#endregion
 
 		if (this.enableStats) {
-			this.timingHelper!.getResult().then(gpuTime => {
+			this.timingHelper.getResult().then(gpuTime => {
 				this.gpuAverageFast.addSample(gpuTime / 1000);
 				this.gpuAverageMedium.addSample(gpuTime / 1000);
 				this.gpuAverageSlow.addSample(gpuTime / 1000);
 			});
-
-			this.gpuAverageDisplayFast.value = this.gpuAverageFast.get();
-			this.gpuAverageDisplayMedium.value = this.gpuAverageMedium.get();
-			this.gpuAverageDisplaySlow.value = this.gpuAverageSlow.get();
 		}
 	}
 
@@ -483,7 +456,7 @@ export class GlitchRenderer {
 			if (node.type === 'fx') {
 				const effect = fxs[node.fx]; 
 				const out = effect.getOut({
-					wgpu: { device: this.gpuDevice!, enableFloat32Filtering: this.enableFloat32Filtering },
+					wgpu: { device: this.gpuDevice, enableFloat32Filtering: this.enableFloat32Filtering },
 					resolution: { width: this.resolution.width, height: this.resolution.height }
 				});
 				this.effectOuts.set(node.id, out);
@@ -510,7 +483,7 @@ export class GlitchRenderer {
 		}
 
 		for (const asset of this.assets) {
-			const tex = createTextureFromSource(this.gpuDevice!, {
+			const tex = createTextureFromSource(this.gpuDevice, {
 				data: asset.data,
 				width: asset.width,
 				height: asset.height,

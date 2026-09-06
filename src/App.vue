@@ -37,10 +37,12 @@
 				<div :class="{ active: tab === 'macros' }" @click="tab = 'macros'">{{ i18n.ts.Macro }}<span>({{ store.macros.length }})</span></div>
 				<div :class="{ active: tab === 'assets' }" @click="tab = 'assets'">{{ i18n.ts.Asset }}<span>({{ store.assets.length }})</span></div>
 				<div :class="{ active: tab === 'project' }" @click="tab = 'project'">{{ i18n.ts.Project }}</div>
+				<div :class="{ active: tab === 'settings' }" @click="tab = 'settings'">{{ i18n.ts.Settings }}</div>
 			</div>
 			<GsNodesTab v-show="tab === 'nodes'" class="_gs-container"/>
 			<XMacros v-show="tab === 'macros'"/>
 			<XAssets v-show="tab === 'assets'"/>
+			<XSettings v-show="tab === 'settings'"/> 
 		</div>
 	</div>
 	<div class="timeline">
@@ -71,6 +73,7 @@ import { Ref, nextTick, onMounted, ref, shallowRef, useTemplateRef, watch } from
 import GsNodesTab from '@/components/GsNodesTab.vue';
 import XMacros from '@/components/macros.vue';
 import XAssets from '@/components/assets.vue';
+import XSettings from '@/components/settings.vue';
 import XAbout from '@/components/about.vue';
 import XDashboard from '@/components/dashboard.vue';
 import GsTimeline from '@/components/GsTimeline.vue';
@@ -152,8 +155,8 @@ async function newProject() {
 		assets: [],
 		macros: [],
 		automations: [],
-		renderWidth: 4096,
-		renderHeight: 4096,
+		renderWidth: 2048,
+		renderHeight: 2048,
 	});
 	showDashboard.value = false;
 }

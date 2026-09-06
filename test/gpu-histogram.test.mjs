@@ -25,8 +25,8 @@ test('histogram canvas registration waits for GPU initialization', async () => {
 	});
 
 	try {
-		const { GlitchRenderer } = await server.ssrLoadModule('/src/engine/renderer.ts');
-		const renderer = new GlitchRenderer();
+		const { Renderer } = await server.ssrLoadModule('/src/engine/renderer.ts');
+		const renderer = new Renderer();
 		let getContextCalls = 0;
 		const canvas = {
 			getContext() {
@@ -82,8 +82,8 @@ test('renderer initializes a histogram canvas registered before the GPU device',
 				unconfigure() {},
 			}),
 		};
-		const { GlitchRenderer } = await server.ssrLoadModule('/src/engine/renderer.ts');
-		const renderer = new GlitchRenderer();
+		const { Renderer } = await server.ssrLoadModule('/src/engine/renderer.ts');
+		const renderer = new Renderer();
 
 		renderer.setHistogramCanvas(histogramCanvas);
 		await renderer.init({
@@ -138,8 +138,8 @@ test('renderer disposes the previous GPU histogram before reinitializing', async
 				},
 			}),
 		};
-		const { GlitchRenderer } = await server.ssrLoadModule('/src/engine/renderer.ts');
-		const renderer = new GlitchRenderer();
+		const { Renderer } = await server.ssrLoadModule('/src/engine/renderer.ts');
+		const renderer = new Renderer();
 
 		renderer.setHistogramCanvas(histogramCanvas);
 		await renderer.init({

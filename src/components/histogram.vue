@@ -5,11 +5,11 @@
 </template>
 
 <script lang="ts" setup>
-import type { GlitchRenderer } from '@/engine/renderer.ts';
+import type { Renderer } from '@/engine/renderer.ts';
 import { onBeforeUnmount, onMounted, useTemplateRef } from 'vue';
 
 const props = defineProps<{
-	renderer: GlitchRenderer;
+	renderer: Renderer;
 }>();
 
 const width = 256;

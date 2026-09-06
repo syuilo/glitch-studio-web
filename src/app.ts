@@ -4,7 +4,7 @@ import GsPopupMenu from '@/components/GsPopupMenu.vue';
 import { useStore } from './store';
 import { genId } from './utils';
 import { fxs } from './engine/fxs';
-import { GlitchRenderer, GsGroupNode } from './engine/renderer';
+import { GsGroupNode } from './engine/renderer';
 import { GsAutomation } from './engine/types';
 import { subStore } from './sub-store';
 //import GsContextMenu from '@/components/GsContextMenu.vue';
@@ -13,6 +13,7 @@ import { version } from '@/version';
 import { Asset } from './types';
 import { loadProjectFile, saveProjectFile, decodeAssets } from './api';
 import { RawProject } from './settings';
+import { Engine } from './engine/engine.ts';
 
 export type MenuAction = (ev: MouseEvent) => void;
 
@@ -249,42 +250,14 @@ export const rendererEnv = {
 	mouseX: 0,
 	mouseY: 0,
 };
-export const glitchRenderer = markRaw(new GlitchRenderer());
+export const engine = markRaw(new Engine());
 
 let store: ReturnType<typeof useStore>;
-
-export async function render() {
-	if (subStore.rendering) {
-		return;
-	}
-
-	subStore.rendering = true;
-
-	//console.time('render');
-	try {
-		if (store.nodes.length > 0) {
-			await glitchRenderer.render(store.renderNodeId ?? store.nodes.at(-1).id, {
-				mouseX: rendererEnv.mouseX,
-				mouseY: rendererEnv.mouseY,
-				frame: frame.value,
-			});
-		}
-	} catch (e) {
-		console.error(e);
-		//window.alert(e);
-		playing.value = false;
-	}
-	//console.timeEnd('render');
-
-	subStore.rendering = false;
-
-	window.requestAnimationFrame(render);
-}
 
 export async function appReady(canvas: HTMLCanvasElement, project: RawProject) {
 	document.title = `Glitch Studio (${project.name})`;
 
-	await glitchRenderer.init({
+	await engine.init({
 		canvas,
 		resolution: {
 			width: project.renderWidth,
@@ -325,34 +298,6 @@ export async function appReady(canvas: HTMLCanvasElement, project: RawProject) {
 		glitchRenderer.assets = store.assets;
 		glitchRenderer.bakeAssets();
 	}, { deep: true, immediate: true });
-
-	window.requestAnimationFrame(render);
-
-	let lastTickTime = 0;
-	let frameRequest: number;
-
-	function tick(now: number) {
-		const delta = now - lastTickTime;
-
-		if (playing.value && delta > 1000 / fps.value) {
-			if (frame.value + 1 > frameMax.value) {
-				frame.value = 0;
-			} else {
-				frame.value++;
-			}
-			lastTickTime = now;
-		}
-
-		frameRequest = window.requestAnimationFrame(tick);
-	}
-
-	watch(playing, () => {
-		if (playing.value) {
-			frameRequest = window.requestAnimationFrame(tick);
-		} else {
-			window.cancelAnimationFrame(frameRequest);
-		}
-	}, { immediate: true });
 }
 
 export function saveProject() {

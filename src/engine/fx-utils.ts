@@ -112,7 +112,7 @@ export type Effect<OpSc extends EffectOptionsSchema = EffectOptionsSchema> = {
 		};
 		params: GetEffectOptionsSchemaValues<OpSc>;
 		fallbackTexture: GPUTexture;
-	}) => Promise<EffectInstance<OpSc>>;
+	}) => EffectInstance<OpSc>;
 };
 
 export function defineEffect<const OpSc extends EffectOptionsSchema>(def: Effect<OpSc>): Effect<OpSc> {
