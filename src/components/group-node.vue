@@ -4,9 +4,9 @@
 	<header class="drag-handle" @dblclick="expanded = !expanded">Group: {{ node.name }}</header>
 	<div class="indicator" :class="{ active: node.isEnabled, processing: subStore.processingFxId === node.id }"></div>
 	<div class="buttons">
-		<GsIconButton class="expand" @click="expanded = !expanded"><Fa :icon="expanded ? faChevronUp : faChevronDown"/></GsIconButton>
-		<GsIconButton class="showSettings" @click="showSettings = !showSettings"><Fa :icon="faCog"/></GsIconButton>
-		<GsIconButton class="remove" @click="remove()" :title="i18n.ts.RemoveEffect"><Fa :icon="faTimes"/></GsIconButton>
+		<GsButton class="expand" @click="expanded = !expanded"><Fa :icon="expanded ? faChevronUp : faChevronDown"/></GsButton>
+		<GsButton class="showSettings" @click="showSettings = !showSettings"><Fa :icon="faCog"/></GsButton>
+		<GsButton class="remove" @click="remove()" :title="i18n.ts.RemoveEffect"><Fa :icon="faTimes"/></GsButton>
 	</div>
 
 	<div v-if="showSettings" v-show="expanded" style="margin: 4px; padding: 4px;" class="_gaps_s">
@@ -39,10 +39,7 @@
 
 <script lang="ts" setup>
 import { ref, computed, onMounted, shallowRef } from 'vue';
-import { faTimes, faChevronDown, faEllipsis, faCog, faChevronUp } from '@fortawesome/free-solid-svg-icons';
-import { faEye, faEyeSlash } from '@fortawesome/free-regular-svg-icons';
 import GsNodes from './GsNodes.vue';
-import { fxs } from '@/engine/fxs';
 import { subStore } from '@/sub-store';
 import { useStore } from '@/store';
 import { i18n } from '@/i18n';
@@ -53,7 +50,7 @@ import XMacroEditor from './macro-editor.vue';
 import { genId } from '@/utils';
 import * as msgpack from '@msgpack/msgpack';
 import { version } from '@/version';
-import GsIconButton from './GsIconButton.vue';
+import GsButton from './common/GsButton.vue';
 import { wireMap } from '@/app';
 import * as api from '@/api.js';
 

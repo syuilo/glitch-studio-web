@@ -1,18 +1,17 @@
 <template>
 <div class="xy-slider-component">
 	<div>
-		<XSlider v-model="x" :step="step" :min="min" :max="max" class="slider" :continuous-update="true"/>
-		<GsIconButton @click="keepAspectRatio = !keepAspectRatio" class="keep" :primary="keepAspectRatio"><Fa :icon="faLink"/></GsIconButton>
-		<XSlider v-model="y" :step="step" :min="min" :max="max" class="slider" :continuous-update="true"/>
+		<GsRange v-model="x" :step="step" :min="min" :max="max" class="slider" :continuous-update="true"/>
+		<GsButton @click="keepAspectRatio = !keepAspectRatio" class="keep" :primary="keepAspectRatio"><Fa :icon="faLink"/></GsButton>
+		<GsRange v-model="y" :step="step" :min="min" :max="max" class="slider" :continuous-update="true"/>
 	</div>
 </div>
 </template>
 
 <script lang="ts" setup>
 import { onMounted, ref, shallowRef, watch } from 'vue';
-import XSlider from './slider.vue';
-import { faLink } from '@fortawesome/free-solid-svg-icons';
-import GsIconButton from './GsIconButton.vue';
+import GsRange from './common/GsRange.vue';
+import GsButton from './common/GsButton.vue';
 
 const props = withDefaults(defineProps<{
 	modelValue: [number, number];

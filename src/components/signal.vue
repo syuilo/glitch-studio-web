@@ -8,7 +8,7 @@
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import GsButton from './GsButton.vue';
+import GsButton from './common/GsButton.vue';
 
 const props = defineProps<{
 	signal: [boolean, boolean, boolean];

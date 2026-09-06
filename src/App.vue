@@ -83,16 +83,13 @@ import GsTimeline from '@/components/GsTimeline.vue';
 import XSavePreset from '@/components/save-preset.vue';
 import XExportPreset from '@/components/export-preset.vue';
 import XHistogram from '@/components/histogram.vue';
-import { SettingsStore, Preset } from '@/settings';
-import { subStore } from '@/sub-store';
 import { Image } from '@/types';
 import { useStore } from '@/store';
 import { i18n } from '@/i18n';
 import { genId } from './utils';
-import * as msgpack from '@msgpack/msgpack';
-import { frame, popups, playing, frameMax, fps, appReady, rendererEnv, saveProject, engine } from './app';
+import { frame, frameMax, appReady, rendererEnv, saveProject, engine } from './app';
 import * as api from '@/api.js';
-import GsButton from './components/GsButton.vue';
+import GsButton from '@/components/common/GsButton.vue';
 import { loadProjectFile } from '@/api.js';
 import { version } from './version';
 

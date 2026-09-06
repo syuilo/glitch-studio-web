@@ -4,9 +4,9 @@
 	<header class="drag-handle" @dblclick="expanded = !expanded">{{ name }}</header>
 	<div class="indicator" :class="{ active: node.isEnabled, processing: subStore.processingFxId === node.id }"></div>
 	<div class="buttons">
-		<GsIconButton class="expand" @click="expanded = !expanded"><Fa :icon="expanded ? faChevronUp : faChevronDown"/></GsIconButton>
-		<GsIconButton class="active" :primary="node.isEnabled" @click="toggleEnable()" :title="node.isEnabled ? i18n.ts.ClickToDisable : i18n.ts.ClickToEnable"><Fa :icon="node.isEnabled ? faEye : faEyeSlash"/></GsIconButton>
-		<GsIconButton class="remove" @click="remove()" :title="i18n.ts.RemoveEffect"><Fa :icon="faTimes"/></GsIconButton>
+		<GsButton class="expand" @click="expanded = !expanded"><Fa :icon="expanded ? faChevronUp : faChevronDown"/></GsButton>
+		<GsButton class="active" :primary="node.isEnabled" @click="toggleEnable()" :title="node.isEnabled ? i18n.ts.ClickToDisable : i18n.ts.ClickToEnable"><Fa :icon="node.isEnabled ? faEye : faEyeSlash"/></GsButton>
+		<GsButton class="remove" @click="remove()" :title="i18n.ts.RemoveEffect"><Fa :icon="faTimes"/></GsButton>
 	</div>
 
 	<div class="params" v-show="expanded">
@@ -31,18 +31,16 @@
 
 <script lang="ts" setup>
 import { ref, computed, shallowRef, onMounted } from 'vue';
-import { faTimes, faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
-import { faEye, faEyeSlash } from '@fortawesome/free-regular-svg-icons';
 import XControl from './control.vue';
 import { fxs } from '@/engine/fxs';
 import { subStore } from '@/sub-store';
 import { useStore } from '@/store';
 import { i18n } from '@/i18n';
 import { GsFxNode, GsGroupNode } from '@/engine/renderer-legacy.ts';
-import GsIconButton from './GsIconButton.vue';
-import GsButton from './GsButton.vue';
-import { popupMenu, wireMap } from '@/app';
+import GsButton from './common/GsButton.vue';
+import { wireMap } from '@/app';
 import { GsAutomation } from '@/engine/types';
+import * as ui from '@/ui';
 
 const store = useStore();
 
@@ -82,7 +80,7 @@ function getParam(param: string) {
 
 async function selectAutomation(param: string, ev: MouseEvent) {
 	const a = await new Promise<GsAutomation | null>((res) => {
-		popupMenu([{
+		ui.popupMenu([{
 			text: '(none)',
 			action: () => {
 				res(null);
@@ -104,7 +102,7 @@ async function selectAutomation(param: string, ev: MouseEvent) {
 
 async function changeValueType(param: string, ev: MouseEvent) {
 	const type = await new Promise((res) => {
-		popupMenu([{
+		ui.popupMenu([{
 			text: 'Literal',
 			action: () => {
 				res('literal');

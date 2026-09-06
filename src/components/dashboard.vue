@@ -21,7 +21,7 @@
 <script lang="ts" setup>
 import { version } from '@/version';
 import XDialog from './dialog.vue';
-import GsButton from './GsButton.vue';
+import GsButton from './common/GsButton.vue';
 
 const emit = defineEmits<{
 	(ev: 'openProject'): void;

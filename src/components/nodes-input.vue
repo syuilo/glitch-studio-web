@@ -13,7 +13,7 @@
 						<option v-for="node in store.nodes.filter(x => x.id !== props.node.id)" :value="node.id" :key="node.id">{{ node.type === 'fx' ? fxs[node.fx].displayName : node.name }} [{{ node.id }}]</option>
 					</optgroup>
 				</GsSelect>
-				<GsIconButton @click="remove(element)" style="margin-left: 4px;"><Fa :icon="faTimes"/></GsIconButton>
+				<GsButton @click="remove(element)" style="margin-left: 4px;"><Fa :icon="faTimes"/></GsButton>
 				<div class="drag-handle" style="margin-left: 4px;">
 					<svg viewBox="0 0 16 16" version="1.1" class="grabber">
 						<path fill="currentColor" d="M10 13a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm0-4a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm-4 4a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm5-9a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM6 5a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path>
@@ -28,15 +28,13 @@
 
 <script lang="ts" setup>
 import { defineAsyncComponent, ref, shallowRef, watch } from 'vue';
-import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { fxs } from '@/engine/fxs';
 import { i18n } from '@/i18n';
 import { GsGroupNode, GsNode } from '@/engine/renderer-legacy.ts';
 import { ulid } from 'ulid';
 import { useStore } from '@/store';
-import GsButton from './GsButton.vue';
-import GsIconButton from './GsIconButton.vue';
-import GsSelect from './GsSelect.vue';
+import GsButton from './common/GsButton.vue';
+import GsSelect from './common/GsSelect.vue';
 import { wireMap } from '@/app';
 
 const Sortable = defineAsyncComponent(() => import('vuedraggable').then(x => x.default));

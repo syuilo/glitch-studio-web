@@ -18,7 +18,7 @@ import { onMounted, ref, shallowRef } from 'vue';
 import GsNodes from './GsNodes.vue';
 import GsNodesX from './GsNodesX.vue';
 import GsWires from './GsWires.vue';
-import GsButton from './GsButton.vue';
+import GsButton from './common/GsButton.vue';
 import { showAddNodeMenu } from '@/app';
 </script>
 

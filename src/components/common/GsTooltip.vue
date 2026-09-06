@@ -1,27 +1,32 @@
 <template>
 <Transition
-	:enterActiveClass="$style.transition_tooltip_enterActive"
-	:leaveActiveClass="$style.transition_tooltip_leaveActive"
-	:enterFromClass="$style.transition_tooltip_enterFrom"
-	:leaveToClass="$style.transition_tooltip_leaveTo"
-	appear @afterLeave="emit('closed')"
+	:enterActiveClass="prefer.s.animation ? $style.transition_tooltip_enterActive : ''"
+	:leaveActiveClass="prefer.s.animation ? $style.transition_tooltip_leaveActive : ''"
+	:enterFromClass="prefer.s.animation ? $style.transition_tooltip_enterFrom : ''"
+	:leaveToClass="prefer.s.animation ? $style.transition_tooltip_leaveTo : ''"
+	appear :css="prefer.s.animation"
+	@afterLeave="emit('closed')"
 >
 	<div v-show="showing" ref="el" :class="$style.root" class="_acrylic _shadow" :style="{ zIndex, maxWidth: maxWidth + 'px' }">
 		<slot>
-			<span v-if="text">{{ text }}</span>
+			<template v-if="text">
+				<Mfm v-if="asMfm" :text="text"/>
+				<span v-else>{{ text }}</span>
+			</template>
 		</slot>
 	</div>
 </Transition>
 </template>
 
 <script lang="ts" setup>
-import { nextTick, onMounted, onUnmounted, shallowRef } from 'vue';
-import { calcPopupPosition } from '@/popup-position.js';
-import { claimZIndex } from '@/app';
+import { nextTick, onMounted, onUnmounted, useTemplateRef } from 'vue';
+import * as ui from '@/ui.js';
+import { calcPopupPosition } from '@/utility/popup-position.js';
+import { prefer } from '@/preferences.js';
 
 const props = withDefaults(defineProps<{
 	showing: boolean;
-	targetElement?: HTMLElement;
+	anchorElement?: HTMLElement;
 	x?: number;
 	y?: number;
 	text?: string;
@@ -42,13 +47,13 @@ const emit = defineEmits<{
 // タイミングによっては最初から showing = false な場合があり、その場合に closed 扱いにしないと永久にDOMに残ることになる
 if (!props.showing) emit('closed');
 
-const el = shallowRef<HTMLElement>();
-const zIndex = claimZIndex('high');
+const el = useTemplateRef('el');
+const zIndex = ui.claimZIndex('high');
 
 function setPosition() {
 	if (el.value == null) return;
 	const data = calcPopupPosition(el.value, {
-		anchorElement: props.targetElement,
+		anchorElement: props.anchorElement,
 		direction: props.direction,
 		align: 'center',
 		innerMargin: props.innerMargin,
@@ -61,7 +66,7 @@ function setPosition() {
 	el.value.style.top = data.top + 'px';
 }
 
-let loopHandler;
+let loopHandler: number | null = null;
 
 onMounted(() => {
 	nextTick(() => {
@@ -77,7 +82,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-	window.cancelAnimationFrame(loopHandler);
+	if (loopHandler != null) window.cancelAnimationFrame(loopHandler);
 });
 </script>
 
@@ -101,6 +106,7 @@ onUnmounted(() => {
 	box-sizing: border-box;
 	text-align: center;
 	border-radius: 4px;
+	border: solid 0.5px var(--MI_THEME-divider);
 	pointer-events: none;
 	transform-origin: center center;
 }

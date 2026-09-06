@@ -1,144 +1,13 @@
 import { Ref, ref, markRaw, Component, reactive, watch } from 'vue';
-import type { ComponentProps as CP } from 'vue-component-type-helpers';
-import GsPopupMenu from '@/components/GsPopupMenu.vue';
 import { useStore } from './store';
 import { genId } from './utils';
 import { fxs } from './engine/fxs';
 import { GsGroupNode } from './engine/renderer';
-import { GsAutomation } from './engine/types';
-import { subStore } from './sub-store';
-//import GsContextMenu from '@/components/GsContextMenu.vue';
-import * as msgpack from '@msgpack/msgpack';
 import { version } from '@/version';
-import { Asset } from './types';
 import { loadProjectFile, saveProjectFile, decodeAssets } from './api';
 import { RawProject } from './settings';
 import { Engine } from './engine/engine.ts';
-
-export type MenuAction = (ev: MouseEvent) => void;
-
-export type MenuDivider = null;
-export type MenuNull = undefined;
-export type MenuLabel = { type: 'label', text: string };
-export type MenuA = { type: 'a', href: string, target?: string, download?: string, text: string, icon?: string, indicate?: boolean };
-export type MenuSwitch = { type: 'switch', ref: Ref<boolean>, text: string, disabled?: boolean };
-export type MenuButton = { type?: 'button', text: string, icon?: string, indicate?: boolean, danger?: boolean, active?: boolean, action: MenuAction };
-export type MenuParent = { type: 'parent', text: string, icon?: string, children: OuterMenuItem[] };
-
-export type MenuPending = { type: 'pending' };
-
-type OuterMenuItem = MenuDivider | MenuNull | MenuLabel | MenuA | MenuSwitch | MenuButton | MenuParent;
-type OuterPromiseMenuItem = Promise<MenuLabel | MenuA | MenuSwitch | MenuButton | MenuParent>;
-export type MenuItem = OuterMenuItem | OuterPromiseMenuItem;
-export type InnerMenuItem = MenuDivider | MenuPending | MenuLabel | MenuA | MenuSwitch | MenuButton | MenuParent;
-
-let popupIdCount = 0;
-export const popups = ref([]) as Ref<{
-	id: any;
-	component: any;
-	props: Record<string, any>;
-}[]>;
-
-const zIndexes = {
-	veryLow: 500000,
-	low: 1000000,
-	middle: 2000000,
-	high: 3000000,
-};
-export function claimZIndex(priority: keyof typeof zIndexes = 'low'): number {
-	zIndexes[priority] += 100;
-	return zIndexes[priority];
-}
-
-// InstanceType<typeof Component>['$emit'] だとインターセクション型が返ってきて
-// 使い物にならないので、代わりに ['$props'] から色々省くことで emit の型を生成する
-// FIXME: 何故か *.ts ファイルからだと型がうまく取れない？ことがあるのをなんとかしたい
-type ComponentEmit<T> = T extends new () => { $props: infer Props }
-	? [keyof Pick<T, Extract<keyof T, `on${string}`>>] extends [never]
-		? Record<string, unknown> // *.ts ファイルから型がうまく取れないとき用（これがないと {} になって型エラーがうるさい）
-		: EmitsExtractor<Props>
-	: T extends (...args: any) => any
-		? ReturnType<T> extends { [x: string]: any; __ctx?: { [x: string]: any; props: infer Props } }
-			? [keyof Pick<T, Extract<keyof T, `on${string}`>>] extends [never]
-				? Record<string, unknown>
-				: EmitsExtractor<Props>
-			: never
-		: never;
-
-// props に ref を許可するようにする
-type ComponentProps<T extends Component> = { [K in keyof CP<T>]: CP<T>[K] | Ref<CP<T>[K]> };
-
-type EmitsExtractor<T> = {
-	[K in keyof T as K extends `onVnode${string}` ? never : K extends `on${infer E}` ? Uncapitalize<E> : K extends string ? never : K]: T[K];
-};
-
-export function popup<T extends Component>(
-	component: T,
-	props: ComponentProps<T>,
-	events: ComponentEmit<T> = {} as ComponentEmit<T>,
-): { dispose: () => void } {
-	markRaw(component);
-
-	const id = ++popupIdCount;
-	const dispose = () => {
-		// このsetTimeoutが無いと挙動がおかしくなる(autocompleteが閉じなくなる)。Vueのバグ？
-		window.setTimeout(() => {
-			popups.value = popups.value.filter(p => p.id !== id);
-		}, 0);
-	};
-	const state = {
-		component,
-		props,
-		events,
-		id,
-	};
-
-	popups.value.push(state);
-
-	return {
-		dispose,
-	};
-}
-
-export function popupMenu(items: MenuItem[] | Ref<MenuItem[]>, src?: HTMLElement, options?: {
-	align?: string;
-	width?: number;
-	viaKeyboard?: boolean;
-	onClosing?: () => void;
-}): Promise<void> {
-	return new Promise((resolve, reject) => {
-		const { dispose } = popup(GsPopupMenu, {
-			items,
-			src,
-			width: options?.width,
-			align: options?.align,
-			viaKeyboard: options?.viaKeyboard,
-		}, {
-			closed: () => {
-				resolve();
-				dispose();
-			},
-			closing: () => {
-				if (options?.onClosing) options.onClosing();
-			},
-		});
-	});
-}
-
-export function contextMenu(items: MenuItem[] | Ref<MenuItem[]>, ev: MouseEvent): Promise<void> {
-	ev.preventDefault();
-	return new Promise((resolve, reject) => {
-		const { dispose } = popup(GsContextMenu, {
-			items,
-			ev,
-		}, {
-			closed: () => {
-				resolve();
-				dispose();
-			},
-		});
-	});
-}
+import * as ui from '@/ui.js';
 
 export const wireMap = reactive<{
 	in: Record<string, any>;
@@ -153,7 +22,7 @@ export const wireMap = reactive<{
 export function showAddNodeMenu(ev: MouseEvent, group?: GsGroupNode) {
 	const store = useStore();
 
-	popupMenu([{
+	ui.popupMenu([{
 		text: 'Group',
 		action: () => {
 			store.addGroupNode({

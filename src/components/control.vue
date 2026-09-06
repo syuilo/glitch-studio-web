@@ -1,7 +1,7 @@
 <template>
 <div class="control-component">
 	<div v-if="type === 'range'">
-		<XSlider
+		<GsRange
 			:modelValue="value"
 			:step="options.step ?? 1"
 			:min="options.min"
@@ -113,15 +113,15 @@ import XSignal from './signal.vue';
 import XXy from './xy.vue';
 import XXySlider from './xy-slider.vue';
 import XColor from './color.vue';
-import XSlider from './slider.vue';
+import GsRange from './common/GsRange.vue';
 import XSlider2 from './slider2.vue';
 import XNodesInput from './nodes-input.vue';
 import { fxs } from '@/engine/fxs';
 import { useStore } from '@/store';
 import { i18n } from '@/i18n';
 import { GsGroupNode, GsNode } from '@/engine/renderer-legacy.ts';
-import GsButton from './GsButton.vue';
-import GsSelect from './GsSelect.vue';
+import GsButton from './common/GsButton.vue';
+import GsSelect from './common/GsSelect.vue';
 import { wireMap } from '@/app';
 
 const store = useStore();

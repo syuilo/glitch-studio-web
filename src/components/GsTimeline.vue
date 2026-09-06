@@ -116,8 +116,7 @@
 
 <script lang="ts" setup>
 import { computed, onMounted, ref, shallowRef, watch } from 'vue';
-import { faArrowsLeftRight, faArrowsUpDown, faArrowsUpDownLeftRight, faPause, faPlay } from '@fortawesome/free-solid-svg-icons';
-import GsButton from './GsButton.vue';
+import GsButton from './common/GsButton.vue';
 import { playing, frame, frameMax } from '@/app';
 import { dragListen, evalAutomationValue, genId, insertIntermediateNumbers, niceScale, rndstr, nearlyEqual } from '@/utils';
 import { GsAutomation, GsKeyframe } from '@/engine/types';
