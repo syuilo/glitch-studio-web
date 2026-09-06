@@ -1,13 +1,13 @@
 <template>
-<div class="asset-component">
-	<header>{{ asset.name }}</header>
-	<div class="buttons">
-		<button class="replace" @click="replace()" :title="i18n.ts.ReplaceAsset"><i class="ti ti-refresh"></i></button>
-		<button class="rename" @click="rename()" :title="i18n.ts.RenameAsset"><i class="ti ti-cursor-text"></i></button>
-		<button class="remove" @click="remove()" :title="i18n.ts.RemoveAsset"><i class="ti ti-trash"></i></button>
+<div :class="$style.root">
+	<div :class="$style.header">{{ asset.name }}</div>
+	<div :class="$style.buttons">
+		<GsButton :class="$style.button" @click="replace()" :v-tooltip="i18n.ts.ReplaceAsset"><i class="ti ti-refresh"></i></GsButton>
+		<GsButton :class="$style.button" @click="rename()" :v-tooltip="i18n.ts.RenameAsset"><i class="ti ti-cursor-text"></i></GsButton>
+		<GsButton :class="$style.button" @click="remove()" :v-tooltip="i18n.ts.RemoveAsset"><i class="ti ti-trash"></i></GsButton>
 	</div>
-	<div class="body">
-		<canvas :width="asset.width" :height="asset.height" ref="canvas"/>
+	<div :class="$style.body">
+		<canvas :class="$style.canvas" :width="asset.width" :height="asset.height" ref="canvas"/>
 	</div>
 </div>
 </template>
@@ -18,6 +18,7 @@ import { useStore } from '@/store';
 import { i18n } from '@/i18n';
 import { Asset } from '@/types';
 import * as api from '@/api.js';
+import GsButton from './common/GsButton.vue';
 
 const store = useStore();
 
@@ -70,67 +71,59 @@ onMounted(() => {
 
 </script>
 
-<style scoped lang="scss">
-.asset-component {
+<style module lang="scss">
+.root {
 	position: relative;
 	background: rgba(255, 255, 255, 0.1);
 	border: solid 1px rgba(255, 255, 255, 0.1);
 	border-radius: 4px;
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
 	overflow: hidden;
+}
 
-	> header {
-		padding: 0 88px 0 8px;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		font-size: 14px;
-		font-weight: bold;
-		background: linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(255, 255, 255, 0.025));
-		border-bottom: solid 1px rgba(0, 0, 0, 0.5);
-		line-height: 32px;
-		text-shadow: 0 -1px #000;
+.header {
+	padding: 0 88px 0 8px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-size: 14px;
+	font-weight: bold;
+	background: linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(255, 255, 255, 0.025));
+	border-bottom: solid 1px rgba(0, 0, 0, 0.5);
+	line-height: 32px;
+	text-shadow: 0 -1px #000;
 
-		&.disabled {
-			pointer-events: none;
-		}
+	&.disabled {
+		pointer-events: none;
 	}
+}
 
-	> .buttons {
-		position: absolute;
-		top: 4px;
-		right: 4px;
-		text-align: right;
-		width: 85px;
+.buttons {
+	position: absolute;
+	top: 4px;
+	right: 4px;
+	text-align: right;
+	width: 85px;
+}
 
-		> button {
-			display: inline-block;
-			width: 23px;
-			height: 23px;
-			font-size: 12px;
-			padding-left: 0;
-			padding-right: 0;
+.button {
+	display: inline-block;
+	width: 23px;
+	height: 23px;
+	font-size: 12px;
+	padding-left: 0;
+	padding-right: 0;
+}
 
-			&:not(:first-child) {
-				margin-left: 6px;
-			}
+.body {
+	height: 120px;
+	padding: 8px;
+}
 
-			> * {
-				height: 100%;
-			}
-		}
-	}
-
-	> .body {
-		height: 120px;
-		padding: 8px;
-
-		> canvas {
-			display: block;
-			width: 100%;
-			height: 100%;
-			object-fit: contain;
-		}
-	}
+.canvas {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
 }
 </style>
