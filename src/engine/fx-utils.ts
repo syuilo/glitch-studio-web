@@ -16,7 +16,7 @@ type NumberOptionSchema = {
 };
 
 type BooleanOptionSchema = {
-	type: 'boolean';
+	type: 'bool';
 	label: string;
 };
 
@@ -61,16 +61,20 @@ type GetEffectOptionsSchemaValues<T extends EffectOptionsSchema> = {
 	T[K] extends ColorOptionSchema ? Readonly<[number, number, number]> :
 	T[K] extends EnumOptionSchema ? T[K]['enum'][number]['value'] :
 	T[K] extends RangeOptionSchema ? number :
-	T[K] extends ImageOptionSchema ? GPUTextureView | null :
-	T[K] extends NodeOptionSchema ? GPUTextureView | null :
+	T[K] extends ImageOptionSchema ? GPUTexture | null :
+	T[K] extends NodeOptionSchema ? GPUTexture | null :
 	never;
 };
 
+type EffectOptionsSchemaDefaultValue<T extends EffectOptionsSchema, K extends keyof T> =
+	{ type: 'literal'; value: GetEffectOptionsSchemaValues<T>[K] } |
+	{ type: 'expression'; value: string } |
+	{ type: 'automation'; value: string };
+
 type EffectOptionsSchemaDefaultValues<T extends EffectOptionsSchema> = {
-	[K in keyof T]:
-		{ type: 'literal'; value: GetEffectOptionsSchemaValues<T>[K] } |
-		{ type: 'expression'; value: string } |
-		{ type: 'automation'; value: string };
+	[K in keyof T as T[K] extends NodeOptionSchema ? never : K]: EffectOptionsSchemaDefaultValue<T, K>;
+} & {
+	[K in keyof T as T[K] extends NodeOptionSchema ? K : never]?: EffectOptionsSchemaDefaultValue<T, K>;
 };
 
 export type EffectInstance<Options extends EffectOptionsSchema = any> = {
@@ -107,6 +111,7 @@ export type Effect<OpSc extends EffectOptionsSchema = EffectOptionsSchema> = {
 			enableFloat32Filtering: boolean;
 		};
 		params: GetEffectOptionsSchemaValues<OpSc>;
+		fallbackTexture: GPUTexture;
 	}) => Promise<EffectInstance<OpSc>>;
 };
 

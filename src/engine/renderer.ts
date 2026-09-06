@@ -45,6 +45,7 @@ export class GlitchRenderer {
 	private gpuContext: GPUCanvasContext | null = null;
 	private gpuDevice: GPUDevice | null = null;
 	private defaultVertexShaderModule: GPUShaderModule | null = null;
+	private fallbackTexture: GPUTexture | null = null;
 	private enableStats: boolean = true;
 	private hasAlpha: boolean = false;
 	private nodes: GsNode[] = [];
@@ -137,6 +138,12 @@ export class GlitchRenderer {
 			alphaMode: this.hasAlpha ? 'premultiplied' : 'opaque',
 			colorSpace: 'display-p3',
 			usage: GPUTextureUsage.RENDER_ATTACHMENT,
+		});
+
+		this.fallbackTexture = this.gpuDevice.createTexture({
+			size: [1, 1],
+			format: navigator.gpu.getPreferredCanvasFormat(),
+			usage: GPUTextureUsage.TEXTURE_BINDING,
 		});
 
 		this.defaultVertexShaderModule = this.gpuDevice.createShaderModule({
@@ -382,6 +389,7 @@ export class GlitchRenderer {
 				resolution: { width: this.resolution.width, height: this.resolution.height },
 				wgpu: { device: this.gpuDevice!, context: this.gpuContext!, defaultVertexShaderModule: this.defaultVertexShaderModule!, enableFloat32Filtering: this.enableFloat32Filtering },
 				params: paramsWithOuts,
+				fallbackTexture: this.fallbackTexture,
 			});
 			this.effectInstances.set(node.id, effectInstance);
 		}

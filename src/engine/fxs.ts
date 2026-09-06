@@ -6,6 +6,7 @@ import shift from './fx/shift/main.ts';
 import snoise from './fx/snoise/main.ts';
 import multiply from './fx/multiply/main.ts';
 import image from './fx/image/main.ts';
+import quadtreeFilter from './fx/quadtreeFilter/main.ts';
 
 const _fxs = {
 	test,
@@ -14,6 +15,7 @@ const _fxs = {
 	snoise,
 	multiply,
 	image,
+	quadtreeFilter,
 } as Record<string, Effect<any>>;
 
 const fxs = {} as typeof _fxs;
