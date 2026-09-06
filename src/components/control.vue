@@ -21,44 +21,70 @@
 		<GsButton @click="changeValue(!value)" :primary="value">{{ value ? 'On' : 'Off' }}</GsButton>
 	</div>
 	<div v-else-if="type === 'enum'">
-		<GsSelect :modelValue="value" @update:modelValue="v => changeValue(v)">
-			<option v-for="o in options.options" :value="o.value" :key="o.value">{{ o.label }}</option>
-		</GsSelect>
+		<GsSelect :modelValue="value" :items="options.options" @update:modelValue="v => changeValue(v)"/>
 	</div>
 	<div v-else-if="type === 'blendMode'">
-		<GsSelect :modelValue="value" @update:modelValue="v => changeValue(v)">
-			<option value="none">{{ i18n.ts._BlendModes.None }}</option>
-			<optgroup :label="i18n.ts._BlendModes._Categories.Basic">
-				<option value="normal">{{ i18n.ts._BlendModes.Normal }}</option>
-			</optgroup>
-			<optgroup :label="i18n.ts._BlendModes._Categories.Darken">
-				<option value="darken">{{ i18n.ts._BlendModes.Darken }}</option>
-				<option value="multiply">{{ i18n.ts._BlendModes.Multiply }}</option>
-				<option value="colorBurn">{{ i18n.ts._BlendModes.ColorBurn }}</option>
-			</optgroup>
-			<optgroup :label="i18n.ts._BlendModes._Categories.Lighten">
-				<option value="lighten">{{ i18n.ts._BlendModes.Lighten }}</option>
-				<option value="screen">{{ i18n.ts._BlendModes.Screen }}</option>
-				<option value="colorDodge">{{ i18n.ts._BlendModes.ColorDodge }}</option>
-				<option value="add">{{ i18n.ts._BlendModes.Add }}</option>
-			</optgroup>
-			<optgroup :label="i18n.ts._BlendModes._Categories.Contrast">
-				<option value="overlay">{{ i18n.ts._BlendModes.Overlay }}</option>
-				<option value="softLight">{{ i18n.ts._BlendModes.SoftLight }}</option>
-				<option value="hardLight">{{ i18n.ts._BlendModes.HardLight }}</option>
-			</optgroup>
-			<optgroup :label="i18n.ts._BlendModes._Categories.Comparative">
-				<option value="difference">{{ i18n.ts._BlendModes.Difference }}</option>
-				<option value="exclusion">{{ i18n.ts._BlendModes.Exclusion }}</option>
-				<option value="subtract">{{ i18n.ts._BlendModes.Subtract }}</option>
-			</optgroup>
-			<optgroup :label="i18n.ts._BlendModes._Categories.Hsl">
-				<option value="hue">{{ i18n.ts._BlendModes.Hue }}</option>
-				<option value="saturation">{{ i18n.ts._BlendModes.Saturation }}</option>
-				<option value="color">{{ i18n.ts._BlendModes.Color }}</option>
-				<option value="luminosity">{{ i18n.ts._BlendModes.Luminosity }}</option>
-			</optgroup>
-		</GsSelect>
+		<GsSelect
+			:modelValue="value"
+			:items="[
+				{ label: i18n.ts._BlendModes.None, value: 'none' },
+				{
+					type: 'group',
+					label: i18n.ts._BlendModes._Categories.Basic,
+					items: [
+						{ label: i18n.ts._BlendModes.Normal, value: 'normal' },
+					],
+				},
+				{
+					type: 'group',
+					label: i18n.ts._BlendModes._Categories.Darken,
+					items: [
+						{ label: i18n.ts._BlendModes.Darken, value: 'darken' },
+						{ label: i18n.ts._BlendModes.Multiply, value: 'multiply' },
+						{ label: i18n.ts._BlendModes.ColorBurn, value: 'colorBurn' },
+					],
+				},
+				{
+					type: 'group',
+					label: i18n.ts._BlendModes._Categories.Lighten,
+					items: [
+						{ label: i18n.ts._BlendModes.Lighten, value: 'lighten' },
+						{ label: i18n.ts._BlendModes.Screen, value: 'screen' },
+						{ label: i18n.ts._BlendModes.ColorDodge, value: 'colorDodge' },
+						{ label: i18n.ts._BlendModes.Add, value: 'add' },
+					],
+				},
+				{
+					type: 'group',
+					label: i18n.ts._BlendModes._Categories.Contrast,
+					items: [
+						{ label: i18n.ts._BlendModes.Overlay, value: 'overlay' },
+						{ label: i18n.ts._BlendModes.SoftLight, value: 'softLight' },
+						{ label: i18n.ts._BlendModes.HardLight, value: 'hardLight' },
+					],
+				},
+				{
+					type: 'group',
+					label: i18n.ts._BlendModes._Categories.Comparative,
+					items: [
+						{ label: i18n.ts._BlendModes.Difference, value: 'difference' },
+						{ label: i18n.ts._BlendModes.Exclusion, value: 'exclusion' },
+						{ label: i18n.ts._BlendModes.Subtract, value: 'subtract' },
+					],
+				},
+				{
+					type: 'group',
+					label: i18n.ts._BlendModes._Categories.Hsl,
+					items: [
+						{ label: i18n.ts._BlendModes.Hue, value: 'hue' },
+						{ label: i18n.ts._BlendModes.Saturation, value: 'saturation' },
+						{ label: i18n.ts._BlendModes.Color, value: 'color' },
+						{ label: i18n.ts._BlendModes.Luminosity, value: 'luminosity' },
+					],
+				},
+			]"
+			@update:modelValue="v => changeValue(v)"
+		/>
 	</div>
 	<div v-else-if="type === 'signal'">
 		<XSignal :signal="value" @input="changeValue($event)"/>
@@ -83,26 +109,46 @@
 	</div>
 	<div v-else-if="type === 'node'" style="display: flex;">
 		<div ref="portEl">・</div>
-		<GsSelect :modelValue="value" @update:modelValue="v => changeValue(v)">
-			<option :value="null">{{ i18n.ts.None }}</option>
-			<optgroup label="In group" v-if="group && group.nodes.length > 0">
-				<option v-for="node in group.nodes.filter(x => x.id !== props.node.id)" :value="node.id" :key="node.id">{{ node.type === 'fx' ? fxs[node.fx].displayName : node.name }} [{{ node.id }}]</option>
-			</optgroup>
-			<optgroup label="Nodes" v-if="store.nodes.length > 0">
-				<option v-for="node in store.nodes.filter(x => x.id !== props.node.id)" :value="node.id" :key="node.id">{{ node.type === 'fx' ? fxs[node.fx].displayName : node.name }} [{{ node.id }}]</option>
-			</optgroup>
-		</GsSelect>
+		<GsSelect
+			:modelValue="value"
+			:items="[
+				{ label: i18n.ts.None, value: null },
+				...(group && group.nodes.length > 0 ? [{
+					type: 'group' as const,
+					label: 'In group',
+					items: group.nodes.filter(x => x.id !== props.node.id).map(node => ({
+						label: `${node.type === 'fx' ? fxs[node.fx].displayName : node.name} [${node.id}]`,
+						value: node.id,
+					})),
+				}] : []),
+				...(store.nodes.length > 0 ? [{
+					type: 'group' as const,
+					label: 'Nodes',
+					items: store.nodes.filter(x => x.id !== props.node.id).map(node => ({
+						label: `${node.type === 'fx' ? fxs[node.fx].displayName : node.name} [${node.id}]`,
+						value: node.id,
+					})),
+				}] : []),
+			]"
+			@update:modelValue="v => changeValue(v)"
+		/>
 	</div>
 	<div v-else-if="type === 'nodes'">
 		<XNodesInput :modelValue="value" @update:modelValue="v => changeValue(v)" :node="node" :group="group" :name="name"/>
 	</div>
 	<div v-else-if="type === 'image'">
-		<GsSelect :modelValue="value" @update:modelValue="v => changeValue(v)">
-			<option :value="null">{{ i18n.ts.None }}</option>
-			<optgroup label="Assets" v-if="store.assets.length > 0">
-				<option v-for="asset in store.assets" :value="asset.id" :key="asset.id">{{ asset.name }}</option>
-			</optgroup>
-		</GsSelect>
+		<GsSelect
+			:modelValue="value"
+			:items="[
+				{ label: i18n.ts.None, value: null },
+				...(store.assets.length > 0 ? [{
+					type: 'group' as const,
+					label: 'Assets',
+					items: store.assets.map(asset => ({ label: asset.name, value: asset.id })),
+				}] : []),
+			]"
+			@update:modelValue="v => changeValue(v)"
+		/>
 	</div>
 </div>
 </template>

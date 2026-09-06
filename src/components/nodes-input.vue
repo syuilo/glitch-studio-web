@@ -4,15 +4,30 @@
 		<template #item="{element}">
 			<div style="display: flex;">
 				<div class="port" :ref="el => portEls[element.id] = el">・</div>
-				<GsSelect :modelValue="element.node" @update:modelValue="ev => value.find(x => x.id === element.id).node = ev" style="flex: 1;">
-					<option :value="null">{{ i18n.ts.None }}</option>
-					<optgroup label="In group" v-if="group && group.nodes.length > 0">
-						<option v-for="node in group.nodes.filter(x => x.id !== props.node.id)" :value="node.id" :key="node.id">{{ node.type === 'fx' ? fxs[node.fx].displayName : node.name }} [{{ node.id }}]</option>
-					</optgroup>
-					<optgroup label="Nodes" v-if="store.nodes.length > 0">
-						<option v-for="node in store.nodes.filter(x => x.id !== props.node.id)" :value="node.id" :key="node.id">{{ node.type === 'fx' ? fxs[node.fx].displayName : node.name }} [{{ node.id }}]</option>
-					</optgroup>
-				</GsSelect>
+				<GsSelect
+					:modelValue="element.node"
+					:items="[
+						{ label: i18n.ts.None, value: null },
+						...(group && group.nodes.length > 0 ? [{
+							type: 'group' as const,
+							label: 'In group',
+							items: group.nodes.filter(x => x.id !== props.node.id).map(node => ({
+								label: `${node.type === 'fx' ? fxs[node.fx].displayName : node.name} [${node.id}]`,
+								value: node.id,
+							})),
+						}] : []),
+						...(store.nodes.length > 0 ? [{
+							type: 'group' as const,
+							label: 'Nodes',
+							items: store.nodes.filter(x => x.id !== props.node.id).map(node => ({
+								label: `${node.type === 'fx' ? fxs[node.fx].displayName : node.name} [${node.id}]`,
+								value: node.id,
+							})),
+						}] : []),
+					]"
+					style="flex: 1;"
+					@update:modelValue="ev => value.find(x => x.id === element.id).node = ev"
+				/>
 				<GsButton @click="remove(element)" style="margin-left: 4px;"><i class="ti ti-x"></i></GsButton>
 				<div class="drag-handle" style="margin-left: 4px;">
 					<svg viewBox="0 0 16 16" version="1.1" class="grabber">

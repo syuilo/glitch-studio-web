@@ -3,13 +3,17 @@
 	<div>
 		<input type="text" :value="macro.label" @change="updateMacroLabel(macro, $event.target.value)"/>
 		<input type="text" :value="macro.name" @change="updateMacroName(macro, $event.target.value)"/>
-		<GsSelect :modelValue="macro.type" @update:modelValue="v => updateMacroType(macro, v)">
-			<option value="number">{{ i18n.ts._Macro._Types.Number }}</option>
-			<option value="range">{{ i18n.ts._Macro._Types.Range }}</option>
-			<option value="bool">{{ i18n.ts._Macro._Types.Flag }}</option>
-			<option value="color">{{ i18n.ts._Macro._Types.Color }}</option>
-			<option value="image">{{ i18n.ts._Macro._Types.Image }}</option>
-		</GsSelect>
+		<GsSelect
+			:modelValue="macro.type"
+			:items="[
+				{ label: i18n.ts._Macro._Types.Number, value: 'number' },
+				{ label: i18n.ts._Macro._Types.Range, value: 'range' },
+				{ label: i18n.ts._Macro._Types.Flag, value: 'bool' },
+				{ label: i18n.ts._Macro._Types.Color, value: 'color' },
+				{ label: i18n.ts._Macro._Types.Image, value: 'image' },
+			]"
+			@update:modelValue="v => updateMacroType(macro, v)"
+		/>
 		<button class="remove" title="Remove macro" @click="remove(macro.id)"><i class="ti ti-x"></i></button>
 	</div>
 	<div class="minmax" v-if="['number', 'range'].includes(macro.type)">
