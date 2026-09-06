@@ -5,11 +5,11 @@
 </template>
 
 <script lang="ts" setup>
-import type { Renderer } from '@/engine/renderer.ts';
+import type { Engine } from '@/engine/engine.ts';
 import { onBeforeUnmount, onMounted, useTemplateRef } from 'vue';
 
 const props = defineProps<{
-	renderer: Renderer;
+	engine: Engine;
 }>();
 
 const width = 256;
@@ -18,11 +18,11 @@ const height = 150;
 const canvas = useTemplateRef('canvas');
 
 onMounted(() => {
-	props.renderer.setHistogramCanvas(canvas.value!);
+	props.engine.setHistogramCanvas(canvas.value!);
 });
 
 onBeforeUnmount(() => {
-	props.renderer.setHistogramCanvas(null);
+	props.engine.setHistogramCanvas(null);
 });
 </script>
 

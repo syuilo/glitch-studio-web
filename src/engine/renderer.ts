@@ -38,8 +38,8 @@ export class Renderer {
 		height: number;
 	};
 	private canvas: HTMLCanvasElement;
-	private histogramCanvas: HTMLCanvasElement;
-	private gpuHistogram: GpuHistogram;
+	private histogramCanvas: HTMLCanvasElement | null = null;
+	public gpuHistogram: GpuHistogram | null = null;
 	private defaultVertexShaderModule: GPUShaderModule;
 	private fallbackTexture: GPUTexture;
 	private enableStats: boolean = true;
@@ -73,6 +73,7 @@ export class Renderer {
 		};
 		enableFloat32Filtering: boolean;
 		enableStats: boolean;
+		histogramCanvas: HTMLCanvasElement | null;
 	}) {
 		this.resolution = options.resolution;
 		this.canvas = options.canvas;
@@ -81,6 +82,7 @@ export class Renderer {
 		this.enableStats = options.enableStats;
 		this.enableFloat32Filtering = options.enableFloat32Filtering;
 		this.gpuDevice = options.gpuDevice;
+		this.histogramCanvas = options.histogramCanvas;
 		this.initHistogram();
 
 		this.timingHelper = new TimingHelper(this.gpuDevice);
@@ -138,23 +140,6 @@ export class Renderer {
 			size: this.finalRenderUniformValues.arrayBuffer.byteLength,
 			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
 		});
-	}
-
-	public setHistogramCanvas(canvas: HTMLCanvasElement | null) {
-		this.gpuHistogram?.dispose();
-		this.gpuHistogram = null;
-		this.histogramCanvas = canvas;
-		this.initHistogram();
-	}
-
-	private initHistogram() {
-		if (!this.gpuDevice || !this.histogramCanvas) return;
-		this.gpuHistogram?.dispose();
-		this.gpuHistogram = new GpuHistogram(
-			this.gpuDevice,
-			this.histogramCanvas,
-			navigator.gpu.getPreferredCanvasFormat(),
-		);
 	}
 
 	public findNode(nodeId: string, nodes: GsNode[] = this.nodes): GsNode | undefined {
@@ -515,10 +500,24 @@ export class Renderer {
 		//this.clearNodeCache();
 	}
 
-	public destroy() {
+	public setHistogramCanvas(canvas: HTMLCanvasElement | null) {
 		this.gpuHistogram?.dispose();
 		this.gpuHistogram = null;
+		this.histogramCanvas = canvas;
+		this.initHistogram();
+	}
 
+	private initHistogram() {
+		if (!this.gpuDevice || !this.histogramCanvas) return;
+		this.gpuHistogram?.dispose();
+		this.gpuHistogram = new GpuHistogram(
+			this.gpuDevice,
+			this.histogramCanvas,
+			navigator.gpu.getPreferredCanvasFormat(),
+		);
+	}
+
+	public destroy() {
 		for (const instance of this.effectInstances.values()) {
 			instance.dispose();
 		}

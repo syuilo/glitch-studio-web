@@ -24,7 +24,7 @@
 					<div class="zoom">ZOOM: {{ Math.round(zoom * 100) }}%</div>
 				</div>
 				<div class="histogram">
-					<XHistogram v-if="canvas != null" :renderer="glitchRenderer"/>
+					<XHistogram v-if="canvas != null" :engine="engine"/>
 				</div>
 				<div class="container" @click="onViewClick()" @mousemove="onMousemove">
 					<canvas ref="canvas"/>

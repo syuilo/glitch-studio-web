@@ -6,6 +6,7 @@ export class Engine {
 	private enableFloat32Filtering: boolean = false;
 	private enableStats: boolean = true;
 	private nodes: GsNode[] = [];
+	private histogramCanvas: HTMLCanvasElement | null = null;
 	public fps: number | null = 60;
 	public gpuAverageDisplayFast = ref(0);
 	public gpuAverageDisplayMedium = ref(0);
@@ -26,26 +27,27 @@ export class Engine {
 		}
 
 		const adapter = await navigator.gpu?.requestAdapter({
-			//powerPreference: 'low-power',
+			powerPreference: 'high-performance',
 		});
 
-		const _device = await adapter?.requestDevice({
+		const device = await adapter?.requestDevice({
 			requiredFeatures: [
 				...(this.enableFloat32Filtering ? ['float32-filterable'] as const : []),
 				...(this.enableStats ? ['timestamp-query'] as const : []),
 			],
 		});
-		if (!_device) {
+		if (!device) {
 			window.alert('need a browser that supports WebGPU');
 			throw new Error('need a browser that supports WebGPU');
 		}
 
 		this.renderer = new Renderer({
-			gpuDevice: _device,
+			gpuDevice: device,
 			canvas: options.canvas,
 			resolution: options.resolution,
 			enableFloat32Filtering: this.enableFloat32Filtering,
 			enableStats: this.enableStats,
+			histogramCanvas: this.histogramCanvas,
 		});
 	}
 
@@ -55,6 +57,7 @@ export class Engine {
 		frame?: number;
 	}) {
 		if (this.renderer == null) return;
+		if (this.nodes.length === 0) return;
 
 		this.renderer.render(renderNodeId ?? this.nodes.at(-1).id, args);
 
@@ -78,7 +81,7 @@ export class Engine {
 				then = timeStamp - (delta % interval);
 			}
 
-			this.render(timeStamp);
+			this.render(timeStamp, null);
 		};
 
 		window.requestAnimationFrame(renderLoop);
@@ -87,5 +90,10 @@ export class Engine {
 	public updateNodes(newNodes: GsNode[]) {
 		this.renderer?.updateNodes(newNodes);
 		this.nodes = newNodes;
+	}
+
+	public setHistogramCanvas(canvas: HTMLCanvasElement | null) {
+		this.histogramCanvas = canvas;
+		this.renderer?.setHistogramCanvas(canvas);
 	}
 }

@@ -287,17 +287,19 @@ export async function appReady(canvas: HTMLCanvasElement, project: RawProject) {
 	}, { deep: true, immediate: true });
 	
 	watch(() => store.macros, () => {
-		glitchRenderer.macros = store.macros;
+		engine.renderer.macros = store.macros;
 	}, { deep: true, immediate: true });
 	
 	watch(() => store.automations, () => {
-		glitchRenderer.automations = store.automations;
+		engine.renderer.automations = store.automations;
 	}, { deep: true, immediate: true });
 	
 	watch(() => store.assets, () => {
-		glitchRenderer.assets = store.assets;
-		glitchRenderer.bakeAssets();
+		engine.renderer.assets = store.assets;
+		engine.renderer.bakeAssets();
 	}, { deep: true, immediate: true });
+
+	engine.startRenderLoop();
 }
 
 export function saveProject() {
