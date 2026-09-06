@@ -5,36 +5,24 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, useTemplateRef } from 'vue';
-import Worker from '@/histogram-renderer.js?worker';
+import type { GlitchRenderer } from '@/engine/renderer.ts';
+import { onBeforeUnmount, onMounted, useTemplateRef } from 'vue';
 
-const props = withDefaults(defineProps<{
-	src: HTMLCanvasElement;
-}>(), {
-});
+const props = defineProps<{
+	renderer: GlitchRenderer;
+}>();
 
 const width = 256;
 const height = 150;
 
-const worker = new Worker();
-
 const canvas = useTemplateRef('canvas');
 
 onMounted(() => {
-	const dst = canvas.value!.transferControlToOffscreen();
+	props.renderer.setHistogramCanvas(canvas.value!);
+});
 
-	worker.postMessage({ dst: dst, dstWidth: width, dstHeight: height }, [dst]);
-
-	const temp = new OffscreenCanvas(100, 100);
-	const tempCtx = temp.getContext('2d')!;
-
-	window.setInterval(() => {
-		tempCtx.clearRect(0, 0, 100, 100);
-		tempCtx.drawImage(props.src, 0, 0, 100, 100);
-		const imageData = tempCtx.getImageData(0, 0, 100, 100).data;
-
-		worker.postMessage({ imageData: imageData });
-	}, 1000);
+onBeforeUnmount(() => {
+	props.renderer.setHistogramCanvas(null);
 });
 </script>
 

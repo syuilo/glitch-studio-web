@@ -17,7 +17,7 @@ const emit = defineEmits<{
 
 function rgbToHex(rgb: number[]) {
 	function componentToHex(c: number) {
-		const hex = c.toString(16);
+		const hex = Math.round(c * 255).toString(16);
 		return hex.length === 1 ? '0' + hex : hex;
 	}
 
@@ -27,9 +27,9 @@ function rgbToHex(rgb: number[]) {
 function hexToRgb(hex: string) {
 	const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)!;
 	return [
-		parseInt(result[1], 16),
-		parseInt(result[2], 16),
-		parseInt(result[3], 16),
+		parseInt(result[1], 16) / 255,
+		parseInt(result[2], 16) / 255,
+		parseInt(result[3], 16) / 255,
 	];
 }
 

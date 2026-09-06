@@ -8,6 +8,7 @@ import finalRenderShaderCode from './render.wgsl?raw';
 import { NonNegativeRollingAverage } from "./NonNegativeRollingAverage.ts";
 import { ref } from "vue";
 import { GsAutomation } from "./types.ts";
+import { GpuHistogram } from "./GpuHistogram.ts";
 
 export type GsFxNode = {
 	id: string;
@@ -37,6 +38,8 @@ export class GlitchRenderer {
 		height: number;
 	} | null = null;
 	private canvas: HTMLCanvasElement | null = null;
+	private histogramCanvas: HTMLCanvasElement | null = null;
+	private gpuHistogram: GpuHistogram | null = null;
 	private gpuContext: GPUCanvasContext | null = null;
 	private gpuDevice: GPUDevice | null = null;
 	private defaultVertexShaderModule: GPUShaderModule | null = null;
@@ -69,6 +72,23 @@ export class GlitchRenderer {
 		
 	}
 
+	public setHistogramCanvas(canvas: HTMLCanvasElement | null) {
+		this.gpuHistogram?.dispose();
+		this.gpuHistogram = null;
+		this.histogramCanvas = canvas;
+		this.initHistogram();
+	}
+
+	private initHistogram() {
+		if (!this.gpuDevice || !this.histogramCanvas) return;
+		this.gpuHistogram?.dispose();
+		this.gpuHistogram = new GpuHistogram(
+			this.gpuDevice,
+			this.histogramCanvas,
+			navigator.gpu.getPreferredCanvasFormat(),
+		);
+	}
+
 	public async init(options: {
 		canvas: HTMLCanvasElement;
 		resolution: {
@@ -98,6 +118,7 @@ export class GlitchRenderer {
 			throw new Error('need a browser that supports WebGPU');
 		}
 		this.gpuDevice = _device as GPUDevice;
+		this.initHistogram();
 
 		this.timingHelper = new TimingHelper(this.gpuDevice);
 
@@ -426,6 +447,8 @@ export class GlitchRenderer {
 		passEncoder.draw(6);
 		passEncoder.end();
 
+		this.gpuHistogram?.render(commandEncoder, this.finalRenderInputTexture);
+
 		this.gpuDevice!.queue.submit([commandEncoder.finish()]);
 		//#endregion
 
@@ -510,6 +533,9 @@ export class GlitchRenderer {
 	}
 
 	public destroy() {
+		this.gpuHistogram?.dispose();
+		this.gpuHistogram = null;
+
 		for (const instance of this.effectInstances.values()) {
 			instance.dispose();
 		}

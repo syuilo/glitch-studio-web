@@ -249,7 +249,7 @@ export const rendererEnv = {
 	mouseX: 0,
 	mouseY: 0,
 };
-export const glitchRenderer = new GlitchRenderer();
+export const glitchRenderer = markRaw(new GlitchRenderer());
 
 let store: ReturnType<typeof useStore>;
 
