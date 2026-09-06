@@ -25,13 +25,14 @@ struct FragmentIn {
 @fragment
 fn fs(fragData: FragmentIn) -> @location(0) vec4f {
 	let uv = fragData.uv;
-	let sourceScale = select(
-		select(1.0, uniforms.sourceAspectRatio / uniforms.aspectRatio, uniforms.sourceAspectRatio < uniforms.aspectRatio),
-		select(1.0, uniforms.sourceAspectRatio / uniforms.aspectRatio, uniforms.sourceAspectRatio > uniforms.aspectRatio),
-		uniforms.mode == 1) * min(1.0, uniforms.aspectRatio);
-	let sourceUvScale = vec2f(1.0, uniforms.sourceAspectRatio) / sourceScale;
-	var sourceUv = select(uv, uv * sourceUvScale, uniforms.mode != 0);
+	let aspectRatioScale = uniforms.sourceAspectRatio / uniforms.aspectRatio;
+	var sourceUv = uv;
+	if (uniforms.mode == 1) {
+		sourceUv *= select(vec2f(1.0, aspectRatioScale), vec2f(1.0 / aspectRatioScale, 1.0), aspectRatioScale > 1.0);
+	} else if (uniforms.mode == 2) {
+		sourceUv *= select(vec2f(1.0 / aspectRatioScale, 1.0), vec2f(1.0, aspectRatioScale), aspectRatioScale > 1.0);
+	}
+	let isOutside = uniforms.mode == 2 && any(abs(sourceUv) > vec2f(1.0));
 	let color = textureSample(sourceTexture, mySampler, convertTexCoords(sourceUv));
-	return premultiplyAlpha(color);
+	return select(premultiplyAlpha(color), vec4f(0.0), isOutside);
 }
-
