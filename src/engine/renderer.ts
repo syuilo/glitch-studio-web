@@ -9,6 +9,8 @@ import { NonNegativeRollingAverage } from "./NonNegativeRollingAverage.ts";
 import { ref } from "vue";
 import { GsAutomation } from "./types.ts";
 import { GpuHistogram } from "./GpuHistogram.ts";
+import { evalAutomationValue, genEmptyValue } from "@/utils.ts";
+import { evaluate } from "mathjs";
 
 export type GsFxNode = {
 	id: string;

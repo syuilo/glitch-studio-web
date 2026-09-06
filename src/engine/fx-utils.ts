@@ -73,12 +73,13 @@ type EffectOptionsSchemaDefaultValues<T extends EffectOptionsSchema> = {
 		{ type: 'automation'; value: string };
 };
 
-export type EffectInstance<Options = any> = {
+export type EffectInstance<Options extends EffectOptionsSchema = any> = {
 	render: (ctx: {
 		time: number;
 		timeDelta: number;
 		commandEncoder: GPUCommandEncoder;
 		createPassEncoder: (commandEncoder: GPUCommandEncoder, descriptor?: GPURenderPassDescriptor) => GPURenderPassEncoder;
+		params: GetEffectOptionsSchemaValues<Options>;
 	}) => void;
 	dispose: () => void;
 };
@@ -106,7 +107,7 @@ export type Effect<OpSc extends EffectOptionsSchema = EffectOptionsSchema> = {
 			enableFloat32Filtering: boolean;
 		};
 		params: GetEffectOptionsSchemaValues<OpSc>;
-	}) => Promise<EffectInstance<GetEffectOptionsSchemaValues<OpSc>>>;
+	}) => Promise<EffectInstance<OpSc>>;
 };
 
 export function defineEffect<const OpSc extends EffectOptionsSchema>(def: Effect<OpSc>): Effect<OpSc> {

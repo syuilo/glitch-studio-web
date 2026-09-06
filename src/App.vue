@@ -47,23 +47,16 @@
 		<GsTimeline/>
 	</div>
 	<footer class="footer">
-		<div class="histogram">
-			<template v-if="histogram">
-				<div class="r"><div :style="{ height: ((histogram.rAmount / (255 * subStore.imageWidth * subStore.imageHeight)) * 100) + '%' }"></div></div>
-				<div class="g"><div :style="{ height: ((histogram.gAmount / (255 * subStore.imageWidth * subStore.imageHeight)) * 100) + '%' }"></div></div>
-				<div class="b"><div :style="{ height: ((histogram.bAmount / (255 * subStore.imageWidth * subStore.imageHeight)) * 100) + '%' }"></div></div>
-			</template>
-			<template v-else>
-				<div class="r"><div></div></div>
-				<div class="g"><div></div></div>
-				<div class="b"><div></div></div>
-			</template>
-		</div>
 		<div class="file">{{ store.renderWidth }} x {{ store.renderHeight }} px</div>
 		<div class="progress">
 			<div><div :style="{ width: progress + '%' }"></div></div>
 		</div>
 		<div class="status">{{ status }}</div>
+		<div class="stats">
+			<div>{{ (glitchRenderer.gpuAverageDisplayFast.value / 1000).toFixed(1) }}ms</div>
+			<div>{{ (glitchRenderer.gpuAverageDisplayMedium.value / 1000).toFixed(1) }}ms</div>
+			<div>{{ (glitchRenderer.gpuAverageDisplaySlow.value / 1000).toFixed(1) }}ms</div>
+		</div>
 	</footer>
 	<XSavePreset v-if="showSavePresetDialog" @ok="showSavePresetDialog = false"/>
 	<XExportPreset v-if="showExportPresetDialog" @ok="showExportPresetDialog = false"/>
@@ -84,7 +77,6 @@ import GsTimeline from '@/components/GsTimeline.vue';
 import XSavePreset from '@/components/save-preset.vue';
 import XExportPreset from '@/components/export-preset.vue';
 import XHistogram from '@/components/histogram.vue';
-import { Histogram, initGl } from '@/glitch';
 import { SettingsStore, Preset } from '@/settings';
 import { subStore } from '@/sub-store';
 import { Image } from '@/types';
@@ -103,7 +95,6 @@ const store = useStore();
 const canvas = useTemplateRef('canvas');
 let img = null as Image | null;
 let imgHash = null as string | null;
-const histogram = null as Histogram | null;
 const status = null as string | null;
 const progress = ref(0);
 const tab = ref('nodes');
@@ -432,46 +423,6 @@ async function importPreset() {
 		font-size: 12px;
 		padding: 0 12px;
 
-		> .histogram {
-			margin-right: 16px;
-			padding: 4px 0 0 0;
-
-			> div {
-				display: inline-block;
-				width: 4px;
-				height: 16px;
-				border-top: solid 1px transparent;
-				border-bottom: solid 1px #383838;
-				background: #111;
-				box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3) inset;
-				position: relative;
-				border-radius: 2px;
-				overflow: hidden;
-
-				&:not(:last-child) {
-					margin-right: 8px;
-				}
-
-				> div {
-					position: absolute;
-					bottom: 0;
-					width: 4px;
-				}
-
-				&.r > div {
-					background: #f00;
-				}
-
-				&.g > div {
-					background: #0f0;
-				}
-
-				&.b > div {
-					background: #00f;
-				}
-			}
-		}
-
 		> .file {
 			opacity: 0.8;
 			flex-shrink: 0;
@@ -502,6 +453,16 @@ async function importPreset() {
 
 		> .status {
 			margin-left: 16px;
+		}
+
+		> .stats {
+			margin-left: 16px;
+			display: flex;
+			gap: 8px;
+
+			> div {
+				min-width: 4em;
+			}
 		}
 	}
 }
