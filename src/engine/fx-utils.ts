@@ -47,12 +47,17 @@ type ImageOptionSchema = {
 	label: string;
 };
 
+type VideoOptionSchema = {
+	type: 'video';
+	label: string;
+}; 
+
 type NodeOptionSchema = {
 	type: 'node';
 	label: string;
 };
 
-type EffectOptionsSchema = Record<string, NumberOptionSchema | BooleanOptionSchema | ColorOptionSchema | EnumOptionSchema | RangeOptionSchema | ImageOptionSchema | NodeOptionSchema>;
+type EffectOptionsSchema = Record<string, NumberOptionSchema | BooleanOptionSchema | ColorOptionSchema | EnumOptionSchema | RangeOptionSchema | ImageOptionSchema | VideoOptionSchema | NodeOptionSchema>;
 
 type GetEffectOptionsSchemaValues<T extends EffectOptionsSchema> = {
 	[K in keyof T]:
@@ -62,6 +67,7 @@ type GetEffectOptionsSchemaValues<T extends EffectOptionsSchema> = {
 	T[K] extends EnumOptionSchema ? T[K]['enum'][number]['value'] :
 	T[K] extends RangeOptionSchema ? number :
 	T[K] extends ImageOptionSchema ? GPUTexture | null :
+	T[K] extends VideoOptionSchema ? GPUTexture | null :
 	T[K] extends NodeOptionSchema ? GPUTexture | null :
 	never;
 };

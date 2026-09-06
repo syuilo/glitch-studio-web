@@ -7,6 +7,7 @@ export type EvaledParams<T extends FxParamDefs> = {
 		T[K]['type'] extends 'node' ? string :
 		T[K]['type'] extends 'nodes' ? string[] :
 		T[K]['type'] extends 'image' ? string :
+		T[K]['type'] extends 'video' ? string :
 		T[K]['type'] extends 'range' ? number :
 		T[K]['type'] extends 'bool' ? boolean :
 		any;

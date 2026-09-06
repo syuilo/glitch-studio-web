@@ -36,6 +36,8 @@ export function genEmptyValue(paramDef: Omit<FxParamDef, 'default'>): any {
 		return 0;
 	} else if (paramDef.type === 'image') {
 		return null;
+	} else if (paramDef.type === 'video') {
+		return null;
 	}
 }
 

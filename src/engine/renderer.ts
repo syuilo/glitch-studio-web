@@ -50,7 +50,7 @@ export class Renderer {
 	private macros: Macro[];
 	private automations: GsAutomation[];
 	private assetTextures: Map<string, GPUTexture> = new Map();
-	private videoElements: Map<string, HTMLVideoElement> = new Map();
+	private videoElements: Map<GsFxNode['id'], HTMLVideoElement> = new Map();
 	private effectInstances: Map<GsFxNode['id'], EffectInstance | null> = new Map();
 	private effectOuts: Map<GsFxNode['id'], GPUTexture> = new Map();
 	private timingHelper: TimingHelper;
@@ -346,6 +346,7 @@ export class Renderer {
 			[k,
 				effect.paramDefs[k].type === 'node' ? this.effectOuts.get(params[k])! :
 				effect.paramDefs[k].type === 'image' ? this.assetTextures.get(params[k])! :
+				effect.paramDefs[k].type === 'video' ? this.videoElements.get(node.id)! :
 				v]));
 
 		let effectInstance = this.effectInstances.get(node.id);
@@ -385,20 +386,6 @@ export class Renderer {
 	}) {
 		const node = this.findNode(renderNodeId);
 		if (node == null) return;
-
-		for (const [textureId, texture] of this.assetTextures.entries()) {
-			if (this.assets.find(a => a.id === textureId).fileDataType.startsWith('video/')) {
-				const videoEl = this.videoElements.get(textureId);
-				if (isVideoFrameAvailable(videoEl)) {
-					// TODO: 動画のフレームが更新された場合のみcopyExternalImageToTextureするようにする
-					this.gpuDevice.queue.copyExternalImageToTexture(
-						{ source: videoEl },
-						{ texture: texture },
-						{ width: texture.width, height: texture.height },
-					);
-				}
-			}
-		}
 
 		this.evalNodeParams(this.nodes);
 
@@ -451,7 +438,7 @@ export class Renderer {
 		}
 	}
 
-	public updateNodes(newNodes: GsNode[]) {
+	public updateNodes(newNodes: GsNode[], videoElements: Map<GsFxNode['id'], HTMLVideoElement>) {
 		const addedNodes = newNodes.filter(n => !this.nodes.some(existing => existing.id === n.id));
 		const removedNodes = this.nodes.filter(n => !newNodes.some(existing => existing.id === n.id));
 
@@ -477,11 +464,11 @@ export class Renderer {
 		}
 
 		this.nodes = deepClone(newNodes);
+		this.videoElements = videoElements;
 	}
 
-	public updateAssets(newAssets: Asset[], videoElements: Map<string, HTMLVideoElement>) {
+	public updateAssets(newAssets: Asset[]) {
 		this.assets = deepClone(newAssets);
-		this.videoElements = videoElements;
 		this.bakeAssets();
 	}
 
@@ -507,12 +494,6 @@ export class Renderer {
 					width: asset.width,
 					height: asset.height,
 				});
-				this.assetTextures.set(asset.id, tex);
-			} else if (asset.fileDataType.startsWith('video/')) {
-				const tex = createTextureFromSource(this.gpuDevice, this.videoElements.get(asset.id)!, {
-					mips: false,
-				});
-				console.log(tex, this.videoElements.get(asset.id));
 				this.assetTextures.set(asset.id, tex);
 			}
 

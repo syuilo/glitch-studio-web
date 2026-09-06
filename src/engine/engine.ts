@@ -1,5 +1,5 @@
 import { Asset, Macro } from "@/types.ts";
-import { GsNode, Renderer } from "./renderer.ts";
+import { GsFxNode, GsNode, Renderer } from "./renderer.ts";
 import { ref } from "vue";
 import { GsAutomation } from "./types.ts";
 import { deepClone } from "@/utility/deep-clone.ts";
@@ -15,7 +15,7 @@ export class Engine {
 	private automations: GsAutomation[] = [];
 	private histogramCanvas: HTMLCanvasElement | null = null;
 	private waveformCanvas: HTMLCanvasElement | null = null;
-	private videoElements: Map<string, HTMLVideoElement> = new Map();
+	private videoElements: Map<GsFxNode['id'], HTMLVideoElement> = new Map();
 	public fps: number | null = 60;
 	public gpuAverageDisplayFast = ref(0);
 	public gpuAverageDisplayMedium = ref(0);
@@ -110,9 +110,34 @@ export class Engine {
 		window.requestAnimationFrame(renderLoop);
 	}
 
-	public updateNodes(newNodes: GsNode[]) {
+	public async updateNodes(newNodes: GsNode[]) {
+		const addedNodes = newNodes.filter(node => !this.nodes.some(n => n.id === node.id));
+		const removedNodes = this.nodes.filter(n => !newNodes.some(node => node.id === n.id));
+
+		for (const node of removedNodes) {
+			if (this.videoElements.has(node.id)) {
+				const video = this.videoElements.get(node.id);
+				video?.pause();
+				this.videoElements.delete(node.id);
+				URL.revokeObjectURL(video?.src);
+			}
+		}
+
+		for (const node of addedNodes) {
+			if (node.type === 'fx' && node.fx === 'video' && !this.videoElements.has(node.id)) {
+				const asset = this.assets.find(asset => asset.id === node.params.video.value);
+				const video = document.createElement('video');
+				video.src = URL.createObjectURL(new Blob([asset.fileData], { type: asset.fileDataType }));
+				video.loop = true;
+				this.videoElements.set(node.id, video);
+				await playVideoAfterFirstFrameIsReady(video);
+			}
+		}
+
+		// TODO: video nodeが追加も削除もされずにassetだけ更新された場合の処理
+
 		this.nodes = deepClone(newNodes);
-		this.renderer?.updateNodes(this.nodes);
+		this.renderer?.updateNodes(this.nodes, this.videoElements);
 	}
 
 	public updateMacros(newMacros: Macro[]) {
@@ -126,31 +151,8 @@ export class Engine {
 	}
 
 	public async updateAssets(newAssets: Asset[]) {
-		const addedAssets = newAssets.filter(asset => !this.assets.some(a => a.id === asset.id));
-		const removedAssets = this.assets.filter(a => !newAssets.some(asset => asset.id === a.id));
-
-		for (const asset of removedAssets) {
-			if (this.videoElements.has(asset.id)) {
-				const video = this.videoElements.get(asset.id);
-				video?.pause();
-				this.videoElements.delete(asset.id);
-				URL.revokeObjectURL(video?.src);
-			}
-		}
-
-		for (const asset of addedAssets) {
-			if (asset.fileDataType.startsWith('video/')) {
-				const video = document.createElement('video');
-				video.src = URL.createObjectURL(new Blob([asset.fileData], { type: asset.fileDataType }));
-				video.loop = true;
-				this.videoElements.set(asset.id, video);
-				await playVideoAfterFirstFrameIsReady(video);
-			}
-		}
-
 		this.assets = deepClone(newAssets);
-		
-		this.renderer?.updateAssets(this.assets, this.videoElements);
+		this.renderer?.updateAssets(this.assets);
 	}
 
 	public setHistogramCanvas(canvas: HTMLCanvasElement | null) {

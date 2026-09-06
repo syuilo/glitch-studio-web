@@ -129,13 +129,24 @@ async function onViewClick() {
 			fileData: result.fileData,
 			hash: result.hash,
 		});
-		store.addFxNode({
-			fx: 'image',
-			id: genId(),
-			params: {
-				image: { type: 'literal', value: assetId }
-			}
-		});
+
+		if (result.type.startsWith('image/')) {
+			store.addFxNode({
+				fx: 'image',
+				id: genId(),
+				params: {
+					image: { type: 'literal', value: assetId }
+				}
+			});
+		} else if (result.type.startsWith('video/')) {
+			store.addFxNode({
+				fx: 'video',
+				id: genId(),
+				params: {
+					video: { type: 'literal', value: assetId }
+				}
+			});
+		}
 	}
 }
 
@@ -195,13 +206,23 @@ async function newProjectFromImageOrVideo() {
 		hash: result.hash,
 	});
 
-	store.addFxNode({
-		fx: 'image',
-		id: genId(),
-		params: {
-			image: { type: 'literal', value: assetId }
-		}
-	});
+	if (result.type.startsWith('image/')) {
+		store.addFxNode({
+			fx: 'image',
+			id: genId(),
+			params: {
+				image: { type: 'literal', value: assetId }
+			}
+		});
+	} else if (result.type.startsWith('video/')) {
+		store.addFxNode({
+			fx: 'video',
+			id: genId(),
+			params: {
+				video: { type: 'literal', value: assetId }
+			}
+		});
+	}
 
 	showDashboard.value = false;
 }

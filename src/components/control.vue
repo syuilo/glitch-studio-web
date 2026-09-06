@@ -144,12 +144,26 @@
 				...(store.assets.length > 0 ? [{
 					type: 'group' as const,
 					label: 'Assets',
-					items: store.assets.map(asset => ({ label: asset.name, value: asset.id })),
+					items: store.assets.filter(asset => asset.fileDataType.startsWith('image/')).map(asset => ({ label: asset.name, value: asset.id })),
 				}] : []),
 			]"
 			@update:modelValue="v => changeValue(v)"
 		/>
-		<div :class="$style.player" v-if="store.assets.find(asset => asset.id === value)?.fileDataType.startsWith('video/')">
+	</div>
+	<div v-else-if="type === 'video'">
+		<GsSelect
+			:modelValue="value"
+			:items="[
+				{ label: i18n.ts.None, value: null },
+				...(store.assets.length > 0 ? [{
+					type: 'group' as const,
+					label: 'Assets',
+					items: store.assets.filter(asset => asset.fileDataType.startsWith('video/')).map(asset => ({ label: asset.name, value: asset.id })),
+				}] : []),
+			]"
+			@update:modelValue="v => changeValue(v)"
+		/>
+		<div :class="$style.player">
 			TODO
 		</div>
 	</div>

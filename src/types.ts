@@ -1,10 +1,4 @@
-export type Image = {
-	width: number;
-	height: number;
-	data: Uint8Array;
-};
-
-type FxParamDataType = 'number' | 'range' | 'range2' | 'enum' | 'bool' | 'blendMode' | 'signal' | 'xy' | 'wh' | 'color' | 'vector' | 'seed' | 'time' | 'image' | 'node' | 'nodes';
+type FxParamDataType = 'number' | 'range' | 'range2' | 'enum' | 'bool' | 'blendMode' | 'signal' | 'xy' | 'wh' | 'color' | 'vector' | 'seed' | 'time' | 'image' | 'video' | 'node' | 'nodes';
 
 export type FxParamValue = {
 	type: 'literal';
