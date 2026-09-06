@@ -287,16 +287,15 @@ export async function appReady(canvas: HTMLCanvasElement, project: RawProject) {
 	}, { deep: true, immediate: true });
 	
 	watch(() => store.macros, () => {
-		engine.renderer.macros = store.macros;
+		engine.updateMacros(store.macros);
 	}, { deep: true, immediate: true });
 	
 	watch(() => store.automations, () => {
-		engine.renderer.automations = store.automations;
+		engine.updateAutomations(store.automations);
 	}, { deep: true, immediate: true });
 	
 	watch(() => store.assets, () => {
-		engine.renderer.assets = store.assets;
-		engine.renderer.bakeAssets();
+		engine.updateAssets(store.assets);
 	}, { deep: true, immediate: true });
 
 	engine.startRenderLoop();

@@ -1,11 +1,16 @@
+import { Asset, Macro } from "@/types.ts";
 import { GsNode, Renderer } from "./renderer.ts";
 import { ref } from "vue";
+import { GsAutomation } from "./types.ts";
 
 export class Engine {
-	public renderer: Renderer | null = null;
+	private renderer: Renderer | null = null;
 	private enableFloat32Filtering: boolean = false;
 	private enableStats: boolean = true;
 	private nodes: GsNode[] = [];
+	private assets: Asset[] = [];
+	private macros: Macro[] = [];
+	private automations: GsAutomation[] = [];
 	private histogramCanvas: HTMLCanvasElement | null = null;
 	public fps: number | null = 60;
 	public gpuAverageDisplayFast = ref(0);
@@ -48,6 +53,10 @@ export class Engine {
 			enableFloat32Filtering: this.enableFloat32Filtering,
 			enableStats: this.enableStats,
 			histogramCanvas: this.histogramCanvas,
+			nodes: this.nodes,
+			assets: this.assets,
+			macros: this.macros,
+			automations: this.automations,
 		});
 	}
 
@@ -88,8 +97,23 @@ export class Engine {
 	}
 
 	public updateNodes(newNodes: GsNode[]) {
-		this.renderer?.updateNodes(newNodes);
 		this.nodes = newNodes;
+		this.renderer?.updateNodes(this.nodes);
+	}
+
+	public updateMacros(newMacros: any[]) {
+		this.macros = newMacros;
+		this.renderer?.updateMacros(this.macros);
+	}
+
+	public updateAutomations(newAutomations: any[]) {
+		this.automations = newAutomations;
+		this.renderer?.updateAutomations(this.automations);
+	}
+
+	public updateAssets(newAssets: any[]) {
+		this.assets = newAssets;
+		this.renderer?.updateAssets(this.assets);
 	}
 
 	public setHistogramCanvas(canvas: HTMLCanvasElement | null) {

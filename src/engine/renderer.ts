@@ -39,16 +39,16 @@ export class Renderer {
 	};
 	private canvas: HTMLCanvasElement;
 	private histogramCanvas: HTMLCanvasElement | null = null;
-	public gpuHistogram: GpuHistogram | null = null;
+	private gpuHistogram: GpuHistogram | null = null;
 	private defaultVertexShaderModule: GPUShaderModule;
 	private fallbackTexture: GPUTexture;
 	private enableStats: boolean = true;
 	private hasAlpha: boolean = false;
-	private nodes: GsNode[] = [];
-	public assets: Asset[] = [];
-	public macros: Macro[] = [];
-	public automations: GsAutomation[] = [];
-	public assetTextures: Map<string, GPUTexture> = new Map();
+	private nodes: GsNode[];
+	private assets: Asset[];
+	private macros: Macro[];
+	private automations: GsAutomation[];
+	private assetTextures: Map<string, GPUTexture> = new Map();
 	private effectInstances: Map<GsFxNode['id'], EffectInstance | null> = new Map();
 	private effectOuts: Map<GsFxNode['id'], GPUTexture> = new Map();
 	private timingHelper: TimingHelper;
@@ -74,6 +74,10 @@ export class Renderer {
 		enableFloat32Filtering: boolean;
 		enableStats: boolean;
 		histogramCanvas: HTMLCanvasElement | null;
+		nodes: GsNode[];
+		assets: Asset[];
+		macros: Macro[];
+		automations: GsAutomation[];
 	}) {
 		this.resolution = options.resolution;
 		this.canvas = options.canvas;
@@ -82,6 +86,10 @@ export class Renderer {
 		this.enableStats = options.enableStats;
 		this.enableFloat32Filtering = options.enableFloat32Filtering;
 		this.gpuDevice = options.gpuDevice;
+		this.nodes = options.nodes;
+		this.assets = options.assets;
+		this.macros = options.macros;
+		this.automations = options.automations;
 		this.histogramCanvas = options.histogramCanvas;
 		this.initHistogram();
 
@@ -459,6 +467,19 @@ export class Renderer {
 		}
 
 		this.nodes = newNodes;
+	}
+
+	public updateAssets(newAssets: Asset[]) {
+		this.assets = newAssets;
+		this.bakeAssets();
+	}
+
+	public updateMacros(newMacros: Macro[]) {
+		this.macros = newMacros;
+	}
+
+	public updateAutomations(newAutomations: GsAutomation[]) {
+		this.automations = newAutomations;
 	}
 
 	public async bakeAssets() {
