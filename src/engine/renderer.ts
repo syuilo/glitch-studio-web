@@ -8,6 +8,7 @@ import finalRenderShaderCode from './render.wgsl?raw';
 import { NonNegativeRollingAverage } from "./NonNegativeRollingAverage.ts";
 import { GsAutomation } from "./types.ts";
 import { GpuHistogram } from "./GpuHistogram.ts";
+import { GpuWaveform } from "./GpuWaveform.ts";
 import { evalAutomationValue, genEmptyValue } from "@/utils.ts";
 import { evaluate } from "mathjs";
 
@@ -36,6 +37,8 @@ export class Renderer {
 	private resolution: { width: number; height: number; };
 	private histogramCanvas: HTMLCanvasElement | null = null;
 	private gpuHistogram: GpuHistogram | null = null;
+	private waveformCanvas: HTMLCanvasElement | null = null;
+	private gpuWaveform: GpuWaveform | null = null;
 	private defaultVertexShaderModule: GPUShaderModule;
 	private fallbackTexture: GPUTexture;
 	private enableStats: boolean = true;
@@ -69,6 +72,7 @@ export class Renderer {
 		enableFloat32Filtering: boolean;
 		enableStats: boolean;
 		histogramCanvas: HTMLCanvasElement | null;
+		waveformCanvas: HTMLCanvasElement | null;
 		nodes: GsNode[];
 		assets: Asset[];
 		macros: Macro[];
@@ -85,6 +89,8 @@ export class Renderer {
 		this.automations = options.automations;
 		this.histogramCanvas = options.histogramCanvas;
 		this.initHistogram();
+		this.waveformCanvas = options.waveformCanvas;
+		this.initWaveform();
 
 		this.timingHelper = new TimingHelper(this.gpuDevice);
 
@@ -414,6 +420,7 @@ export class Renderer {
 		passEncoder.end();
 
 		this.gpuHistogram?.render(commandEncoder, this.finalRenderInputTexture);
+		this.gpuWaveform?.render(commandEncoder, this.finalRenderInputTexture);
 
 		this.gpuDevice.queue.submit([commandEncoder.finish()]);
 		//#endregion
@@ -524,7 +531,29 @@ export class Renderer {
 		);
 	}
 
+	public setWaveformCanvas(canvas: HTMLCanvasElement | null) {
+		this.gpuWaveform?.dispose();
+		this.gpuWaveform = null;
+		this.waveformCanvas = canvas;
+		this.initWaveform();
+	}
+
+	private initWaveform() {
+		if (!this.gpuDevice || !this.waveformCanvas) return;
+		this.gpuWaveform?.dispose();
+		this.gpuWaveform = new GpuWaveform(
+			this.gpuDevice,
+			this.waveformCanvas,
+			navigator.gpu.getPreferredCanvasFormat(),
+		);
+	}
+
 	public destroy() {
+		this.gpuHistogram?.dispose();
+		this.gpuHistogram = null;
+		this.gpuWaveform?.dispose();
+		this.gpuWaveform = null;
+
 		for (const instance of this.effectInstances.values()) {
 			instance.dispose();
 		}

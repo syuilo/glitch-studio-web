@@ -20,13 +20,13 @@ globalThis.GPUShaderStage = {
 
 test('histogram canvas registration waits for GPU initialization', async () => {
 	const server = await createServer({
-		server: { middlewareMode: true },
+		server: { middlewareMode: true, hmr: false },
 		appType: 'custom',
 	});
 
 	try {
-		const { Renderer } = await server.ssrLoadModule('/src/engine/renderer.ts');
-		const renderer = new Renderer();
+		const { Engine } = await server.ssrLoadModule('/src/engine/engine.ts');
+		const engine = new Engine();
 		let getContextCalls = 0;
 		const canvas = {
 			getContext() {
@@ -35,7 +35,7 @@ test('histogram canvas registration waits for GPU initialization', async () => {
 			},
 		};
 
-		renderer.setHistogramCanvas(canvas);
+		engine.setHistogramCanvas(canvas);
 
 		assert.equal(getContextCalls, 0);
 	} finally {
@@ -43,9 +43,9 @@ test('histogram canvas registration waits for GPU initialization', async () => {
 	}
 });
 
-test('renderer initializes a histogram canvas registered before the GPU device', async () => {
+test('engine initializes a histogram canvas registered before the GPU device', async () => {
 	const server = await createServer({
-		server: { middlewareMode: true },
+		server: { middlewareMode: true, hmr: false },
 		appType: 'custom',
 	});
 	const previousGpu = globalThis.navigator.gpu;
@@ -54,6 +54,7 @@ test('renderer initializes a histogram canvas registered before the GPU device',
 		const histogramConfigurations = [];
 		const device = {
 			features: new Set(),
+			createTexture() { return { destroy() {} }; },
 			createBindGroup() { return {}; },
 			createBindGroupLayout() { return {}; },
 			createBuffer() { return { destroy() {} }; },
@@ -61,6 +62,7 @@ test('renderer initializes a histogram canvas registered before the GPU device',
 			createPipelineLayout() { return {}; },
 			createRenderPipeline() { return {}; },
 			createShaderModule() { return {}; },
+			destroy() {},
 		};
 		globalThis.navigator.gpu = {
 			getPreferredCanvasFormat: () => 'bgra8unorm',
@@ -82,11 +84,11 @@ test('renderer initializes a histogram canvas registered before the GPU device',
 				unconfigure() {},
 			}),
 		};
-		const { Renderer } = await server.ssrLoadModule('/src/engine/renderer.ts');
-		const renderer = new Renderer();
+		const { Engine } = await server.ssrLoadModule('/src/engine/engine.ts');
+		const engine = new Engine();
 
-		renderer.setHistogramCanvas(histogramCanvas);
-		await renderer.init({
+		engine.setHistogramCanvas(histogramCanvas);
+		await engine.init({
 			canvas: mainCanvas,
 			resolution: { width: 640, height: 480 },
 		});
@@ -99,9 +101,9 @@ test('renderer initializes a histogram canvas registered before the GPU device',
 	}
 });
 
-test('renderer disposes the previous GPU histogram before reinitializing', async () => {
+test('engine disposes the previous GPU histogram before reinitializing', async () => {
 	const server = await createServer({
-		server: { middlewareMode: true },
+		server: { middlewareMode: true, hmr: false },
 		appType: 'custom',
 	});
 	const previousGpu = globalThis.navigator.gpu;
@@ -110,6 +112,7 @@ test('renderer disposes the previous GPU histogram before reinitializing', async
 		let histogramUnconfigurations = 0;
 		const device = {
 			features: new Set(),
+			createTexture() { return { destroy() {} }; },
 			createBindGroup() { return {}; },
 			createBindGroupLayout() { return {}; },
 			createBuffer() { return { destroy() {} }; },
@@ -117,6 +120,7 @@ test('renderer disposes the previous GPU histogram before reinitializing', async
 			createPipelineLayout() { return {}; },
 			createRenderPipeline() { return {}; },
 			createShaderModule() { return {}; },
+			destroy() {},
 		};
 		globalThis.navigator.gpu = {
 			getPreferredCanvasFormat: () => 'bgra8unorm',
@@ -138,15 +142,15 @@ test('renderer disposes the previous GPU histogram before reinitializing', async
 				},
 			}),
 		};
-		const { Renderer } = await server.ssrLoadModule('/src/engine/renderer.ts');
-		const renderer = new Renderer();
+		const { Engine } = await server.ssrLoadModule('/src/engine/engine.ts');
+		const engine = new Engine();
 
-		renderer.setHistogramCanvas(histogramCanvas);
-		await renderer.init({
+		engine.setHistogramCanvas(histogramCanvas);
+		await engine.init({
 			canvas: mainCanvas,
 			resolution: { width: 640, height: 480 },
 		});
-		await renderer.init({
+		await engine.init({
 			canvas: mainCanvas,
 			resolution: { width: 640, height: 480 },
 		});
@@ -160,7 +164,7 @@ test('renderer disposes the previous GPU histogram before reinitializing', async
 
 test('GPU histogram encodes accumulation, normalization, and drawing every frame', async () => {
 	const server = await createServer({
-		server: { middlewareMode: true },
+		server: { middlewareMode: true, hmr: false },
 		appType: 'custom',
 	});
 

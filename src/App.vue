@@ -39,12 +39,14 @@
 				<button type="button" :class="{ active: tab === 'assets' }" :aria-pressed="tab === 'assets'" @click="tab = 'assets'">{{ i18n.ts.Asset }}<span>({{ store.assets.length }})</span></button>
 				<button type="button" :class="{ active: tab === 'project' }" :aria-pressed="tab === 'project'" @click="tab = 'project'">{{ i18n.ts.Project }}</button>
 				<button type="button" :class="{ active: tab === 'stats' }" :aria-pressed="tab === 'stats'" @click="tab = 'stats'">{{ i18n.ts.Stats }}</button>
+				<button type="button" :class="{ active: tab === 'monitors' }" :aria-pressed="tab === 'monitors'" @click="tab = 'monitors'">{{ i18n.ts.Monitors }}</button>
 				<button type="button" :class="{ active: tab === 'settings' }" :aria-pressed="tab === 'settings'" @click="tab = 'settings'">{{ i18n.ts.Settings }}</button>
 			</div>
 			<GsNodesTab v-show="tab === 'nodes'" class="_gs-container"/>
 			<XMacros v-show="tab === 'macros'"/>
 			<XAssets v-show="tab === 'assets'"/>
 			<XStats v-show="tab === 'stats'" :engine="engine"/>
+			<XWaveform v-if="tab === 'monitors' && canvas != null" :engine="engine"/>
 			<XSettings v-show="tab === 'settings'"/> 
 		</div>
 	</div>
@@ -83,6 +85,7 @@ import GsTimeline from '@/components/GsTimeline.vue';
 import XSavePreset from '@/components/save-preset.vue';
 import XExportPreset from '@/components/export-preset.vue';
 import XHistogram from '@/components/histogram.vue';
+import XWaveform from '@/components/waveform.vue';
 import { Image } from '@/types';
 import { useStore } from '@/store';
 import { i18n } from '@/i18n';
@@ -105,8 +108,8 @@ const tab = ref('nodes');
 const presetName = '';
 const showAbout = ref(false);
 const showDashboard = ref(true);
-const showSavePresetDialog = false;
-const showExportPresetDialog = false;
+const showSavePresetDialog = ref(false);
+const showExportPresetDialog = ref(false);
 const ZOOM_STEP = 1.25;
 const zoom = ref(1 / ZOOM_STEP / ZOOM_STEP / ZOOM_STEP);
 
@@ -365,13 +368,17 @@ async function importPreset() {
 			padding: 8px;
 
 			> .tab {
+				display: flex;
+
 				> button {
 					appearance: none;
-					display: inline-block;
+					display: block;
+					flex: 0 1 auto;
+					min-width: 0;
 					border: solid 1px rgba(255, 255, 255, 0.1);
 					border-bottom: solid 1px transparent;
 					border-radius: 4px 4px 0 0;
-					padding: 8px 12px;
+					padding: 8px 4px;
 					margin-bottom: -1px;
 					z-index: 1;
 					position: relative;
@@ -381,6 +388,9 @@ async function importPreset() {
 					color: rgba(255, 255, 255, 0.7);
 					background: transparent;
 					line-height: 16px;
+					overflow: hidden;
+					text-overflow: ellipsis;
+					white-space: nowrap;
 
 					&:hover {
 						color: #fff;

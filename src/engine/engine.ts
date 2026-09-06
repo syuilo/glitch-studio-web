@@ -12,6 +12,7 @@ export class Engine {
 	private macros: Macro[] = [];
 	private automations: GsAutomation[] = [];
 	private histogramCanvas: HTMLCanvasElement | null = null;
+	private waveformCanvas: HTMLCanvasElement | null = null;
 	public fps: number | null = 60;
 	public gpuAverageDisplayFast = ref(0);
 	public gpuAverageDisplayMedium = ref(0);
@@ -62,6 +63,7 @@ export class Engine {
 			enableFloat32Filtering: this.enableFloat32Filtering,
 			enableStats: this.enableStats,
 			histogramCanvas: this.histogramCanvas,
+			waveformCanvas: this.waveformCanvas,
 			nodes: this.nodes,
 			assets: this.assets,
 			macros: this.macros,
@@ -128,5 +130,10 @@ export class Engine {
 	public setHistogramCanvas(canvas: HTMLCanvasElement | null) {
 		this.histogramCanvas = canvas;
 		this.renderer?.setHistogramCanvas(canvas);
+	}
+
+	public setWaveformCanvas(canvas: HTMLCanvasElement | null) {
+		this.waveformCanvas = canvas;
+		this.renderer?.setWaveformCanvas(canvas);
 	}
 }
