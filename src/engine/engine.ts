@@ -31,6 +31,9 @@ export class Engine {
 			this.renderer.destroy();
 		}
 
+		options.canvas.width = options.resolution.width;
+		options.canvas.height = options.resolution.height;
+
 		const adapter = await navigator.gpu?.requestAdapter({
 			powerPreference: 'high-performance',
 		});
@@ -41,14 +44,20 @@ export class Engine {
 				...(this.enableStats ? ['timestamp-query'] as const : []),
 			],
 		});
-		if (!device) {
+		if (device == null) {
 			window.alert('need a browser that supports WebGPU');
 			throw new Error('need a browser that supports WebGPU');
 		}
 
+		const context = options.canvas.getContext('webgpu');
+		if (context == null) {
+			window.alert('cannot get webgpu context');
+			throw new Error('cannot get webgpu context');
+		}
+
 		this.renderer = new Renderer({
 			gpuDevice: device,
-			canvas: options.canvas,
+			gpuContext: context,
 			resolution: options.resolution,
 			enableFloat32Filtering: this.enableFloat32Filtering,
 			enableStats: this.enableStats,

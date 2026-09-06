@@ -33,11 +33,7 @@ export type GsNode = GsFxNode | GsGroupNode;
 export class Renderer {
 	private gpuContext: GPUCanvasContext;
 	private gpuDevice: GPUDevice;
-	private resolution: {
-		width: number;
-		height: number;
-	};
-	private canvas: HTMLCanvasElement;
+	private resolution: { width: number; height: number; };
 	private histogramCanvas: HTMLCanvasElement | null = null;
 	private gpuHistogram: GpuHistogram | null = null;
 	private defaultVertexShaderModule: GPUShaderModule;
@@ -55,18 +51,17 @@ export class Renderer {
 	private finalRenderPipeline: GPURenderPipeline;
 	private finalRenderUniformValues: ReturnType<typeof makeStructuredView>;
 	private finalRenderUniformBuffer: GPUBuffer;
-	private finalRenderBindGroup: GPUBindGroup;
-	private finalRenderInputTexture: GPUTexture;
+	private finalRenderBindGroup: GPUBindGroup | null = null;
+	private finalRenderInputTexture: GPUTexture | null = null;
 	private enableFloat32Filtering = false;
+	private evaledNodeParams: Map<GsNode['id'], Record<string, any>> = new Map();
 	public gpuAverageFast = new NonNegativeRollingAverage(10);
 	public gpuAverageMedium = new NonNegativeRollingAverage(100);
 	public gpuAverageSlow = new NonNegativeRollingAverage(1000);
 
-	public evaledNodeParams: Map<GsNode['id'], Record<string, any>> = new Map();
-
 	constructor(options: {
 		gpuDevice: GPUDevice;
-		canvas: HTMLCanvasElement;
+		gpuContext: GPUCanvasContext;
 		resolution: {
 			width: number;
 			height: number;
@@ -80,12 +75,10 @@ export class Renderer {
 		automations: GsAutomation[];
 	}) {
 		this.resolution = options.resolution;
-		this.canvas = options.canvas;
-		this.canvas.width = this.resolution.width;
-		this.canvas.height = this.resolution.height;
 		this.enableStats = options.enableStats;
 		this.enableFloat32Filtering = options.enableFloat32Filtering;
 		this.gpuDevice = options.gpuDevice;
+		this.gpuContext = options.gpuContext;
 		this.nodes = options.nodes;
 		this.assets = options.assets;
 		this.macros = options.macros;
@@ -94,13 +87,6 @@ export class Renderer {
 		this.initHistogram();
 
 		this.timingHelper = new TimingHelper(this.gpuDevice);
-
-		const _context = this.canvas.getContext('webgpu');
-		if (!_context) {
-			window.alert('cannot get webgpu context');
-			throw new Error('cannot get webgpu context');
-		}
-		this.gpuContext = _context as GPUCanvasContext;
 
 		this.gpuContext.configure({
 			device: this.gpuDevice,
@@ -314,7 +300,7 @@ export class Renderer {
 
 		if (node.type === 'group') {
 			if (node.nodes.length === 0) {
-				return this.placeholderTexture;
+				return;
 			}
 			return this.renderNode(node.nodes.at(-1), commandEncoder, [...visited, node.id]);
 		}
