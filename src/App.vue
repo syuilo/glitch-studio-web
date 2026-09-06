@@ -19,19 +19,7 @@
 		<GsButton @click="showAbout = true">about</GsButton>
 	</header>
 	<div class="a">
-		<div class="main" @wheel="onViewWheel">
-			<div class="_gs-container viewer" dropzone="copy" @dragover.prevent="e => { e.dataTransfer.dropEffect = 'copy'; }" @drop.prevent="onDrop">
-				<div class="scaling">
-					<div class="zoom">ZOOM: {{ Math.round(zoom * 100) }}%</div>
-				</div>
-				<div class="histogram">
-					<XHistogram v-if="canvas != null" :engine="engine"/>
-				</div>
-				<div class="container" @click="onViewClick()" @mousemove="onMousemove">
-					<canvas ref="canvas"/>
-				</div>
-			</div>
-		</div>
+		<GsWorkspaceDivider style="flex: 1" :divider="{ children: [{ id: 'a', type: 'preview' }] }" />
 		<div class="side">
 			<div class="tab">
 				<button type="button" :class="{ active: tab === 'nodes' }" :aria-pressed="tab === 'nodes'" @click="tab = 'nodes'">{{ i18n.ts.Fx }}<span>({{ store.nodes.length }})</span></button>
@@ -84,9 +72,9 @@ import XDashboard from '@/components/dashboard.vue';
 import GsTimeline from '@/components/GsTimeline.vue';
 import XSavePreset from '@/components/save-preset.vue';
 import XExportPreset from '@/components/export-preset.vue';
+import GsWorkspaceDivider from '@/components/GsWorkspaceDivider.vue';
 import XHistogram from '@/components/histogram.vue';
 import XWaveform from '@/components/waveform.vue';
-import { Image } from '@/types';
 import { useStore } from '@/store';
 import { i18n } from '@/i18n';
 import { genId } from './utils';
@@ -99,9 +87,6 @@ import * as ui from '@/ui.js';
 
 const store = useStore();
 
-const canvas = useTemplateRef('canvas');
-let img = null as Image | null;
-let imgHash = null as string | null;
 const status = null as string | null;
 const progress = ref(0);
 const tab = ref('nodes');
@@ -110,58 +95,19 @@ const showAbout = ref(false);
 const showDashboard = ref(true);
 const showSavePresetDialog = ref(false);
 const showExportPresetDialog = ref(false);
-const ZOOM_STEP = 1.25;
-const zoom = ref(1 / ZOOM_STEP / ZOOM_STEP / ZOOM_STEP);
-
-async function onViewClick() {
-	if (store.nodes.length === 0) {
-		const result = await api.openImageOrVideoFile({});
-		if (result == null) return;
-
-		const assetId = genId();
-		store.addAsset({
-			id: assetId,
-			name: result.name,
-			width: result.width,
-			height: result.height,
-			data: result.data,
-			fileDataType: result.type,
-			fileData: result.fileData,
-			hash: result.hash,
-		});
-
-		if (result.type.startsWith('image/')) {
-			store.addFxNode({
-				fx: 'image',
-				id: genId(),
-				params: {
-					image: { type: 'literal', value: assetId }
-				}
-			});
-		} else if (result.type.startsWith('video/')) {
-			store.addFxNode({
-				fx: 'video',
-				id: genId(),
-				params: {
-					video: { type: 'literal', value: assetId }
-				}
-			});
-		}
-	}
-}
 
 async function openProject() {
 	const { project, name } = await loadProjectFile();
 
 	console.log('project', project);
 
-	await appReady(canvas.value!, project);
+	await appReady(project);
 
 	showDashboard.value = false;
 }
 
 async function newProject() {
-	await appReady(canvas.value!, {
+	await appReady({
 		id: genId(),
 		gsVersion: version,
 		name: 'untitled',
@@ -182,7 +128,7 @@ async function newProjectFromImageOrVideo() {
 
 	const assetId = genId();
 
-	await appReady(canvas.value!, {
+	await appReady({
 		id: genId(),
 		gsVersion: version,
 		name: result.name,
@@ -228,16 +174,7 @@ async function newProjectFromImageOrVideo() {
 }
 
 async function saveImage() {
-	const path = await api.showSaveDialog({
-		filters: [{
-			name: 'Image',
-			extensions: ['png']
-		}]
-	});
-	if (path == null) return;
-	canvas.value!.toBlob(async blob => {
-		api.saveFile(path, await blob.arrayBuffer());
-	});
+	
 }
 
 async function saveAnimation() {
@@ -263,26 +200,6 @@ async function saveAnimationGif() {
 	
 }
 
-function onDrop(ev: DragEvent) {
-	for (const file of ev.dataTransfer!.files) {
-		openImageFromPath(file.path);
-	}
-}
-
-function onMousemove(ev: MouseEvent) {
-	const rect = canvas.value!.getBoundingClientRect();
-	rendererEnv.mouseX = ((ev.clientX - rect.left) / rect.width) - 0.5;
-	rendererEnv.mouseY = ((ev.clientY - rect.top) / rect.height) - 0.5;
-}
-
-function onViewWheel(ev: WheelEvent) {
-	ev.preventDefault();
-	if (ev.deltaY < 0) {
-		zoom.value = Math.max(0, Math.min(100, zoom.value * ZOOM_STEP));
-	} else {
-		zoom.value = Math.max(0, Math.min(100, zoom.value / ZOOM_STEP));
-	}
-}
 
 async function importPreset() {
 	const result = await api.openPresetFile({});
@@ -322,63 +239,6 @@ async function importPreset() {
 		flex: 2;
 		min-height: 0;
 		box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.7) inset;
-
-		> .main {
-			width: 65%;
-			height: 100%;
-			box-sizing: border-box;
-			padding: 8px 0 8px 8px;
-
-			> .viewer {
-				position: relative;
-				width: 100%;
-				height: 100%;
-				box-sizing: border-box;
-
-				> .scaling {
-					position: absolute;
-					z-index: 1;
-					top: 0;
-					right: 0;
-					padding: 4px 8px;
-					background: #0008;
-				}
-
-				> .histogram {
-					position: absolute;
-					z-index: 1;
-					bottom: 12px;
-					left: 12px;
-					padding: 16px;
-					pointer-events: none;
-					background: rgba(0, 0, 0, 0.5);
-					backdrop-filter: blur(8px);
-					border-radius: 8px;
-				}
-
-				> .container {
-					width: 100%;
-					height: 100%;
-					display: grid;
-					place-content: center;
-					$color1: #3a3a3a;
-					$color2: #303030;
-					background-color: $color1;
-					background-image: linear-gradient(45deg, $color2 25%, transparent 25%, transparent 75%, $color2 75%, $color2), linear-gradient(-45deg, $color2 25%, transparent 25%, transparent 75%, $color2 75%, $color2);
-					background-size: 32px 32px;
-					animation: bg 0.7s linear infinite;
-					overflow: clip;
-					contain: content;
-
-					> canvas {
-						display: block;
-						image-rendering: pixelated;
-						scale: v-bind(zoom);
-						//box-shadow: 0px 0px 0px 999px #0006;
-					}
-				}
-			}
-		}
 
 		> .side {
 			width: 35%;
@@ -514,13 +374,4 @@ body > .titlebar.inactive + div {
 	background: #2c2c2c;
 }
 
-@keyframes bg {
-	0% {
-		background-position: 0 0;
-	}
-
-	100% {
-		background-position: -32px -32px;
-	}
-}
 </style>

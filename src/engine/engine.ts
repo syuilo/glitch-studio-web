@@ -24,7 +24,7 @@ export class Engine {
 	constructor() {
 	}
 	
-	async init(options: {
+	async setCanvas(options: {
 		canvas: HTMLCanvasElement;
 		resolution: {
 			width: number;
@@ -72,6 +72,13 @@ export class Engine {
 			macros: this.macros,
 			automations: this.automations,
 		});
+	}
+
+	public unsetCanvas() {
+		if (this.renderer != null) {
+			this.renderer.destroy();
+			this.renderer = null;
+		}
 	}
 
 	public render(timeStamp: number, renderNodeId: string | null, args: {
@@ -163,5 +170,27 @@ export class Engine {
 	public setWaveformCanvas(canvas: HTMLCanvasElement | null) {
 		this.waveformCanvas = canvas;
 		this.renderer?.setWaveformCanvas(canvas);
+	}
+
+	public saveImage(options: {
+		resolution: {
+			width: number;
+			height: number;
+		};
+	}) {
+		const canvas = document.createElement('canvas');
+		canvas.width = options.resolution.width;
+		canvas.height = options.resolution.height;
+		
+		//const path = await api.showSaveDialog({
+		//	filters: [{
+		//		name: 'Image',
+		//		extensions: ['png']
+		//	}]
+		//});
+		//if (path == null) return;
+		//canvas.value!.toBlob(async blob => {
+		//	api.saveFile(path, await blob.arrayBuffer());
+		//});
 	}
 }

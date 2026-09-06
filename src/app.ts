@@ -124,16 +124,8 @@ export const engine = markRaw(new Engine());
 
 let store: ReturnType<typeof useStore>;
 
-export async function appReady(canvas: HTMLCanvasElement, project: RawProject) {
+export async function appReady(project: RawProject) {
 	document.title = `Glitch Studio (${project.name})`;
-
-	await engine.init({
-		canvas,
-		resolution: {
-			width: project.renderWidth,
-			height: project.renderHeight,
-		}
-	});
 
 	store = useStore();
 
