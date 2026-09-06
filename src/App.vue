@@ -33,15 +33,17 @@
 		</div>
 		<div class="side">
 			<div class="tab">
-				<div :class="{ active: tab === 'nodes' }" @click="tab = 'nodes'">{{ i18n.ts.Fx }}<span>({{ store.nodes.length }})</span></div>
-				<div :class="{ active: tab === 'macros' }" @click="tab = 'macros'">{{ i18n.ts.Macro }}<span>({{ store.macros.length }})</span></div>
-				<div :class="{ active: tab === 'assets' }" @click="tab = 'assets'">{{ i18n.ts.Asset }}<span>({{ store.assets.length }})</span></div>
-				<div :class="{ active: tab === 'project' }" @click="tab = 'project'">{{ i18n.ts.Project }}</div>
-				<div :class="{ active: tab === 'settings' }" @click="tab = 'settings'">{{ i18n.ts.Settings }}</div>
+				<button type="button" :class="{ active: tab === 'nodes' }" :aria-pressed="tab === 'nodes'" @click="tab = 'nodes'">{{ i18n.ts.Fx }}<span>({{ store.nodes.length }})</span></button>
+				<button type="button" :class="{ active: tab === 'macros' }" :aria-pressed="tab === 'macros'" @click="tab = 'macros'">{{ i18n.ts.Macro }}<span>({{ store.macros.length }})</span></button>
+				<button type="button" :class="{ active: tab === 'assets' }" :aria-pressed="tab === 'assets'" @click="tab = 'assets'">{{ i18n.ts.Asset }}<span>({{ store.assets.length }})</span></button>
+				<button type="button" :class="{ active: tab === 'project' }" :aria-pressed="tab === 'project'" @click="tab = 'project'">{{ i18n.ts.Project }}</button>
+				<button type="button" :class="{ active: tab === 'stats' }" :aria-pressed="tab === 'stats'" @click="tab = 'stats'">{{ i18n.ts.Stats }}</button>
+				<button type="button" :class="{ active: tab === 'settings' }" :aria-pressed="tab === 'settings'" @click="tab = 'settings'">{{ i18n.ts.Settings }}</button>
 			</div>
 			<GsNodesTab v-show="tab === 'nodes'" class="_gs-container"/>
 			<XMacros v-show="tab === 'macros'"/>
 			<XAssets v-show="tab === 'assets'"/>
+			<XStats v-show="tab === 'stats'" :engine="engine"/>
 			<XSettings v-show="tab === 'settings'"/> 
 		</div>
 	</div>
@@ -73,6 +75,7 @@ import { Ref, nextTick, onMounted, ref, shallowRef, useTemplateRef, watch } from
 import GsNodesTab from '@/components/GsNodesTab.vue';
 import XMacros from '@/components/macros.vue';
 import XAssets from '@/components/assets.vue';
+import XStats from '@/components/stats.vue';
 import XSettings from '@/components/settings.vue';
 import XAbout from '@/components/about.vue';
 import XDashboard from '@/components/dashboard.vue';
@@ -364,7 +367,8 @@ async function importPreset() {
 			padding: 8px;
 
 			> .tab {
-				> div {
+				> button {
+					appearance: none;
 					display: inline-block;
 					border: solid 1px rgba(255, 255, 255, 0.1);
 					border-bottom: solid 1px transparent;
@@ -374,8 +378,10 @@ async function importPreset() {
 					z-index: 1;
 					position: relative;
 					font-size: 12px;
+					font-family: inherit;
 					cursor: pointer;
 					color: rgba(255, 255, 255, 0.7);
+					background: transparent;
 					line-height: 16px;
 
 					&:hover {
@@ -388,6 +394,11 @@ async function importPreset() {
 						cursor: default;
 						font-weight: bold;
 						color: #fff;
+					}
+
+					&:focus-visible {
+						outline: solid 1px var(--accent);
+						outline-offset: -3px;
 					}
 
 					> *:first-child {
