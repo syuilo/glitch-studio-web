@@ -1,10 +1,11 @@
-import { Renderer } from "./renderer.ts";
+import { GsNode, Renderer } from "./renderer.ts";
 import { ref } from "vue";
 
 export class Engine {
 	public renderer: Renderer | null = null;
 	private enableFloat32Filtering: boolean = false;
 	private enableStats: boolean = true;
+	private nodes: GsNode[] = [];
 	public fps: number | null = 60;
 	public gpuAverageDisplayFast = ref(0);
 	public gpuAverageDisplayMedium = ref(0);
@@ -48,14 +49,14 @@ export class Engine {
 		});
 	}
 
-	public render(renderNodeId: string, args: {
+	public render(timeStamp: number, renderNodeId: string | null, args: {
 		mouseX?: number;
 		mouseY?: number;
 		frame?: number;
 	}) {
 		if (this.renderer == null) return;
 
-		this.renderer.render(renderNodeId, args);
+		this.renderer.render(renderNodeId ?? this.nodes.at(-1).id, args);
 
 		if (this.enableStats) {
 			this.gpuAverageDisplayFast.value = this.renderer.gpuAverageFast.get();
@@ -81,5 +82,10 @@ export class Engine {
 		};
 
 		window.requestAnimationFrame(renderLoop);
+	}
+
+	public updateNodes(newNodes: GsNode[]) {
+		this.renderer?.updateNodes(newNodes);
+		this.nodes = newNodes;
 	}
 }

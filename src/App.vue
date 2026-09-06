@@ -55,9 +55,9 @@
 		</div>
 		<div class="status">{{ status }}</div>
 		<div class="stats">
-			<div>{{ (glitchRenderer.gpuAverageDisplayFast.value / 1000).toFixed(1) }}ms</div>
-			<div>{{ (glitchRenderer.gpuAverageDisplayMedium.value / 1000).toFixed(1) }}ms</div>
-			<div>{{ (glitchRenderer.gpuAverageDisplaySlow.value / 1000).toFixed(1) }}ms</div>
+			<div>{{ (engine.gpuAverageDisplayFast.value / 1000).toFixed(1) }}ms</div>
+			<div>{{ (engine.gpuAverageDisplayMedium.value / 1000).toFixed(1) }}ms</div>
+			<div>{{ (engine.gpuAverageDisplaySlow.value / 1000).toFixed(1) }}ms</div>
 		</div>
 	</footer>
 	<XSavePreset v-if="showSavePresetDialog" @ok="showSavePresetDialog = false"/>
@@ -87,7 +87,7 @@ import { useStore } from '@/store';
 import { i18n } from '@/i18n';
 import { genId } from './utils';
 import * as msgpack from '@msgpack/msgpack';
-import { frame, popups, playing, frameMax, fps, glitchRenderer, render, appReady, rendererEnv, saveProject } from './app';
+import { frame, popups, playing, frameMax, fps, appReady, rendererEnv, saveProject, engine } from './app';
 import * as api from '@/api.js';
 import GsButton from './components/GsButton.vue';
 import { loadProjectFile } from '@/api.js';

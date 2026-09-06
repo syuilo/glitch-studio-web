@@ -278,7 +278,7 @@ export async function appReady(canvas: HTMLCanvasElement, project: RawProject) {
 	store.assets = await decodeAssets(project.assets);
 
 	watch(() => store.nodes, () => {
-		glitchRenderer.updateNodes(JSON.parse(JSON.stringify(store.nodes))); // proxy解除
+		engine.updateNodes(JSON.parse(JSON.stringify(store.nodes))); // proxy解除
 	
 		// TODO: グループ考慮
 		if (store.nodes.some(n => n.type === 'fx' && n.fx === 'webcamera')) {
