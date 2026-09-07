@@ -9,9 +9,7 @@ fn convertTexCoords(uv: vec2f) -> vec2f {
 }
 
 struct Uniforms {
-	aspectRatio: f32,
-	x: f32,
-	y: f32,
+	amount: vec2f,
 };
 
 @group(0) @binding(1) var<uniform> uniforms: Uniforms;
@@ -24,7 +22,7 @@ struct FragmentIn {
 
 @fragment
 fn fs(fragData: FragmentIn) -> @location(0) vec4f {
-	let uv = convertTexCoords(fragData.uv) + vec2f(uniforms.x, uniforms.y);
+	let uv = convertTexCoords(fragData.uv + uniforms.amount);
 	let color = textureSample(sourceTexture, mySampler, uv);
 	return premultiplyAlpha(color);
 }

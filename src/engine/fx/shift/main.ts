@@ -8,12 +8,20 @@ export default defineEffect({
 	category: 'utility',
 	paramDefs: {
 		input: { type: 'node', label: 'Input', primary: true },
-		x: { type: 'range', min: -1, max: 1, step: 0.01, label: 'X' },
-		y: { type: 'range', min: -1, max: 1, step: 0.01, label: 'Y' },
+		amount: { type: 'vector', min: -1, max: 1, step: 0.01, label: 'Amount' },
+		wrap: {
+			type: 'enum',
+			label: 'Wrap',
+			options: [
+				{ label: 'Clamp to edge', value: 'clampToEdge' },
+				{ label: 'Repeat', value: 'repeat' },
+				{ label: 'Repeat (Mirrored)', value: 'repeatMirrored' },
+			],
+		},
 	},
 	getDefaultParams: () => ({
-		x: { type: 'literal', value: 0 },
-		y: { type: 'literal', value: 0 },
+		amount: { type: 'literal', value: [0, 0] },
+		wrap: { type: 'literal', value: 'repeatMirrored' },
 	}),
 	getOut: ({ wgpu, resolution }) => {
 		const out = wgpu.device.createTexture({
@@ -23,7 +31,7 @@ export default defineEffect({
 		});
 		return out;
 	},
-	init: ({ wgpu, resolution, params }) => {
+	init: ({ wgpu, resolution, params, fallbackTexture }) => {
 		const shaderModule = wgpu.device.createShaderModule({
 			code: code,
 		});
@@ -47,37 +55,56 @@ export default defineEffect({
 		});
 
 		const uniformValues = makeStructuredView(shaderDataDefinitions.uniforms.uniforms);
-
 		const uniformBuffer = wgpu.device.createBuffer({
 			size: uniformValues.arrayBuffer.byteLength,
 			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
 		});
+		const samplers = {
+			clampToEdge: wgpu.device.createSampler({
+				magFilter: 'linear',
+				minFilter: 'linear',
+				addressModeU: 'clamp-to-edge',
+				addressModeV: 'clamp-to-edge',
+			}),
+			repeat: wgpu.device.createSampler({
+				magFilter: 'linear',
+				minFilter: 'linear',
+				addressModeU: 'repeat',
+				addressModeV: 'repeat',
+			}),
+			repeatMirrored: wgpu.device.createSampler({
+				magFilter: 'linear',
+				minFilter: 'linear',
+				addressModeU: 'mirror-repeat',
+				addressModeV: 'mirror-repeat',
+			}),
+		};
 
-		const sampler = wgpu.device.createSampler({
-			magFilter: 'linear',
-			minFilter: 'linear',
-			mipmapFilter: 'linear',
-			addressModeU: 'mirror-repeat',
-			addressModeV: 'mirror-repeat',
-			addressModeW: 'mirror-repeat',
-		});
-
-		const bindGroup = wgpu.device.createBindGroup({
-			layout: pipeline.getBindGroupLayout(0),
-			entries: [
-				{ binding: 1, resource: { buffer: uniformBuffer }},
-				{ binding: 2, resource: sampler },
-				{ binding: 3, resource: params.input.createView() },
-			],
-		});
+		let inputTexture = params.input;
+		let wrap = params.wrap;
+		let bindGroup: GPUBindGroup;
+		const updateBindGroup = () => {
+			bindGroup = wgpu.device.createBindGroup({
+				layout: pipeline.getBindGroupLayout(0),
+				entries: [
+					{ binding: 1, resource: { buffer: uniformBuffer }},
+					{ binding: 2, resource: samplers[wrap] },
+					{ binding: 3, resource: (inputTexture ?? fallbackTexture).createView() },
+				],
+			});
+		};
+		updateBindGroup();
 
 		return {
 			render: (ctx) => {
+				if (ctx.params.input !== inputTexture || ctx.params.wrap !== wrap) {
+					inputTexture = ctx.params.input;
+					wrap = ctx.params.wrap;
+					updateBindGroup();
+				}
+
 				uniformValues.set({
-					aspectRatio: resolution.width / resolution.height,
-					time: ctx.time,
-					x: ctx.params.x,
-					y: ctx.params.y,
+					amount: ctx.params.amount,
 				});
 				wgpu.device.queue.writeBuffer(uniformBuffer, 0, uniformValues.arrayBuffer);
 				

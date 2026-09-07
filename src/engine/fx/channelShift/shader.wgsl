@@ -43,10 +43,10 @@ struct FragmentIn {
 
 @fragment
 fn fs(fragData: FragmentIn) -> @location(0) vec4f {
-	let uv = convertTexCoords(fragData.uv);
-	let pixel = textureSample(sourceTexture, sourceSampler, uv);
-	let left = textureSample(sourceTexture, sourceSampler, uv + uniforms.amount);
-	let right = textureSample(sourceTexture, sourceSampler, uv - uniforms.amount);
+	let uv = fragData.uv;
+	let pixel = textureSample(sourceTexture, sourceSampler, convertTexCoords(uv));
+	let left = textureSample(sourceTexture, sourceSampler, convertTexCoords(uv + uniforms.amount));
+	let right = textureSample(sourceTexture, sourceSampler, convertTexCoords(uv - uniforms.amount));
 	var color = pixel.rgb;
 
 	if (uniforms.leftSignal.r != 0u) { color.r = doBlend(uniforms.blendMode, color.r, left.r); }
