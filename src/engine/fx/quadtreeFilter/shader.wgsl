@@ -128,7 +128,9 @@ fn fs(fragData: FragmentIn) -> @location(0) vec4f {
 	color = vec4f(quadInfos.rgb, color.a);
 		
 	// for black lines, we just subtract
-	color -= s;
+	if (uniforms.borderWidth > 0.0) {
+		color -= s;
+	}
 
 	// Output to screen
 	return color;
