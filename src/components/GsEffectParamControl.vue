@@ -90,13 +90,13 @@
 		<GsSignal :signal="value" @input="changeValue($event)"/>
 	</div>
 	<div v-else-if="type === 'xy'">
-		<XXy :modelValue="value" @update:modelValue="v => changeValue(v)" :step="options.step ?? 0.1" :min="options.min" :max="options.max"/>
+		<GsXy :modelValue="value" @update:modelValue="v => changeValue(v)" :step="options.step ?? 0.1" :min="options.min" :max="options.max"/>
 	</div>
 	<div v-else-if="type === 'wh'">
 		<XXySlider :modelValue="value" @update:modelValue="v => changeValue(v)" :step="options.step ?? 0.1" :min="options.min" :max="options.max"/>
 	</div>
 	<div v-else-if="type === 'vector'">
-		<XXy :modelValue="value" @update:modelValue="v => changeValue(v)" :step="options.step ?? 0.1" :min="options.min" :max="options.max"/>
+		<GsXy :modelValue="value" @update:modelValue="v => changeValue(v)" :step="options.step ?? 0.1" :min="options.min" :max="options.max"/>
 	</div>
 	<div v-else-if="type === 'color'">
 		<XColor :color="value" @input="changeValue($event)"/>
@@ -173,7 +173,7 @@
 <script lang="ts" setup>
 import { onMounted, shallowRef } from 'vue';
 import GsSignal from './common/GsSignal.vue';
-import XXy from './common/xy.vue';
+import GsXy from './common/GsXy.vue';
 import XXySlider from './common/xy-slider.vue';
 import XColor from './common/GsColor.vue';
 import GsRange from './common/GsRange.vue';

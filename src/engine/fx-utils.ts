@@ -25,6 +25,11 @@ type ColorOptionSchema = {
 	label: string;
 };
 
+type VectorOptionSchema = {
+	type: 'vector';
+	label: string;
+};
+
 type EnumOptionSchema = {
 	type: 'enum';
 	label: string;
@@ -57,13 +62,14 @@ type NodeOptionSchema = {
 	label: string;
 };
 
-type EffectOptionsSchema = Record<string, NumberOptionSchema | BooleanOptionSchema | ColorOptionSchema | EnumOptionSchema | RangeOptionSchema | ImageOptionSchema | VideoOptionSchema | NodeOptionSchema>;
+type EffectOptionsSchema = Record<string, NumberOptionSchema | BooleanOptionSchema | ColorOptionSchema | VectorOptionSchema | EnumOptionSchema | RangeOptionSchema | ImageOptionSchema | VideoOptionSchema | NodeOptionSchema>;
 
 type GetEffectOptionsSchemaValues<T extends EffectOptionsSchema> = {
 	[K in keyof T]:
 	T[K] extends NumberOptionSchema ? number :
 	T[K] extends BooleanOptionSchema ? boolean :
 	T[K] extends ColorOptionSchema ? Readonly<[number, number, number]> :
+	T[K] extends VectorOptionSchema ? Readonly<[number, number]> :
 	T[K] extends EnumOptionSchema ? T[K]['enum'][number]['value'] :
 	T[K] extends RangeOptionSchema ? number :
 	T[K] extends ImageOptionSchema ? GPUTexture | null :

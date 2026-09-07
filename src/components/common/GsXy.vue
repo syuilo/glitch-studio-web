@@ -1,9 +1,7 @@
 <template>
-<div class="xy-component">
-	<div>
-		<GsRange v-model="x" :step="step" :min="min" :max="max" class="slider" :continuous-update="true"/>
-		<GsRange v-model="y" :step="step" :min="min" :max="max" class="slider" :continuous-update="true"/>
-	</div>
+<div :class="$style.root">
+	<GsRange v-model="x" :step="step" :min="min" :max="max" :class="$style.slider" :continuous-update="true"/>
+	<GsRange v-model="y" :step="step" :min="min" :max="max" :class="$style.slider" :continuous-update="true"/>
 </div>
 </template>
 
@@ -36,22 +34,18 @@ watch(y, () => {
 });
 </script>
 
-<style scoped lang="scss">
-.xy-component {
+<style module lang="scss">
+.root {
 	position: relative;
+	display: flex;
+	gap: 8px;
+}
 
-	> div {
-		display: flex;
-		gap: 8px;
+.slider {
+	flex: 1;
+}
 
-		> .slider {
-			flex: 1;
-		}
-
-		> .keep {
-			flex-grow: 0;
-		}
-	}
+.keep {
+	flex-grow: 0;
 }
 </style>
-	
