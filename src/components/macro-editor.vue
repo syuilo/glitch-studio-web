@@ -34,7 +34,7 @@
 
 <script lang="ts" setup>
 import {} from 'vue';
-import XControl from './control.vue';
+import XControl from './GsEffectParamControl.vue/index.js';
 import { useStore } from '@/store';
 import { i18n } from '@/i18n';
 import { Macro } from '@/types';

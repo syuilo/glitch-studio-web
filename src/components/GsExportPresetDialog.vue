@@ -1,6 +1,6 @@
 <template>
-<XDialog>
-	<div class="export-preset-componet">
+<GsModal ref="modal" preferType="dialog" @closed="emit('closed')">
+	<div>
 		<div>
 			<input type="text" v-model="name"/>
 		</div>
@@ -9,23 +9,25 @@
 			<button class="primary" @click="save()">Export</button>
 		</footer>
 	</div>
-</XDialog>
+</GsModal>
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { ref, useTemplateRef } from 'vue';
 import { SettingsStore } from '@/settings';
 import { version } from '@/version';
-import XDialog from './dialog.vue';
 import { encode } from '@msgpack/msgpack';
 import { useStore } from '@/store';
 import { genId } from '@/utility/misc.ts';
 import * as api from '@/api.js';
+import GsModal from './common/GsModal.vue';
 
 const store = useStore();
 
+const modal = useTemplateRef('modal');
+
 const emit = defineEmits<{
-	(ev: 'ok'): void;
+	(ev: 'closed'): void;
 }>();
 
 const name = ref('');
@@ -46,27 +48,14 @@ async function save() {
 			extensions: ['gsp']
 		}]
 	}, data);
-	emit('ok');
+	ok();
 }
 
 function cancel() {
-	emit('ok');
+	ok();
+}
+
+function ok() {
+	modal.value!.close();
 }
 </script>
-
-<style scoped lang="scss">
-.export-preset-componet {
-	> div {
-		margin: 0 0 16px 0;
-	}
-
-	> footer {
-		display: flex;
-		margin-top: 24px;
-
-		> button:first-child {
-			margin-right: 16px;
-		}
-	}
-}
-</style>

@@ -12,13 +12,12 @@
 			<g :class="$style.grid">
 				<template v-for="tick in yTicks" :key="tick.value">
 					<line :x1="plotLeft" :x2="chartWidth - plotRight" :y1="tick.y" :y2="tick.y"/>
-					<text :x="plotLeft - 8" :y="tick.y + 4" text-anchor="end">{{ tick.value.toFixed(0) }}</text>
+					<text :x="plotLeft - 8" :y="tick.y + 4" text-anchor="end">{{ tick.value.toFixed(0) }}ms</text>
 				</template>
 				<template v-for="tick in xTicks" :key="tick.label">
 					<line :x1="tick.x" :x2="tick.x" :y1="plotTop" :y2="chartHeight - plotBottom"/>
 					<text :x="tick.x" :y="chartHeight - 8" :text-anchor="tick.anchor">{{ tick.label }}</text>
 				</template>
-				<text x="8" y="14">ms</text>
 			</g>
 			<polyline
 				v-for="item in series"
@@ -73,7 +72,7 @@ const xTicks = [
 	{ x: plotLeft, label: '-30s', anchor: 'start' as const },
 	{ x: plotLeft + plotWidth / 3, label: '-20s', anchor: 'middle' as const },
 	{ x: plotLeft + plotWidth * 2 / 3, label: '-10s', anchor: 'middle' as const },
-	{ x: chartWidth - plotRight, label: i18n.t('Now'), anchor: 'end' as const },
+	{ x: chartWidth - plotRight, label: '0s', anchor: 'end' as const },
 ];
 
 let timer: number | undefined;

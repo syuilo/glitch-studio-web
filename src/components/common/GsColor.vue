@@ -1,5 +1,5 @@
 <template>
-<div class="color-component">
+<div>
 	<input type="color" :value="rgbToHex(color)" @change="change($event.target.value)"/>
 </div>
 </template>
@@ -37,9 +37,3 @@ function change(color: string) {
 	emit('input', hexToRgb(color));
 }
 </script>
-
-<style scoped lang="scss">
-.color-component {
-
-}
-</style>

@@ -31,7 +31,7 @@
 
 <script lang="ts" setup>
 import { ref, computed, shallowRef, onMounted } from 'vue';
-import XControl from './control.vue';
+import XControl from './GsEffectParamControl.vue';
 import { fxs } from '@/engine/fxs';
 import { subStore } from '@/sub-store';
 import { useStore } from '@/store';

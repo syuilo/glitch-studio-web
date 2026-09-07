@@ -175,7 +175,7 @@ import { onMounted, shallowRef } from 'vue';
 import XSignal from './common/signal.vue';
 import XXy from './common/xy.vue';
 import XXySlider from './common/xy-slider.vue';
-import XColor from './color.vue';
+import XColor from './common/GsColor.vue';
 import GsRange from './common/GsRange.vue';
 import XSlider2 from './common/slider2.vue';
 import XNodesInput from './nodes-input.vue';
