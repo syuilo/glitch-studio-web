@@ -7,6 +7,7 @@ struct Uniforms {
 	descending: u32,
 	run: u32,
 	threshold: f32,
+	shadow: u32,
 };
 
 struct Pixel {
@@ -30,7 +31,7 @@ fn samplePixel(index: u32, line: u32) -> vec4f {
 	return textureLoad(source, vec2i(min(vec2u(uv * vec2f(size)), size - 1u)), 0);
 }
 
-// One linear scan per line labels runs. Below-threshold pixels get singleton
+// One linear scan per line labels runs. Pixels outside the selected range get singleton
 // segments, so sorting never moves pixels across a threshold boundary.
 @compute @workgroup_size(64)
 fn initialize(@builtin(global_invocation_id) id: vec3u) {
@@ -40,7 +41,7 @@ fn initialize(@builtin(global_invocation_id) id: vec3u) {
 	for (var i = 0u; i < uniforms.length; i++) {
 		let color = samplePixel(i, line);
 		let luminance = dot(color.rgb, vec3f(0.2126, 0.7152, 0.0722));
-		let boundary = luminance < uniforms.threshold;
+		let boundary = select((luminance < uniforms.threshold), (luminance > uniforms.threshold), uniforms.shadow != 0u);
 		if (boundary) { segment++; }
 		output[line * uniforms.length + i] = Pixel(segment, luminance, i);
 		if (boundary) { segment++; }

@@ -8,6 +8,7 @@ export default defineEffect({
 	paramDefs: {
 		input: { type: 'node', label: 'Input', primary: true },
 		threshold: { type: 'range', label: 'Threshold', min: 0, max: 1, step: 0.001 },
+		shadow: { type: 'bool', label: 'Shadow' },
 		direction: { type: 'enum', label: 'Direction', options: [
 			{ label: 'Horizontal', value: 'horizontal' },
 			{ label: 'Vertical', value: 'vertical' },
@@ -19,6 +20,7 @@ export default defineEffect({
 	},
 	getDefaultParams: () => ({
 		threshold: { type: 'literal', value: 0.5 },
+		shadow: { type: 'literal', value: false },
 		direction: { type: 'literal', value: 'horizontal' },
 		order: { type: 'literal', value: 'descending' },
 	}),
@@ -42,7 +44,9 @@ export default defineEffect({
 			primitive: { topology: 'triangle-list' },
 		});
 		const maxPasses = Math.ceil(Math.log2(Math.max(resolution.width, resolution.height)));
-		const stride = Math.max(32, device.limits.minUniformBufferOffsetAlignment);
+		const uniformSize = 36;
+		const alignment = device.limits.minUniformBufferOffsetAlignment;
+		const stride = Math.ceil(uniformSize / alignment) * alignment;
 		const values = new ArrayBuffer(stride * (maxPasses + 1));
 		const integers = new Uint32Array(values);
 		const floats = new Float32Array(values);
@@ -52,7 +56,7 @@ export default defineEffect({
 			size: resolution.width * resolution.height * 12,
 			usage: GPUBufferUsage.STORAGE,
 		}));
-		const uniformEntry = (pass: number) => ({ binding: 0, resource: { buffer: uniforms, offset: pass * stride, size: 32 } });
+		const uniformEntry = (pass: number) => ({ binding: 0, resource: { buffer: uniforms, offset: pass * stride, size: uniformSize } });
 		const mergeGroups = Array.from({ length: maxPasses }, (_, pass) => device.createBindGroup({
 			layout: merge.getBindGroupLayout(0),
 			entries: [uniformEntry(pass + 1),
@@ -88,7 +92,8 @@ export default defineEffect({
 				for (let pass = 0; pass <= passes; pass++) {
 					const offset = pass * stride / 4;
 					integers.set([resolution.width, resolution.height, length, lines, Number(vertical), Number(ctx.params.order === 'descending'), 2 ** Math.max(0, pass - 1)], offset);
-					floats[offset + 7] = Math.min(1, Math.max(0, ctx.params.threshold));
+					floats[offset + 7] = Math.min(1, Math.max(0, ctx.params.shadow ? ctx.params.threshold : 1 - ctx.params.threshold));
+					integers[offset + 8] = ctx.params.shadow ? 1 : 0;
 				}
 				// Separate uniform slices keep every dispatch's merge width intact until submission.
 				device.queue.writeBuffer(uniforms, 0, values, 0, stride * (passes + 1));
