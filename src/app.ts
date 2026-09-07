@@ -114,7 +114,8 @@ function addFx(fx: string) {
 
 export const frameMax = ref(59);
 export const frame = ref(0);
-export const fps = ref(60);
+export const fpsLimit = ref(60);
+export const resolutionFactor = ref(1);
 export const playing = ref(false);
 
 export const rendererEnv = {
@@ -122,6 +123,12 @@ export const rendererEnv = {
 	mouseY: 0,
 };
 export const engine = markRaw(new Engine());
+
+watch(fpsLimit, () => {
+	engine.fps = fpsLimit.value;
+	engine.stopRenderLoop();
+	engine.startRenderLoop();
+});
 
 let store: ReturnType<typeof useStore>;
 

@@ -16,6 +16,7 @@ export class Engine {
 	private histogramCanvas: HTMLCanvasElement | null = null;
 	private waveformCanvas: HTMLCanvasElement | null = null;
 	private videoElements: Map<GsFxNode['id'], HTMLVideoElement> = new Map();
+	private currentRafId: number | null = null;
 	public fps: number | null = 60;
 	public gpuAverageDisplayFast = ref(0);
 	public gpuAverageDisplayMedium = ref(0);
@@ -105,7 +106,7 @@ export class Engine {
 		const interval = 1000 / (this.fps ?? 30);
 
 		const renderLoop = (timeStamp: number) => {
-			window.requestAnimationFrame(renderLoop);
+			this.currentRafId = window.requestAnimationFrame(renderLoop);
 
 			if (this.fps != null) {
 				const delta = timeStamp - then;
@@ -116,7 +117,14 @@ export class Engine {
 			this.render(timeStamp, null);
 		};
 
-		window.requestAnimationFrame(renderLoop);
+		this.currentRafId = window.requestAnimationFrame(renderLoop);
+	}
+
+	public stopRenderLoop() {
+		if (this.currentRafId != null) {
+			window.cancelAnimationFrame(this.currentRafId);
+			this.currentRafId = null;
+		}
 	}
 
 	public async updateNodes(newNodes: GsNode[]) {

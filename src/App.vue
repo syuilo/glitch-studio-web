@@ -22,7 +22,7 @@
 		<GsWorkspaceDivider style="flex: 1" :divider="store.workspaceDefinition" />
 	</div>
 	<div :class="$style.footer">
-		<div>{{ store.renderWidth }} x {{ store.renderHeight }} px</div>
+		<div @click="openResolutionMenu">{{ store.renderWidth }} x {{ store.renderHeight }} px ({{ resolutionFactor }}x)</div>
 		<div :class="$style.footerStats">
 			<div :class="$style.footerStatsItem">{{ (engine.gpuAverageDisplayFast.value / 1000).toFixed(1) }}ms</div>
 			<div :class="$style.footerStatsItem">{{ (engine.gpuAverageDisplayMedium.value / 1000).toFixed(1) }}ms</div>
@@ -43,7 +43,7 @@ import XHistogram from '@/components/histogram.vue';
 import { useStore } from '@/store';
 import { i18n } from '@/i18n';
 import { genId } from './utility/misc';
-import { frame, frameMax, appReady, rendererEnv, saveProject, engine, openProject } from './app';
+import { frame, frameMax, appReady, rendererEnv, saveProject, engine, openProject, resolutionFactor, fpsLimit } from './app';
 import * as api from '@/api.js';
 import GsButton from '@/components/common/GsButton.vue';
 import { loadProjectFile } from '@/api.js';
@@ -104,6 +104,49 @@ function showAbout() {
 	const { dispose } = ui.popup(GsAboutDialog, {}, {
 		closed: () => dispose(),
 	});
+}
+
+function openResolutionMenu(ev: PointerEvent) {
+	ui.popupMenu([{
+		type: 'radio',
+		text: 'FPS Limitation',
+		caption: fpsLimit.value == null ? 'Max' : `~${fpsLimit.value}fps`,
+		options: [{
+			label: 'Max',
+			value: null,
+		}, {
+			label: '~120fps',
+			value: '120',
+		}, {
+			label: '~60fps',
+			value: '60',
+		}, {
+			label: '~30fps',
+			value: '30',
+		}, {
+			label: '~15fps',
+			value: '15',
+		}],
+		ref: fpsLimit,
+	}, {
+		type: 'radio',
+		text: 'Resolution',
+		caption: resolutionFactor.value + 'x',
+		options: [{
+			label: '2x',
+			value: 2,
+		}, {
+			label: '1x',
+			value: 1,
+		}, {
+			label: '0.5x',
+			value: 0.5,
+		}, {
+			label: '0.25x',
+			value: 0.25,
+		}],
+		ref: resolutionFactor,
+	}], ev.currentTarget ?? ev.target);
 }
 
 onMounted(() => {

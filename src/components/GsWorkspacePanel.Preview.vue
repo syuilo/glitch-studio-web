@@ -23,7 +23,7 @@ import { useStore } from '@/store.ts';
 import { i18n } from '@/i18n';
 import { genId } from '@/utility/misc.ts';
 import * as api from '@/api.js';
-import { engine, rendererEnv } from '@/app.ts';
+import { engine, rendererEnv, resolutionFactor } from '@/app.ts';
 
 const props = defineProps<{
 	panel: WorkspacePanel;
@@ -36,31 +36,19 @@ const canvas = useTemplateRef('canvas');
 const ZOOM_STEP = 1.25;
 const zoom = ref(1 / ZOOM_STEP / ZOOM_STEP / ZOOM_STEP);
 
-watch(canvas, () => {
+watch(() => [canvas.value, store.renderWidth, store.renderHeight, resolutionFactor.value], () => {
 	if (canvas.value != null) {
 		engine.setCanvas({
 			canvas: canvas.value,
 			resolution: {
-				width: store.renderWidth,
-				height: store.renderHeight,
+				width: store.renderWidth * resolutionFactor.value,
+				height: store.renderHeight * resolutionFactor.value,
 			}
 		});
 	} else {
 		engine.unsetCanvas();
 	}
 }, { immediate: true });
-
-watch(() => [store.renderWidth, store.renderHeight], () => {
-	if (canvas.value != null) {
-		engine.setCanvas({
-			canvas: canvas.value,
-			resolution: {
-				width: store.renderWidth,
-				height: store.renderHeight,
-			}
-		});
-	}
-});
 
 async function onViewClick() {
 	if (store.nodes.length === 0) {
