@@ -158,10 +158,6 @@ export class Renderer {
 		const scope = {
 			WIDTH: this.resolution.width,
 			HEIGHT: this.resolution.height,
-			TIME: this.time,
-			FRAME: this.frame,
-			MOUSE_X: this.mouseX,
-			MOUSE_Y: this.mouseY,
 			...provideVars,
 		};
 
@@ -372,6 +368,7 @@ export class Renderer {
 	}
 
 	public render(renderNodeId: string, args: {
+		time: number;
 		mouseX?: number;
 		mouseY?: number;
 		frame?: number;
@@ -379,7 +376,9 @@ export class Renderer {
 		const node = this.findNode(renderNodeId);
 		if (node == null) return;
 
-		this.evalNodeParams(this.nodes);
+		this.evalNodeParams(this.nodes, {
+			TIME: args.time / 1000, // ms to seconds
+		});
 
 		const commandEncoder = this.gpuDevice.createCommandEncoder();
 

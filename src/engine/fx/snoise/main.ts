@@ -9,10 +9,12 @@ export default defineEffect({
 	paramDefs: {
 		x: { type: 'range', min: -1, max: 1, step: 0.01, label: 'X' },
 		y: { type: 'range', min: -1, max: 1, step: 0.01, label: 'Y' },
+		time: { type: 'range', min: 0, max: 100, step: 0.01, label: 'Time' },
 	},
 	getDefaultParams: () => ({
 		x: { type: 'literal', value: 0 },
 		y: { type: 'literal', value: 0 },
+		time: { type: 'expression', value: 'TIME' },
 	}),
 	getOut: ({ wgpu, resolution }) => {
 		const out = wgpu.device.createTexture({
@@ -63,7 +65,7 @@ export default defineEffect({
 			render: (ctx) => {
 				uniformValues.set({
 					scale: 1,
-					time: ctx.time,
+					time: ctx.params.time,
 				});
 				wgpu.device.queue.writeBuffer(uniformBuffer, 0, uniformValues.arrayBuffer);
 				

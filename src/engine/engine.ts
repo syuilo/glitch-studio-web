@@ -84,15 +84,13 @@ export class Engine {
 		}
 	}
 
-	public render(timeStamp: number, renderNodeId: string | null, args: {
-		mouseX?: number;
-		mouseY?: number;
-		frame?: number;
-	}) {
+	public render(timeStamp: number, renderNodeId: string | null) {
 		if (this.renderer == null) return;
 		if (this.nodes.length === 0) return;
 
-		this.renderer.render(renderNodeId ?? this.nodes.at(-1).id, args);
+		this.renderer.render(renderNodeId ?? this.nodes.at(-1).id, {
+			time: timeStamp,
+		});
 
 		if (this.enableStats) {
 			this.gpuAverageDisplayFast.value = this.renderer.gpuAverageFast.get();
