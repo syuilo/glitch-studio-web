@@ -25,7 +25,7 @@
 				:points="polylinePoints(item.key)"
 				:stroke="item.color"
 				fill="none"
-				stroke-width="2"
+				:stroke-width="item.strokeWidth"
 				stroke-linejoin="round"
 				vector-effect="non-scaling-stroke"
 			/>
@@ -56,9 +56,9 @@ const plotWidth = chartWidth - plotLeft - plotRight;
 const plotHeight = chartHeight - plotTop - plotBottom;
 
 const series = [
-	{ key: 'fast', label: 'fast', color: '#c2fe0c' },
-	{ key: 'medium', label: 'medium', color: '#55c8ff' },
-	{ key: 'slow', label: 'slow', color: '#c98cff' },
+	{ key: 'fast', label: 'fast', color: '#c2fe0c', strokeWidth: 1 },
+	{ key: 'medium', label: 'medium', color: '#55c8ff', strokeWidth: 1.5 },
+	{ key: 'slow', label: 'slow', color: '#c98cff', strokeWidth: 2 },
 ] as const;
 
 const samples = ref<Sample[]>([]);
