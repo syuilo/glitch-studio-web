@@ -116,16 +116,16 @@ function openResolutionMenu(ev: PointerEvent) {
 			value: null,
 		}, {
 			label: '~120fps',
-			value: '120',
+			value: 120,
 		}, {
 			label: '~60fps',
-			value: '60',
+			value: 60,
 		}, {
 			label: '~30fps',
-			value: '30',
+			value: 30,
 		}, {
 			label: '~15fps',
-			value: '15',
+			value: 15,
 		}],
 		ref: fpsLimit,
 	}, {
@@ -133,6 +133,9 @@ function openResolutionMenu(ev: PointerEvent) {
 		text: 'Resolution',
 		caption: resolutionFactor.value + 'x',
 		options: [{
+			label: '4x',
+			value: 4,
+		}, {
 			label: '2x',
 			value: 2,
 		}, {
