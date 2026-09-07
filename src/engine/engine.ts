@@ -33,6 +33,7 @@ export class Engine {
 	}) {
 		if (this.renderer != null) {
 			this.renderer.destroy();
+			this.renderer = null;
 		}
 
 		options.canvas.width = options.resolution.width;
@@ -67,11 +68,12 @@ export class Engine {
 			enableStats: this.enableStats,
 			histogramCanvas: this.histogramCanvas,
 			waveformCanvas: this.waveformCanvas,
-			nodes: this.nodes,
-			assets: this.assets,
-			macros: this.macros,
-			automations: this.automations,
 		});
+
+		this.renderer.updateAssets(this.assets);
+		this.renderer.updateMacros(this.macros);
+		this.renderer.updateAutomations(this.automations);
+		this.renderer.updateNodes(this.nodes, this.videoElements);
 	}
 
 	public unsetCanvas() {
@@ -181,7 +183,7 @@ export class Engine {
 		const canvas = document.createElement('canvas');
 		canvas.width = options.resolution.width;
 		canvas.height = options.resolution.height;
-		
+
 		//const path = await api.showSaveDialog({
 		//	filters: [{
 		//		name: 'Image',

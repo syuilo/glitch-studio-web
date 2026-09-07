@@ -45,10 +45,10 @@ export class Renderer {
 	private fallbackTexture: GPUTexture;
 	private enableStats: boolean = true;
 	private hasAlpha: boolean = false;
-	private nodes: GsNode[];
-	private assets: Asset[];
-	private macros: Macro[];
-	private automations: GsAutomation[];
+	private nodes: GsNode[] = [];
+	private assets: Asset[] = [];
+	private macros: Macro[] = [];
+	private automations: GsAutomation[] = [];
 	private assetTextures: Map<string, GPUTexture> = new Map();
 	private videoElements: Map<GsFxNode['id'], HTMLVideoElement> = new Map();
 	private effectInstances: Map<GsFxNode['id'], EffectInstance | null> = new Map();
@@ -76,20 +76,12 @@ export class Renderer {
 		enableStats: boolean;
 		histogramCanvas: HTMLCanvasElement | null;
 		waveformCanvas: HTMLCanvasElement | null;
-		nodes: GsNode[];
-		assets: Asset[];
-		macros: Macro[];
-		automations: GsAutomation[];
 	}) {
 		this.resolution = options.resolution;
 		this.enableStats = options.enableStats;
 		this.enableFloat32Filtering = options.enableFloat32Filtering;
 		this.gpuDevice = options.gpuDevice;
 		this.gpuContext = options.gpuContext;
-		this.nodes = options.nodes;
-		this.assets = options.assets;
-		this.macros = options.macros;
-		this.automations = options.automations;
 		this.histogramCanvas = options.histogramCanvas;
 		this.initHistogram();
 		this.waveformCanvas = options.waveformCanvas;
