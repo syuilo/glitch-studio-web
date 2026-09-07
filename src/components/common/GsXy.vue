@@ -188,7 +188,6 @@ function formatValue(number: number): string {
 	width: 14px;
 	height: 14px;
 	box-sizing: border-box;
-	border: 2px solid var(--THEME-fg);
 	border-radius: 50%;
 	background: var(--THEME-accent);
 	box-shadow: 0 0 0 3px color-mix(in srgb, var(--THEME-accent) 25%, transparent);

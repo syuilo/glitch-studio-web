@@ -115,7 +115,7 @@ onMounted(() => {
 	left: 0;
 	width: 100%;
 	height: 100%;
-	color: var(--accent);
+	color: var(--THEME-accent);
 	opacity: 0.3;
 }
 </style>
