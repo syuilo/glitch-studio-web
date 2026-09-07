@@ -10,9 +10,23 @@ import { GsAutomation } from "./types.ts";
 import { GpuHistogram } from "./GpuHistogram.ts";
 import { GpuWaveform } from "./GpuWaveform.ts";
 import { evalAutomationValue, genEmptyValue } from "@/utility/misc.ts";
-import { evaluate } from "mathjs";
 import { deepClone } from "@/utility/deep-clone.ts";
 import { isVideoFrameAvailable } from "@/utility/video.ts";
+import * as AiScript from '@syuilo/aiscript';
+
+const aisParser = new AiScript.Parser();
+
+// TODO: 毎回parseとInterpreter生成しているのが無駄感あるからどうにかする
+// ASTキャッシュはできるにしても、Interpreter使いまわすのはAiScript側の改修が必要な可能性がある
+// (Interpreter再生成せずに定義した変数の内容を更新できる必要がある)
+function evaluateExpression(expression: string, scope: Record<string, any>): any {
+	const aiscript = new AiScript.Interpreter(Object.fromEntries(
+		Object.entries(scope).map(([key, value]) => [key, AiScript.utils.jsToVal(value)])
+	));
+	const aisVal = aiscript.execSync(aisParser.parse(expression));
+	if (aisVal === undefined) return null;
+	return AiScript.utils.valToJs(aisVal);
+}
 
 export type GsFxNode = {
 	id: string;
@@ -172,7 +186,7 @@ export class Renderer {
 				macro.value.type === 'literal'
 					? macro.value.value
 					: macro.value.value
-						? evaluate(macro.value.value, scope)
+						? evaluateExpression(macro.value.value, scope)
 						: genEmptyValue(macro);
 	
 			if (macro.type === 'image') {
@@ -214,7 +228,7 @@ export class Renderer {
 					v.type === 'literal'
 						? v.value
 						: v.type === 'expression' && v.value
-								? evaluate(v.value, mixedScope)
+								? evaluateExpression(v.value, mixedScope)
 								: v.type === 'automation' && v.value
 									? evalAutomationValue(this.automations.find(a => a.id === v.value), this.frame)
 									: genEmptyValue(paramDefs[k]);
@@ -231,7 +245,7 @@ export class Renderer {
 					macro.value.type === 'literal'
 						? macro.value.value
 						: macro.value.value
-							? evaluate(macro.value.value, scope)
+							? evaluateExpression(macro.value.value, scope)
 							: genEmptyValue(macro);
 		
 				if (macro.type === 'image') {
@@ -310,6 +324,7 @@ export class Renderer {
 		}
 
 		const key = this.evalCacheKey(node);
+		//console.log('Cache key for node', node.id, ':', key);
 		const prevKey = this.effectCacheKeys.get(node.id);
 		if (key != null && key === prevKey) {
 			return;

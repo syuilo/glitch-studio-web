@@ -34,7 +34,7 @@ export default defineEffect({
 		},
 	},
 	getDefaultParams: () => ({
-		amount: { type: 'literal', value: [0.5, 0] },
+		amount: { type: 'literal', value: [0.02, 0] },
 		leftSignal: { type: 'literal', value: [true, false, false] },
 		rightSignal: { type: 'literal', value: [false, false, true] },
 		blendMode: { type: 'literal', value: 'lighten' },
