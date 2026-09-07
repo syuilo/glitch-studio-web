@@ -23,7 +23,7 @@ export const useStore = defineStore('main', () => {
 		direction: 'horizontal',
 		children: [{
 			id: '938e3eedc00d4287885b6894ee3ea8c3',
-			ratio: 0.5,
+			ratio: 0.55,
 			type: 'preview',
 		}, {
 			id: '441518aeb37940b2af7fb0027fd530a9',
@@ -31,12 +31,12 @@ export const useStore = defineStore('main', () => {
 			type: 'nodesEditor',
 		}, {
 			id: '8aec4dd7bf82460eba420680fda4f652',
-			ratio: 0.25,
+			ratio: 0.2,
 			type: null,
 			direction: 'vertical',
 			children: [{
 				id: '0f34c5f4c9cb449683c7f1281851b759',
-				ratio: 0.4,
+				ratio: 0.2,
 				type: 'histogram',
 			}, {
 				id: 'b3d6059aaa554ae79441286cd2beb685',
@@ -44,7 +44,7 @@ export const useStore = defineStore('main', () => {
 				type: 'waveform',
 			}, {
 				id: '47edf72197d94d28b6b2811bfecc97e5',
-				ratio: 0.2,
+				ratio: 0.4,
 				type: 'stats',
 			}],
 		}]
