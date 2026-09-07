@@ -21,7 +21,7 @@ struct FragmentIn {
 
 @fragment
 fn fs(fragData: FragmentIn) -> @location(0) vec4f {
-		let size = textureDimensions(sourceTexture, 0);
+	let size = textureDimensions(sourceTexture, 0);
 	let maxCoord = vec2<i32>(size) - vec2<i32>(1);
 
 	let coord = clamp(

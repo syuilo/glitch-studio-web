@@ -10,6 +10,7 @@ import video from './fx/video/main.ts';
 import quadtreeFilter from './fx/quadtreeFilter/main.ts';
 import chromaticAberration from './fx/chromaticAberration/main.ts';
 import channelShift from './fx/channelShift/main.ts';
+import blur from './fx/blur/main.ts'; 
 
 const _fxs = {
 	test,
@@ -22,6 +23,7 @@ const _fxs = {
 	quadtreeFilter,
 	chromaticAberration,
 	channelShift,
+	blur,
 } as Record<string, Effect<any>>;
 
 const fxs = {} as typeof _fxs;
