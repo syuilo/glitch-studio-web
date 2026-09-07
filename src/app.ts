@@ -9,6 +9,7 @@ import { RawProject } from './settings';
 import { Engine } from './engine/engine.ts';
 import * as ui from '@/ui.js';
 import { deepClone } from './utility/deep-clone.ts';
+import * as api from '@/api.js';
 
 export const wireMap = reactive<{
 	in: Record<string, any>;
@@ -184,4 +185,76 @@ export function saveProject() {
 			hash: asset.hash,
 		})),
 	});
+}
+
+export async function openProject() {
+	const { project, name } = await loadProjectFile();
+
+	console.log('project', project);
+
+	await appReady(project);
+}
+
+export async function newProject() {
+	await appReady({
+		id: genId(),
+		gsVersion: version,
+		name: 'untitled',
+		author: 'TODO',
+		nodes: [],
+		assets: [],
+		macros: [],
+		automations: [],
+		renderWidth: 2048,
+		renderHeight: 2048,
+	});
+}
+
+export async function newProjectFromImageOrVideo() {
+	const result = await api.openImageOrVideoFile({});
+	if (result == null) return;
+
+	const assetId = genId();
+
+	await appReady({
+		id: genId(),
+		gsVersion: version,
+		name: result.name,
+		author: 'TODO',
+		nodes: [],
+		assets: [],
+		macros: [],
+		automations: [],
+		renderWidth: result.width,
+		renderHeight: result.height,
+	});
+
+	store.addAsset({
+		id: assetId,
+		name: result.name,
+		width: result.width,
+		height: result.height,
+		data: result.data,
+		fileDataType: result.type,
+		fileData: result.fileData,
+		hash: result.hash,
+	});
+
+	if (result.type.startsWith('image/')) {
+		store.addFxNode({
+			fx: 'image',
+			id: genId(),
+			params: {
+				image: { type: 'literal', value: assetId }
+			}
+		});
+	} else if (result.type.startsWith('video/')) {
+		store.addFxNode({
+			fx: 'video',
+			id: genId(),
+			params: {
+				video: { type: 'literal', value: assetId }
+			}
+		});
+	}
 }
