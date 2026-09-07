@@ -46,11 +46,11 @@ import { defineAsyncComponent, ref, shallowRef, watch } from 'vue';
 import { fxs } from '@/engine/fxs';
 import { i18n } from '@/i18n';
 import { GsGroupNode, GsNode } from '@/engine/renderer-legacy.ts';
-import { ulid } from 'ulid';
 import { useStore } from '@/store';
 import GsButton from './common/GsButton.vue';
 import GsSelect from './common/GsSelect.vue';
 import { wireMap } from '@/app';
+import { genId } from '@/utility/id.ts';
 
 const Sortable = defineAsyncComponent(() => import('vuedraggable').then(x => x.default));
 
@@ -70,7 +70,7 @@ const emit = defineEmits<{
 const portEls = ref<Record<string, HTMLElement>>({});
 
 const value = ref(props.modelValue.map(x => ({
-	id: ulid(),
+	id: genId(),
 	node: x,
 })));
 
@@ -87,7 +87,7 @@ watch(value, () => {
 
 function add() {
 	value.value.push({
-		id: ulid(),
+		id: genId(),
 		node: null,
 	});
 }

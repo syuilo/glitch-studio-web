@@ -27,12 +27,12 @@
 
 <script lang="ts" setup>
 import {} from 'vue';
-import XControl from './GsEffectParamControl.vue/index.js';
+import XControl from './GsEffectParamControl.vue';
 import XMacroEditor from './macro-editor.vue';
 import { useStore } from '@/store';
 import { i18n } from '@/i18n';
 import { Macro } from '@/types';
-import { genId } from '@/utility/misc.ts';
+import { genId } from '@/utility/id.ts';
 
 const store = useStore();
 

@@ -1,6 +1,6 @@
 import { Ref, ref, markRaw, Component, reactive, watch } from 'vue';
 import { useStore } from './store';
-import { genId } from './utility/misc.ts';
+import { genId } from './utility/id.ts';
 import { fxs } from './engine/fxs';
 import { GsGroupNode } from './engine/renderer';
 import { version } from '@/version';

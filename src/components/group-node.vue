@@ -47,7 +47,7 @@ import { GsGroupNode } from '@/engine/renderer-legacy.ts';
 import XControl from './GsEffectParamControl.vue';
 import { Asset, Macro } from '@/types';
 import XMacroEditor from './macro-editor.vue';
-import { genId } from '@/utility/misc.ts';
+import { genId } from '@/utility/id.ts';
 import * as msgpack from '@msgpack/msgpack';
 import { version } from '@/version';
 import GsButton from './common/GsButton.vue';

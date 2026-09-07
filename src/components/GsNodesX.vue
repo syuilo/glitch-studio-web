@@ -15,8 +15,6 @@ import { fxs } from '@/engine/fxs';
 import { useStore } from '@/store';
 import { i18n } from '@/i18n';
 import { GsGroupNode, GsNode } from '@/engine/renderer-legacy.ts';
-import { genId } from '@/utility/misc.ts';
-import { popupMenu } from '@/app';
 
 const store = useStore();
 

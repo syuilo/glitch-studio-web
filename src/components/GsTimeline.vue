@@ -118,9 +118,10 @@
 import { computed, onMounted, ref, shallowRef, watch } from 'vue';
 import GsButton from './common/GsButton.vue';
 import { playing, frame, frameMax } from '@/app';
-import { dragListen, evalAutomationValue, genId, insertIntermediateNumbers, niceScale, rndstr, nearlyEqual } from '@/utility/misc.ts';
+import { dragListen, evalAutomationValue, insertIntermediateNumbers, niceScale, rndstr, nearlyEqual } from '@/utility/misc.ts';
 import { GsAutomation, GsKeyframe } from '@/engine/types';
 import { useStore } from '@/store';
+import { genId } from '@/utility/id.ts';
 
 const X_TICKS_HEIGHT = 20;
 const Y_TICKS_WIDTH = 60;

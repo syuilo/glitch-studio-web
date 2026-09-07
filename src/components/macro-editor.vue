@@ -34,11 +34,9 @@
 
 <script lang="ts" setup>
 import {} from 'vue';
-import XControl from './GsEffectParamControl.vue/index.js';
 import { useStore } from '@/store';
 import { i18n } from '@/i18n';
 import { Macro } from '@/types';
-import { genId } from '@/utility/misc.ts';
 import { GsGroupNode } from '@/engine/renderer-legacy.ts';
 import GsSelect from './common/GsSelect.vue';
 

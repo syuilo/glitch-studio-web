@@ -18,7 +18,7 @@ import { SettingsStore } from '@/settings';
 import { version } from '@/version';
 import { encode } from '@msgpack/msgpack';
 import { useStore } from '@/store';
-import { genId } from '@/utility/misc.ts';
+import { genId } from '@/utility/id.ts';
 import * as api from '@/api.js';
 import GsModal from './common/GsModal.vue';
 

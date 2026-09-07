@@ -21,7 +21,7 @@ import GsWorkspacePanel from './GsWorkspacePanel.vue';
 import { WorkspacePanel } from '@/types/workspace.ts';
 import { useStore } from '@/store.ts';
 import { i18n } from '@/i18n';
-import { genId } from '@/utility/misc.ts';
+import { genId } from '@/utility/id.ts';
 import * as api from '@/api.js';
 import { engine, rendererEnv, resolutionFactor } from '@/app.ts';
 
