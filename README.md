@@ -5,7 +5,7 @@ Glitch Studio for Webは、画像・動画編集や、シェーダーのplaygrou
 - 全ての画像処理がGPU上で行われ、高効率です
 - resolution-independentなので、どのような解像度でレンダリングしても見た目が変わらず、一貫した結果が得られます
 - fps-independentなので、どのようなフレームレートでレンダリングしても動きの速さが変わらず、一貫した結果が得られます
-- aspect-ratio-independentなので、どのような比率でレンダリングしても歪まず、一貫した結果が得られます
+- aspect-ratio-independentなので、どのような比率でレンダリングしても歪まず、一貫した結果が得られます(※一部例外あり)
 
 ## 概念
 
