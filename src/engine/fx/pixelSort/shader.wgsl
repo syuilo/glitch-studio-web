@@ -8,6 +8,7 @@ struct Uniforms {
 	run: u32,
 	threshold: f32,
 	shadow: u32,
+	lineOffset: u32,
 };
 
 struct Pixel {
@@ -39,7 +40,7 @@ fn initialize(@builtin(global_invocation_id) id: vec3u) {
 	if (line >= uniforms.lines) { return; }
 	var segment = 0u;
 	for (var i = 0u; i < uniforms.length; i++) {
-		let color = samplePixel(i, line);
+		let color = samplePixel(i, line + uniforms.lineOffset);
 		let luminance = dot(color.rgb, vec3f(0.2126, 0.7152, 0.0722));
 		let boundary = select((luminance < uniforms.threshold), (luminance > uniforms.threshold), uniforms.shadow != 0u);
 		if (boundary) { segment++; }
@@ -90,5 +91,5 @@ fn fs(@builtin(position) position: vec4f) -> @location(0) vec4f {
 	let xy = vec2u(position.xy);
 	let index = select(xy.x, xy.y, uniforms.vertical != 0u);
 	let line = select(xy.y, xy.x, uniforms.vertical != 0u);
-	return samplePixel(input[line * uniforms.length + index].index, line);
+	return samplePixel(input[(line - uniforms.lineOffset) * uniforms.length + index].index, line);
 }
