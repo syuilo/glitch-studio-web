@@ -3,6 +3,7 @@
 	<template v-for="child in divider.children" :key="child.id">
 		<GsWorkspaceDivider v-if="child.type === null"
 			:divider="child"
+			style="flex: 1"
 		/>
 		<component v-else
 			:is="panelComponents[child.type]"
@@ -17,13 +18,15 @@
 
 <script lang="ts" setup>
 import {} from 'vue';
-import { useStore } from '@/store.js';
-import { genId } from '@/utils.js';
 import { WorkspaceDivider } from '@/types/workspace.ts';
 import XPreview from '@/components/GsWorkspacePanel.Preview.vue';
+import XWaveform from '@/components/GsWorkspacePanel.Waveform.vue';
+import XStats from '@/components/GsWorkspacePanel.Stats.vue';
 
 const panelComponents = {
 	preview: XPreview,
+	waveform: XWaveform,
+	stats: XStats,
 };
 
 const props = withDefaults(defineProps<{
@@ -37,6 +40,7 @@ const props = withDefaults(defineProps<{
 <style module lang="scss">
 .root {
 	display: flex;
+	gap: 5px;
 }
 
 .horizontal {

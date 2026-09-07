@@ -1,40 +1,36 @@
 <template>
-<div class="_gs-container" :class="$style.root">
+<div :class="$style.root">
+	<!--
 	<div :class="$style.header">
-		<strong>{{ i18n.ts.Waveform }}</strong>
+		<b>{{ i18n.ts.Waveform }}</b>
 		<span style="opacity: 0.5;">RGB</span>
 	</div>
+	-->
 	<div :class="$style.scope">
 		<canvas :class="$style.canvas"
 			ref="canvas"
 			:width="width"
 			:height="height"
-			role="img"
-			:aria-label="i18n.ts.RgbWaveform"
 		/>
 	</div>
 </div>
 </template>
 
 <script lang="ts" setup>
-import type { Engine } from '@/engine/engine.ts';
+import { engine } from '@/app.ts';
 import { i18n } from '@/i18n.ts';
 import { onBeforeUnmount, onMounted, useTemplateRef } from 'vue';
-
-const props = defineProps<{
-	engine: Engine;
-}>();
 
 const width = 512;
 const height = 256;
 const canvas = useTemplateRef('canvas');
 
 onMounted(() => {
-	props.engine.setWaveformCanvas(canvas.value!);
+	engine.setWaveformCanvas(canvas.value!);
 });
 
 onBeforeUnmount(() => {
-	props.engine.setWaveformCanvas(null);
+	engine.setWaveformCanvas(null);
 });
 </script>
 
@@ -45,6 +41,7 @@ onBeforeUnmount(() => {
 	box-sizing: border-box;
 	height: 100%;
 	min-height: 0;
+	box-sizing: border-box;
 	padding: 12px;
 }
 
@@ -57,15 +54,16 @@ onBeforeUnmount(() => {
 }
 
 .scope {
+	flex: 1;
+	position: relative;
 	width: 100%;
-	aspect-ratio: 2;
-	border: solid 1px rgba(255, 255, 255, 0.08);
-	background: #101010;
-	box-shadow: 0 2px 2px rgba(0, 0, 0, 0.55) inset;
-	overflow: hidden;
+	overflow: clip;
 }
 
 .canvas {
+	position: absolute;
+	top: 0;
+	left: 0;
 	display: block;
 	width: 100%;
 	height: 100%;

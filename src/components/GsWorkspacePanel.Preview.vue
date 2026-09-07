@@ -1,7 +1,7 @@
 <template>
 <GsWorkspacePanel :panel="panel" :isStacked="isStacked">
 	<template #header>
-		<i class="ti ti-list"></i><span style="margin-left: 8px;">Preview</span>
+		<i class="ti ti-device-desktop"></i><span style="margin-left: 8px;">Preview</span>
 	</template>
 
 	<div :class="$style.root" dropzone="copy" @wheel="onViewWheel" @dragover.prevent="e => { e.dataTransfer.dropEffect = 'copy'; }" @drop.prevent="onDrop">

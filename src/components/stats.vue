@@ -1,15 +1,15 @@
 <template>
-<div class="stats-component _gs-container">
-	<div class="legend">
-		<div v-for="item in series" :key="item.key">
-			<span class="swatch" :style="{ backgroundColor: item.color }"></span>
-			<span class="name">{{ item.label }}</span>
-			<strong>{{ formatMs(current[item.key]) }}</strong>
+<div :class="$style.root">
+	<div :class="$style.legend">
+		<div v-for="item in series" :key="item.key" :class="$style.legendItem">
+			<span style="width: 8px; height: 2px;" :style="{ backgroundColor: item.color }"></span>
+			<span style="opacity: 0.7;">{{ item.label }}</span>
+			<b>{{ formatMs(current[item.key]) }}</b>
 		</div>
 	</div>
-	<div class="chart">
-		<svg :viewBox="`0 0 ${chartWidth} ${chartHeight}`" role="img" :aria-label="i18n.ts.FrameRenderTimesLast30Seconds">
-			<g class="grid">
+	<div :class="$style.chart">
+		<svg :viewBox="`0 0 ${chartWidth} ${chartHeight}`" :class="$style.svg">
+			<g :class="$style.grid">
 				<template v-for="tick in yTicks" :key="tick.value">
 					<line :x1="plotLeft" :x2="chartWidth - plotRight" :y1="tick.y" :y2="tick.y"/>
 					<text :x="plotLeft - 8" :y="tick.y + 4" text-anchor="end">{{ tick.value.toFixed(0) }}</text>
@@ -36,13 +36,9 @@
 </template>
 
 <script lang="ts" setup>
-import type { Engine } from '@/engine/engine.ts';
+import { engine } from '@/app.ts';
 import { i18n } from '@/i18n.ts';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-
-const props = defineProps<{
-	engine: Engine;
-}>();
 
 type SeriesKey = 'fast' | 'medium' | 'slow';
 type RenderTimes = Record<SeriesKey, number>;
@@ -85,9 +81,9 @@ let timer: number | undefined;
 function recordSample() {
 	const timestamp = performance.now();
 	current.value = {
-		fast: toMs(props.engine.gpuAverageDisplayFast.value),
-		medium: toMs(props.engine.gpuAverageDisplayMedium.value),
-		slow: toMs(props.engine.gpuAverageDisplaySlow.value),
+		fast: toMs(engine.gpuAverageDisplayFast.value),
+		medium: toMs(engine.gpuAverageDisplayMedium.value),
+		slow: toMs(engine.gpuAverageDisplaySlow.value),
 	};
 	samples.value.push({ ...current.value, timestamp });
 	while (samples.value[0]?.timestamp < timestamp - historyDuration || samples.value.length > sampleLimit) samples.value.shift();
@@ -120,8 +116,8 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<style scoped lang="scss">
-.stats-component {
+<style module lang="scss">
+.root {
 	display: flex;
 	flex-direction: column;
 	box-sizing: border-box;
@@ -136,43 +132,30 @@ onBeforeUnmount(() => {
 	gap: 10px 20px;
 	padding: 2px 4px 12px;
 	font-size: 12px;
+}
 
-	> div {
-		display: grid;
-		grid-template-columns: 8px auto 5em;
-		align-items: center;
-		gap: 6px;
-	}
-
-	.swatch {
-		width: 8px;
-		height: 2px;
-	}
-
-	.name {
-		opacity: 0.7;
-	}
-
-	strong {
-		text-align: right;
-		font-weight: 600;
-	}
+.legendItem {
+	display: grid;
+	grid-template-columns: 8px auto 5em;
+	align-items: center;
+	gap: 6px;
 }
 
 .chart {
 	flex: 1;
-	min-height: 220px;
-	border: solid 1px rgba(255, 255, 255, 0.08);
+	position: relative;
+	overflow: clip;
 	border-radius: 4px;
-	background: #151515;
-	box-shadow: 0 2px 2px rgba(0, 0, 0, 0.5) inset;
-	overflow: hidden;
+	background: var(--THEME-bg);
+}
 
-	> svg {
-		display: block;
-		width: 100%;
-		height: 100%;
-	}
+.svg {
+	position: absolute;
+	top: 0;
+	left: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
 }
 
 .grid {

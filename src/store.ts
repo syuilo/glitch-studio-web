@@ -5,6 +5,7 @@ import { genEmptyValue } from '@/utils';
 import { Macro, Asset, FxParamDefs } from '@/types';
 import { GsFxNode, GsGroupNode, GsNode } from '@/engine/renderer-legacy';
 import { GsAutomation } from './engine/types';
+import { WorkspaceDivider } from './types/workspace.ts';
 
 export const useStore = defineStore('main', () => {
 	const id = ref<string | null>(null);
@@ -17,6 +18,21 @@ export const useStore = defineStore('main', () => {
 	const renderNodeId = ref<string | null>(null);
 	const renderWidth = ref<number>(2048);
 	const renderHeight = ref<number>(2048);
+	const workspaceDefinition = ref<WorkspaceDivider>({
+		id: 'root',
+		direction: 'horizontal',
+		children: [{
+			id: 'a', type: 'preview',
+		}, {
+			id: 'b', type: null,
+			direction: 'vertical',
+			children: [{
+				id: 'c', type: 'waveform',
+			}, {
+				id: 'd', type: 'stats',
+			}],
+		}]
+	});
 
 	function findNode(nodeId: string): GsNode | undefined {
 		const search = (nodes: GsNode[]) => {
@@ -338,6 +354,7 @@ export const useStore = defineStore('main', () => {
 		renderNodeId,
 		renderWidth,
 		renderHeight,
+		workspaceDefinition,
 	
 		addFxNode,
 		addGroupNode,

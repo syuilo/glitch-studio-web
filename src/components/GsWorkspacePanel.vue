@@ -17,7 +17,7 @@
 	>
 		<svg viewBox="0 0 256 128" :class="$style.tabShape">
 			<g transform="matrix(6.2431,0,0,6.2431,-677.417,-29.3839)">
-				<path d="M149.512,4.707L108.507,4.707C116.252,4.719 118.758,14.958 118.758,14.958C118.758,14.958 121.381,25.283 129.009,25.209L149.512,25.209L149.512,4.707Z" style="fill:var(--MI_THEME-deckBg);"/>
+				<path d="M149.512,4.707L108.507,4.707C116.252,4.719 118.758,14.958 118.758,14.958C118.758,14.958 121.381,25.283 129.009,25.209L149.512,25.209L149.512,4.707Z" style="fill:var(--THEME-bg);"/>
 			</g>
 		</svg>
 		<div :class="$style.color"></div>
@@ -304,7 +304,7 @@ function onDrop(ev: DragEvent) {
 <style lang="scss" module>
 .root {
 	--root-margin: 10px;
-	--deckColumnHeaderHeight: 38px;
+	--headerHeight: 32px;
 
 	height: 100%;
 	overflow: clip;
@@ -321,7 +321,7 @@ function onDrop(ev: DragEvent) {
 			left: 0;
 			width: 100%;
 			height: 100%;
-			background: var(--MI_THEME-focus);
+			background: var(--THEME-focus);
 		}
 	}
 
@@ -335,7 +335,7 @@ function onDrop(ev: DragEvent) {
 			left: 0;
 			width: 100%;
 			height: 100%;
-			background: var(--MI_THEME-focus);
+			background: var(--THEME-focus);
 			opacity: 0.5;
 		}
 	}
@@ -347,8 +347,8 @@ function onDrop(ev: DragEvent) {
 	}
 
 	&:not(.active) {
-		flex-basis: var(--deckColumnHeaderHeight);
-		min-height: var(--deckColumnHeaderHeight);
+		flex-basis: var(--headerHeight);
+		min-height: var(--headerHeight);
 		border-bottom-right-radius: 0;
 	}
 }
@@ -357,20 +357,12 @@ function onDrop(ev: DragEvent) {
 	position: relative;
 	display: flex;
 	z-index: 2;
-	line-height: var(--deckColumnHeaderHeight);
-	height: var(--deckColumnHeaderHeight);
+	line-height: var(--headerHeight);
+	height: var(--headerHeight);
 	padding: 0 16px 0 30px;
-	font-size: 0.9em;
-	color: var(--MI_THEME-panelHeaderFg);
-	background: var(--MI_THEME-panelHeaderBg);
-	cursor: pointer;
+	font-size: 85%;
+	background: var(--THEME-workspacePanelHeader);
 	user-select: none;
-}
-
-@container style(--MI_THEME-panelHeaderBg: var(--MI_THEME-panel)) {
-	.header {
-		box-shadow: 0 0.5px 0 0 light-dark(#0002, #fff2);
-	}
 }
 
 .color {
@@ -379,7 +371,7 @@ function onDrop(ev: DragEvent) {
 	left: 12px;
 	width: 3px;
 	height: calc(100% - 24px);
-	background: var(--MI_THEME-accent);
+	background: var(--THEME-accent);
 	border-radius: 999px;
 }
 
@@ -403,8 +395,8 @@ function onDrop(ev: DragEvent) {
 .toggleActive,
 .menu {
 	z-index: 1;
-	width: var(--deckColumnHeaderHeight);
-	line-height: var(--deckColumnHeaderHeight);
+	width: var(--headerHeight);
+	line-height: var(--headerHeight);
 }
 
 .toggleActive {
@@ -416,7 +408,7 @@ function onDrop(ev: DragEvent) {
 	margin-right: 10px;
 	padding: 8px 8px;
 	box-sizing: border-box;
-	height: var(--deckColumnHeaderHeight);
+	height: var(--headerHeight);
 	cursor: move;
 	user-select: none;
 	opacity: 0.5;
@@ -427,13 +419,10 @@ function onDrop(ev: DragEvent) {
 }
 
 .body {
-	height: calc(100% - var(--deckColumnHeaderHeight));
-	overflow-y: auto;
-	overflow-x: clip;
-	overscroll-behavior-y: contain;
+	height: calc(100% - var(--headerHeight));
+	overflow: clip;
 	box-sizing: border-box;
 	container-type: size;
-	background-color: var(--MI_THEME-bg);
-	scrollbar-color: var(--MI_THEME-scrollbarHandle) var(--MI_THEME-panel);
+	background-color: var(--THEME-workspacePanelBody);
 }
 </style>
