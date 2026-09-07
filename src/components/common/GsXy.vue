@@ -44,8 +44,4 @@ watch(y, () => {
 .slider {
 	flex: 1;
 }
-
-.keep {
-	flex-grow: 0;
-}
 </style>

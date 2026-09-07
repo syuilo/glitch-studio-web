@@ -27,7 +27,7 @@ fn doBlend(mode: u32, base: f32, blend: f32) -> f32 {
 }
 
 struct Uniforms {
-	amount: f32,
+	amount: vec2f,
 	blendMode: u32,
 	leftSignal: vec3u,
 	rightSignal: vec3u,
@@ -45,8 +45,8 @@ struct FragmentIn {
 fn fs(fragData: FragmentIn) -> @location(0) vec4f {
 	let uv = convertTexCoords(fragData.uv);
 	let pixel = textureSample(sourceTexture, sourceSampler, uv);
-	let left = textureSample(sourceTexture, sourceSampler, uv + vec2f(uniforms.amount, 0.0));
-	let right = textureSample(sourceTexture, sourceSampler, uv - vec2f(uniforms.amount, 0.0));
+	let left = textureSample(sourceTexture, sourceSampler, uv + uniforms.amount);
+	let right = textureSample(sourceTexture, sourceSampler, uv - uniforms.amount);
 	var color = pixel.rgb;
 
 	if (uniforms.leftSignal.r != 0u) { color.r = doBlend(uniforms.blendMode, color.r, left.r); }

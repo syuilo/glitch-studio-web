@@ -19,7 +19,7 @@ export default defineEffect({
 	category: 'glitch',
 	paramDefs: {
 		input: { type: 'node', label: 'Input', primary: true },
-		amount: { type: 'range', min: 0, max: 1, step: 0.01, label: 'Amount' },
+		amount: { type: 'vector', min: -1, max: 1, step: 0.01, label: 'Amount' },
 		leftSignal: { type: 'signal', label: 'L signal' },
 		rightSignal: { type: 'signal', label: 'R signal' },
 		blendMode: { type: 'blendMode', label: 'Blend mode' },
@@ -34,7 +34,7 @@ export default defineEffect({
 		},
 	},
 	getDefaultParams: () => ({
-		amount: { type: 'literal', value: 0.5 },
+		amount: { type: 'literal', value: [0.5, 0] },
 		leftSignal: { type: 'literal', value: [true, false, false] },
 		rightSignal: { type: 'literal', value: [false, false, true] },
 		blendMode: { type: 'literal', value: 'lighten' },
