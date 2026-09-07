@@ -13,7 +13,7 @@
 		<div v-for="param in Object.keys(paramDefs).filter(k => subStore.showAllParams ? true : !k.startsWith('_'))" :key="param" v-show="paramDefs[param].visibility == null || paramDefs[param].visibility(node.params)">
 			<label :class="{ expression: isExpression(param) }" @click="changeValueType(param, $event)">{{ paramDefs[param].label }}</label>
 			<div v-if="isExpression(param)">
-				<GsInput type="text" class="expression" :model-value="getParam(param)" @change:model-value="updateParamAsExpression(param, $event.target.value)"/>
+				<GsInput type="text" class="expression" :model-value="getParam(param)" @update:model-value="updateParamAsExpression(param, $event)"/>
 			</div>
 			<div v-else-if="isAutomation(param)">
 				<GsButton class="automation" @click="selectAutomation(param, $event)">{{ node.params[param].value ? store.automations.find(a => a.id === node.params[param].value).name : '(none)' }}</GsButton>
