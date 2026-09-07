@@ -100,9 +100,9 @@ const prefixEl = useTemplateRef('prefixEl');
 const suffixEl = useTemplateRef('suffixEl');
 const container = useTemplateRef('container');
 const height =
-	props.small ? 33 :
-	props.large ? 39 :
-	36;
+	props.small ? 28 :
+	props.large ? 32 :
+	30;
 
 const focus = () => container.value?.focus();
 

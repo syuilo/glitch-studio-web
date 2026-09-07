@@ -78,7 +78,7 @@ onMounted(() => {
 	display: block;
 	min-width: 80px;
 	width: max-content;
-	padding: 7px 14px;
+	padding: 6px 12px;
 	text-align: center;
 	font-weight: normal;
 	font-size: 95%;
@@ -109,7 +109,7 @@ onMounted(() => {
 
 	&.small {
 		font-size: 90%;
-		padding: 5px 10px;
+		padding: 4px 8px;
 	}
 
 	&.large {

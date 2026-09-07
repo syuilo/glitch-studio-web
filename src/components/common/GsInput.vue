@@ -100,9 +100,9 @@ const inputEl = useTemplateRef('inputEl');
 const prefixEl = useTemplateRef('prefixEl');
 const suffixEl = useTemplateRef('suffixEl');
 const height =
-	props.small ? 33 :
-	props.large ? 39 :
-	36;
+	props.small ? 28 :
+	props.large ? 32 :
+	30;
 let autocompleteWorker: Autocomplete | null = null;
 
 const focus = () => inputEl.value?.focus();

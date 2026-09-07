@@ -15,16 +15,17 @@
 		<XSlider2 :modelValue="value" :step="options.step ?? 1" :min="options.min" :max="options.max" :title="`${options.min} ~ ${options.max}`" @update:modelValue="v => changeValue(v)"/>
 	</div>
 	<div v-else-if="type === 'number'">
-		<GsInput type="number" :value="value" :min="options.min" :max="options.max" @change="changeValue(parseFloat($event.target.value, 10))"/>
+		<GsInput small type="number" :value="value" :min="options.min" :max="options.max" @change="changeValue(parseFloat($event.target.value, 10))"/>
 	</div>
 	<div v-else-if="type === 'bool'">
-		<GsButton @click="changeValue(!value)" :primary="value">{{ value ? 'On' : 'Off' }}</GsButton>
+		<GsButton small @click="changeValue(!value)" :primary="value">{{ value ? 'On' : 'Off' }}</GsButton>
 	</div>
 	<div v-else-if="type === 'enum'">
-		<GsSelect :modelValue="value" :items="options.options" @update:modelValue="v => changeValue(v)"/>
+		<GsSelect small :modelValue="value" :items="options.options" @update:modelValue="v => changeValue(v)"/>
 	</div>
 	<div v-else-if="type === 'blendMode'">
 		<GsSelect
+			small
 			:modelValue="value"
 			:items="[
 				{ label: i18n.ts._BlendModes.None, value: 'none' },
@@ -110,6 +111,7 @@
 	<div v-else-if="type === 'node'" style="display: flex;">
 		<div ref="portEl">・</div>
 		<GsSelect
+			small
 			:modelValue="value"
 			:items="[
 				{ label: i18n.ts.None, value: null },
@@ -138,6 +140,7 @@
 	</div>
 	<div v-else-if="type === 'image'">
 		<GsSelect
+			small
 			:modelValue="value"
 			:items="[
 				{ label: i18n.ts.None, value: null },
@@ -152,6 +155,7 @@
 	</div>
 	<div v-else-if="type === 'video'">
 		<GsSelect
+			small
 			:modelValue="value"
 			:items="[
 				{ label: i18n.ts.None, value: null },
