@@ -50,6 +50,18 @@ watch(canvas, () => {
 	}
 }, { immediate: true });
 
+watch(() => [store.renderWidth, store.renderHeight], () => {
+	if (canvas.value != null) {
+		engine.setCanvas({
+			canvas: canvas.value,
+			resolution: {
+				width: store.renderWidth,
+				height: store.renderHeight,
+			}
+		});
+	}
+});
+
 async function onViewClick() {
 	if (store.nodes.length === 0) {
 		const result = await api.openImageOrVideoFile({});

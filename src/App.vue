@@ -34,7 +34,7 @@
 			<XMacros v-show="tab === 'macros'"/>
 			<XAssets v-show="tab === 'assets'"/>
 			<XStats v-show="tab === 'stats'" :engine="engine"/>
-			<XWaveform v-if="tab === 'monitors' && canvas != null" :engine="engine"/>
+			<XWaveform v-if="tab === 'monitors'" :engine="engine"/>
 			<XSettings v-show="tab === 'settings'"/> 
 		</div>
 	</div>
