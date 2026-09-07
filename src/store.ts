@@ -3,9 +3,9 @@ import { defineStore } from 'pinia'
 import { fxs } from '@/engine/fxs';
 import { genEmptyValue } from '@/utility/misc.ts';
 import { Macro, Asset, FxParamDefs } from '@/types';
-import { GsFxNode, GsGroupNode, GsNode } from '@/engine/renderer-legacy';
 import { GsAutomation } from './engine/types';
 import { WorkspaceDivider } from './types/workspace.ts';
+import { GsFxNode, GsGroupNode, GsNode } from './engine/renderer.ts';
 
 export const useStore = defineStore('main', () => {
 	const id = ref<string | null>(null);

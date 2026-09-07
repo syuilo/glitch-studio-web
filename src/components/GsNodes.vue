@@ -9,12 +9,12 @@
 
 <script lang="ts" setup>
 import { computed, defineAsyncComponent } from 'vue';
-import XFxNode from './fx-node.vue';
+import XFxNode from './GsFxNode.vue';
 import XGroupNode from './group-node.vue';
 import { fxs } from '@/engine/fxs';
 import { useStore } from '@/store';
 import { i18n } from '@/i18n';
-import { GsGroupNode, GsNode } from '@/engine/renderer-legacy.ts';
+import { GsGroupNode, GsNode } from '@/engine/renderer.ts';
 
 const Sortable = defineAsyncComponent(() => import('vuedraggable').then(x => x.default));
 

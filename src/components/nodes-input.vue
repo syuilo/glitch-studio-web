@@ -45,12 +45,12 @@
 import { defineAsyncComponent, ref, shallowRef, watch } from 'vue';
 import { fxs } from '@/engine/fxs';
 import { i18n } from '@/i18n';
-import { GsGroupNode, GsNode } from '@/engine/renderer-legacy.ts';
 import { useStore } from '@/store';
 import GsButton from './common/GsButton.vue';
 import GsSelect from './common/GsSelect.vue';
 import { wireMap } from '@/app';
 import { genId } from '@/utility/id.ts';
+import { GsGroupNode, GsNode } from '@/engine/renderer.ts';
 
 const Sortable = defineAsyncComponent(() => import('vuedraggable').then(x => x.default));
 

@@ -183,10 +183,10 @@ import XNodesInput from './nodes-input.vue';
 import { fxs } from '@/engine/fxs';
 import { useStore } from '@/store';
 import { i18n } from '@/i18n';
-import { GsGroupNode, GsNode } from '@/engine/renderer-legacy.ts';
 import GsButton from './common/GsButton.vue';
 import GsSelect from './common/GsSelect.vue';
 import { wireMap } from '@/app';
+import { GsGroupNode, GsNode } from '@/engine/renderer.ts';
 
 const store = useStore();
 

@@ -43,7 +43,6 @@ import GsNodes from './GsNodes.vue';
 import { subStore } from '@/sub-store';
 import { useStore } from '@/store';
 import { i18n } from '@/i18n';
-import { GsGroupNode } from '@/engine/renderer-legacy.ts';
 import XControl from './GsEffectParamControl.vue';
 import { Asset, Macro } from '@/types';
 import XMacroEditor from './macro-editor.vue';
@@ -53,6 +52,7 @@ import { version } from '@/version';
 import GsButton from './common/GsButton.vue';
 import { wireMap } from '@/app';
 import * as api from '@/api.js';
+import { GsGroupNode } from '@/engine/renderer.ts';
 
 const store = useStore();
 
