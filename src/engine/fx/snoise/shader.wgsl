@@ -74,8 +74,13 @@ fn snoise(v: vec3f) -> f32 {
 	return 105.0 * dot(m * m, vec4f(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3)));
 }
 
+fn scaleUvToCoverGivenAspectRatio(uv: vec2f, aspectRatio: f32) -> vec2f {
+	return uv / vec2f(1.0, aspectRatio) * select(1.0, aspectRatio, 1.0 > aspectRatio);
+}
+
 struct Uniforms {
-	scale: f32,
+	aspectRatio: f32,
+	scale: vec2f,
 	time: f32,
 };
 
@@ -87,5 +92,7 @@ struct FragmentIn {
 
 @fragment
 fn fs(fragData: FragmentIn) -> @location(0) f32 {
-	return snoise(vec3f(fragData.uv.x * uniforms.scale, fragData.uv.y * uniforms.scale, uniforms.time));
+	let aspectUv = scaleUvToCoverGivenAspectRatio(fragData.uv, uniforms.aspectRatio);
+	var uv = aspectUv * uniforms.scale;
+	return snoise(vec3f(uv.x, uv.y, uniforms.time));
 }

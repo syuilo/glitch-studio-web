@@ -7,13 +7,13 @@ export default defineEffect({
 	displayName: 'snoise',
 	category: 'utility',
 	paramDefs: {
-		x: { type: 'range', min: -1, max: 1, step: 0.01, label: 'X' },
-		y: { type: 'range', min: -1, max: 1, step: 0.01, label: 'Y' },
+		x: { type: 'range', min: -100, max: 100, step: 0.01, label: 'X' },
+		y: { type: 'range', min: -100, max: 100, step: 0.01, label: 'Y' },
 		time: { type: 'range', min: 0, max: 100, step: 0.01, label: 'Time' },
 	},
 	getDefaultParams: () => ({
-		x: { type: 'literal', value: 0 },
-		y: { type: 'literal', value: 0 },
+		x: { type: 'literal', value: 1 },
+		y: { type: 'literal', value: 1 },
 		time: { type: 'expression', value: 'TIME' },
 	}),
 	getOut: ({ wgpu, resolution }) => {
@@ -64,7 +64,8 @@ export default defineEffect({
 		return {
 			render: (ctx) => {
 				uniformValues.set({
-					scale: 1,
+					aspectRatio: resolution.width / resolution.height,
+					scale: [ctx.params.x, ctx.params.y],
 					time: ctx.params.time,
 				});
 				wgpu.device.queue.writeBuffer(uniformBuffer, 0, uniformValues.arrayBuffer);
