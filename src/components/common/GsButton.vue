@@ -84,7 +84,7 @@ onMounted(() => {
 	font-size: 95%;
 	box-shadow: none;
 	text-decoration: none;
-	background: var(--MI_THEME-buttonBg);
+	background: var(--THEME-buttonBg);
 	border-radius: 5px;
 	overflow: clip;
 	box-sizing: border-box;
@@ -95,11 +95,11 @@ onMounted(() => {
 	}
 
 	&:not(:disabled):hover {
-		background: var(--MI_THEME-buttonHoverBg);
+		background: var(--THEME-buttonHoverBg);
 	}
 
 	&:not(:disabled):active {
-		background: var(--MI_THEME-buttonHoverBg);
+		background: var(--THEME-buttonHoverBg);
 	}
 
 	&.iconOnly {
@@ -127,15 +127,15 @@ onMounted(() => {
 
 	&.primary {
 		font-weight: bold;
-		color: var(--MI_THEME-fgOnAccent) !important;
-		background: var(--MI_THEME-accent);
+		color: var(--THEME-fgOnAccent) !important;
+		background: var(--THEME-accent);
 
 		&:not(:disabled):hover {
-			background: hsl(from var(--MI_THEME-accent) h s calc(l + 5));
+			background: hsl(from var(--THEME-accent) h s calc(l + 5));
 		}
 
 		&:not(:disabled):active {
-			background: hsl(from var(--MI_THEME-accent) h s calc(l + 5));
+			background: hsl(from var(--THEME-accent) h s calc(l + 5));
 		}
 	}
 
@@ -145,24 +145,24 @@ onMounted(() => {
 
 	&.danger {
 		font-weight: bold;
-		color: var(--MI_THEME-error);
+		color: var(--THEME-error);
 
 		&.primary {
 			color: #fff;
-			background: var(--MI_THEME-error);
+			background: var(--THEME-error);
 
 			&:not(:disabled):hover {
-				background: hsl(from var(--MI_THEME-error) h s calc(l + 10));
+				background: hsl(from var(--THEME-error) h s calc(l + 10));
 			}
 
 			&:not(:disabled):active {
-				background: hsl(from var(--MI_THEME-error) h s calc(l - 10));
+				background: hsl(from var(--THEME-error) h s calc(l - 10));
 			}
 		}
 	}
 
 	&.active {
-		color: var(--MI_THEME-accent) !important;
+		color: var(--THEME-accent) !important;
 	}
 
 	&:disabled {

@@ -1,40 +1,48 @@
 <template>
-<XDialog>
-	<div class="about-componet">
-		<div class="section">
+<GsModal ref="modal" preferType="dialog" @closed="emit('closed')">
+	<div :class="$style.root" class="_gaps_s">
+		<div>
 			<img src="/gs.svg" style="display: block; margin: 0 auto 8px auto; width: 64px; height: 64px;">
 			<div><b>Glitch Studio for Web</b></div>
 			<div>{{ version }}</div>
 		</div>
-		<div class="section">
+		<div>
 			<small style="display: block;">
-				<div>Copyright (c) 2024-2025 syuilo</div>
+				<div>Copyright (c) 2024-2026 syuilo</div>
 				<a class="_gs-link" href="https://github.com/syuilo/glitch-studio-web" target="_blank">https://github.com/syuilo/glitch-studio-web</a>
 			</small>
 		</div>
-		<GsButton inline @click="emit('ok')">OK</GsButton>
+		<GsButton inline @click="ok">OK</GsButton>
 	</div>
-</XDialog>
+</GsModal>
 </template>
 
 <script lang="ts" setup>
+import { useTemplateRef } from 'vue';
 import { version } from '@/version';
-import XDialog from './dialog.vue';
+import GsModal from './common/GsModal.vue';
 import GsButton from './common/GsButton.vue';
 
+const modal = useTemplateRef('modal');
+
 const emit = defineEmits<{
-	(ev: 'ok'): void;
+	(ev: 'closed'): void;
 }>();
 
-function open(url: string) {
-	//shell.openExternal(url);
+function ok() {
+	modal.value!.close();
 }
 </script>
 
-<style scoped lang="scss">
-.about-componet {
-	> .section {
-		margin: 0 0 16px 0;
-	}
+<style module lang="scss">
+.root {
+	margin: auto;
+	position: relative;
+	padding: 32px;
+	min-width: 320px;
+	max-width: 480px;
+	box-sizing: border-box;
+	text-align: center;
+	background: var(--THEME-dialog);
 }
 </style>

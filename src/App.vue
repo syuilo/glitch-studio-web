@@ -16,7 +16,7 @@
 		<GsButton @click="saveImage">save</GsButton>
 		<!--<button @click="saveAnimationGif">save animation (GIF)</button>-->
 		<GsButton @click="saveAnimation">save animation (連番)</GsButton>
-		<GsButton @click="showAbout = true">about</GsButton>
+		<GsButton @click="showAbout">about</GsButton>
 	</div>
 	<div :class="$style.body">
 		<GsWorkspaceDivider style="flex: 1" :divider="store.workspaceDefinition" />
@@ -29,9 +29,6 @@
 			<div :class="$style.footerStatsItem">{{ (engine.gpuAverageDisplaySlow.value / 1000).toFixed(1) }}ms</div>
 		</div>
 	</div>
-	<XSavePreset v-if="showSavePresetDialog" @ok="showSavePresetDialog = false"/>
-	<XExportPreset v-if="showExportPresetDialog" @ok="showExportPresetDialog = false"/>
-	<XAbout v-if="showAbout" @ok="showAbout = false"/>
 </div>
 </template>
 
@@ -57,7 +54,6 @@ const store = useStore();
 
 const progress = ref(0);
 const presetName = '';
-const showAbout = ref(false);
 const showSavePresetDialog = ref(false);
 const showExportPresetDialog = ref(false);
 
@@ -102,6 +98,12 @@ async function importPreset() {
 	for (const node of result.preset.nodes) {
 		store.nodes.push(node);
 	}
+}
+
+function showAbout() {
+	const { dispose } = ui.popup(XAbout, {}, {
+		closed: () => dispose(),
+	});
 }
 
 onMounted(() => {
