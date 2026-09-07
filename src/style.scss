@@ -2,7 +2,7 @@
 	--THEME-accent: #ff8400;
 	//--THEME-accent: #c2fe0c;
 	--THEME-fgOnAccent: #000;
-	--THEME-accentedBg: #c2fe0c33;
+	--THEME-accentedBg: color(from var(--THEME-accent) srgb r g b / 0.2);
 	--THEME-bg: #060606;
 	--THEME-fg: #fff;
 	--THEME-workspacePanelBody: #111;
