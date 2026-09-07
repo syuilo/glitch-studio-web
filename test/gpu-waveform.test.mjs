@@ -58,7 +58,7 @@ test('engine initializes a waveform canvas registered before the GPU device', as
 		const engine = new Engine();
 
 		engine.setWaveformCanvas(waveformCanvas);
-		await engine.init({
+		await engine.setCanvas({
 			canvas: mainCanvas,
 			resolution: { width: 640, height: 480 },
 		});
@@ -102,10 +102,8 @@ test('waveform component exposes its monitor canvas accessibly', async () => {
 	});
 
 	try {
-		const { default: Waveform } = await server.ssrLoadModule('/src/components/waveform.vue');
-		const html = await renderToString(createSSRApp(Waveform, {
-			engine: { setWaveformCanvas() {} },
-		}));
+		const { default: Waveform } = await server.ssrLoadModule('/src/components/GsWaveform.vue');
+		const html = await renderToString(createSSRApp(Waveform));
 
 		assert.match(html, /<canvas[^>]+role="img"/);
 		assert.match(html, /aria-label="RGB waveform"/);

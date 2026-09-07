@@ -1,23 +1,32 @@
 <template>
-<div :class="[$style.root, { [$style.horizontal]: divider.direction === 'horizontal', [$style.vertical]: divider.direction === 'vertical' }]">
-	<template v-for="child in divider.children" :key="child.id">
+<div ref="root" :class="[$style.root, { [$style.horizontal]: divider.direction === 'horizontal', [$style.vertical]: divider.direction === 'vertical' }]">
+	<template v-for="(child, i) in divider.children" :key="child.id">
 		<GsWorkspaceDivider v-if="child.type === null"
 			:divider="child"
-			style="flex: 1"
+			:class="$style.child"
+			:style="{ flexGrow: child.ratio }"
 		/>
 		<component v-else
 			:is="panelComponents[child.type]"
 			:ref="child.id"
 			:key="child.id"
 			:panel="child"
-			style="flex: 1"
+			:class="$style.child"
+			:style="{ flexGrow: child.ratio }"
+		/>
+		<div v-if="i < divider.children.length - 1"
+			:class="$style.handle"
+			@pointerdown.prevent="onPointerDown($event, i)"
+			@pointermove="onPointerMove"
+			@pointerup="onPointerEnd"
+			@pointercancel="onPointerEnd"
 		/>
 	</template>
 </div>
 </template>
 
 <script lang="ts" setup>
-import {} from 'vue';
+import { useTemplateRef } from 'vue';
 import { WorkspaceDivider } from '@/types/workspace.ts';
 import XPreview from '@/components/GsWorkspacePanel.Preview.vue';
 import XNodesEditor from '@/components/GsWorkspacePanel.NodesEditor.vue';
@@ -39,20 +48,107 @@ const props = withDefaults(defineProps<{
 	
 });
 
+const root = useTemplateRef('root');
+
+const handleSize = 5;
+const minPanelSize = 32;
+
+let dragState: {
+	pointerId: number;
+	target: HTMLElement;
+	startPosition: number;
+	startRatio: number;
+	pairRatio: number;
+	totalRatio: number;
+	availableSize: number;
+	before: WorkspaceDivider['children'][number];
+	after: WorkspaceDivider['children'][number];
+} | null = null;
+
+function onPointerDown(ev: PointerEvent, index: number) {
+	if (ev.button !== 0 || root.value == null || !(ev.currentTarget instanceof HTMLElement)) return;
+
+	const before = props.divider.children[index];
+	const after = props.divider.children[index + 1];
+	const rect = root.value.getBoundingClientRect();
+	const size = props.divider.direction === 'horizontal' ? rect.width : rect.height;
+	const availableSize = size - handleSize * (props.divider.children.length - 1);
+	const totalRatio = props.divider.children.reduce((total, child) => total + child.ratio, 0);
+
+	if (availableSize <= 0 || totalRatio <= 0) return;
+
+	dragState = {
+		pointerId: ev.pointerId,
+		target: ev.currentTarget,
+		startPosition: props.divider.direction === 'horizontal' ? ev.clientX : ev.clientY,
+		startRatio: before.ratio,
+		pairRatio: before.ratio + after.ratio,
+		totalRatio,
+		availableSize,
+		before,
+		after,
+	};
+
+	ev.currentTarget.setPointerCapture(ev.pointerId);
+}
+
+function onPointerMove(ev: PointerEvent) {
+	if (dragState == null || ev.pointerId !== dragState.pointerId) return;
+
+	const position = props.divider.direction === 'horizontal' ? ev.clientX : ev.clientY;
+	const deltaRatio = (position - dragState.startPosition) / dragState.availableSize * dragState.totalRatio;
+	const minRatio = Math.min(minPanelSize / dragState.availableSize * dragState.totalRatio, dragState.pairRatio / 2);
+	const beforeRatio = Math.min(
+		dragState.pairRatio - minRatio,
+		Math.max(minRatio, dragState.startRatio + deltaRatio),
+	);
+
+	dragState.before.ratio = beforeRatio;
+	dragState.after.ratio = dragState.pairRatio - beforeRatio;
+}
+
+function onPointerEnd(ev: PointerEvent) {
+	if (dragState == null || ev.pointerId !== dragState.pointerId) return;
+
+	const { target, pointerId } = dragState;
+	dragState = null;
+	if (target.hasPointerCapture(pointerId)) target.releasePointerCapture(pointerId);
+}
+
 </script>
 
 <style module lang="scss">
 .root {
 	display: flex;
-	gap: 5px;
+	min-width: 0;
+	min-height: 0;
+}
+
+.child {
+	flex-basis: 0;
+	min-width: 0;
+	min-height: 0;
+}
+
+.handle {
+	flex: 0 0 5px;
+	touch-action: none;
 }
 
 .horizontal {
 	flex-direction: row;
+
+	> .handle {
+		cursor: col-resize;
+	}
 }
 
 .vertical {
 	flex-direction: column;
+
+	> .handle {
+		cursor: row-resize;
+	}
 }
 
 </style>

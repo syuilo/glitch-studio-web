@@ -88,7 +88,7 @@ test('engine initializes a histogram canvas registered before the GPU device', a
 		const engine = new Engine();
 
 		engine.setHistogramCanvas(histogramCanvas);
-		await engine.init({
+		await engine.setCanvas({
 			canvas: mainCanvas,
 			resolution: { width: 640, height: 480 },
 		});
@@ -146,11 +146,11 @@ test('engine disposes the previous GPU histogram before reinitializing', async (
 		const engine = new Engine();
 
 		engine.setHistogramCanvas(histogramCanvas);
-		await engine.init({
+		await engine.setCanvas({
 			canvas: mainCanvas,
 			resolution: { width: 640, height: 480 },
 		});
-		await engine.init({
+		await engine.setCanvas({
 			canvas: mainCanvas,
 			resolution: { width: 640, height: 480 },
 		});
