@@ -16,13 +16,17 @@ import * as AiScript from '@syuilo/aiscript';
 
 const aisParser = new AiScript.Parser();
 
-// TODO: 毎回parseとInterpreter生成しているのが無駄感あるからどうにかする
-// ASTキャッシュはできるにしても、Interpreter使いまわすのはAiScript側の改修が必要な可能性がある
-// (Interpreter再生成せずに定義した変数の内容を更新できる必要がある)
+const aiscript = new AiScript.Interpreter({});
+
+// TODO: 毎回parseしているのが無駄感あるからどうにかする
 function evaluateExpression(expression: string, scope: Record<string, any>): any {
-	const aiscript = new AiScript.Interpreter(Object.fromEntries(
-		Object.entries(scope).map(([key, value]) => [key, AiScript.utils.jsToVal(value)])
-	));
+	for (const key in scope) {
+		if (aiscript.scope.exists(key)) {
+			aiscript.scope.assign(key, AiScript.utils.jsToVal(scope[key]));
+		} else {
+			aiscript.scope.add(key, { isMutable: true, value: AiScript.utils.jsToVal(scope[key]) });
+		}
+	}
 	const aisVal = aiscript.execSync(aisParser.parse(expression));
 	if (aisVal === undefined) return null;
 	return AiScript.utils.valToJs(aisVal);
