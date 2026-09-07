@@ -10,6 +10,8 @@
 	--THEME-dialog: #1c1c1c;
 	--THEME-buttonBg: #222;
 	--THEME-buttonHoverBg: #333;
+	--THEME-nodeBg: #222;
+	--THEME-panel: #222;
 
 	--control-height: 25px;
 }
@@ -263,7 +265,9 @@ hr {
 }
 
 ._popup {
-	background: var(--THEME-popup);
+	background: color(from var(--THEME-panel) srgb r g b / 0.5);
+	-webkit-backdrop-filter: blur(15px);
+	backdrop-filter: blur(15px);
 	contain: content;
 }
 

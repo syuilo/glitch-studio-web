@@ -164,10 +164,8 @@ onMounted(() => {
 <style scoped lang="scss">
 .node-component {
 	position: relative;
-	background: rgba(255, 255, 255, 0.1);
-	border: solid 1px rgba(255, 255, 255, 0.1);
+	background: var(--THEME-nodeBg);
 	border-radius: 4px;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
 	overflow: clip;
 	contain: content;
 
@@ -184,8 +182,6 @@ onMounted(() => {
 		text-overflow: ellipsis;
 		font-size: 14px;
 		font-weight: bold;
-		background: linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(255, 255, 255, 0.025));
-		border-bottom: solid 1px rgba(0, 0, 0, 0.5);
 		cursor: move;
 		line-height: 32px;
 		text-shadow: 0 -1px #000;
@@ -258,10 +254,6 @@ onMounted(() => {
 
 			&:not(:first-child) {
 				border-top: solid 1px rgba(255, 255, 255, 0.05);
-			}
-
-			&:not(:last-child) {
-				border-bottom: solid 1px rgba(0, 0, 0, 0.5);
 			}
 
 			> label {
