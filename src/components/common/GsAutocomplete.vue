@@ -1,15 +1,11 @@
 <template>
 <div ref="rootEl" :class="$style.root" class="_popup _shadow" :style="{ zIndex }" @contextmenu.prevent="() => {}">
-	<ol v-else-if="type === 'mfmTag' && mfmTags.length > 0" ref="suggests" :class="$style.list">
-		<li v-for="tag in mfmTags" tabindex="-1" :class="$style.item" @click="complete(type, tag)" @keydown="onKeydown">
-			<span>{{ tag }}</span>
+	<ol v-else-if="type === 'variable' && vars.length > 0" ref="suggests" :class="$style.list">
+		<li v-for="variable in vars" tabindex="-1" :class="$style.item" @click="complete(type, variable)" @keydown="onKeydown">
+			<span>{{ variable }}</span>
 		</li>
 	</ol>
-	<ol v-else-if="type === 'mfmParam' && mfmParams.length > 0" ref="suggests" :class="$style.list">
-		<li v-for="param in mfmParams" tabindex="-1" :class="$style.item" @click="completeMfmParam(param)" @keydown="onKeydown">
-			<span>{{ param }}</span>
-		</li>
-	</ol>
+
 </div>
 </template>
 
@@ -20,16 +16,9 @@ import * as ui from '@/ui.js';
 import { i18n } from '@/i18n.js';
 
 export type CompleteInfo = {
-	mfmTag: {
+	variable: {
 		payload: string;
 		query: string;
-	},
-	mfmParam: {
-		payload: string;
-		query: {
-			tag: string;
-			params: string[];
-		};
 	},
 };
 </script>
@@ -47,7 +36,7 @@ type PropsType<T extends keyof CompleteInfo> = {
 //const props = defineProps<PropsType<keyof CompleteInfo>>();
 // ↑と同じだけど↓にしないとdiscriminated unionにならない。
 // https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes-func.html#discriminated-unions
-const props = defineProps<PropsType<'mfmTag'> | PropsType<'mfmParam'>>();
+const props = defineProps<PropsType<'variable'>>();
 
 const emit = defineEmits<{
 	<T extends keyof CompleteInfo>(event: 'done', value: { type: T; value: CompleteInfo[T]['payload'] }): void;
@@ -58,15 +47,11 @@ const suggests = ref<Element>();
 const rootEl = useTemplateRef('rootEl');
 
 const items = ref<Element[] | HTMLCollection>([]);
-const mfmTags = ref<string[]>([]);
-const mfmParams = ref<string[]>([]);
+const vars = ref<string[]>([]);
 const select = ref(-1);
 const zIndex = ui.claimZIndex('high');
 
-function completeMfmParam(param: string) {
-	if (props.type !== 'mfmParam') throw new Error('Invalid type');
-	complete('mfmParam', props.q.params.toSpliced(-1, 1, param).join(','));
-}
+const VARS = ['TIME'];
 
 function complete<T extends keyof CompleteInfo>(type: T, value: CompleteInfo[T]['payload']) {
 	emit('done', { type, value });
@@ -96,20 +81,13 @@ function exec() {
 			el.removeAttribute('data-selected');
 		}
 	}
-	if (props.type === 'mfmTag') {
+	if (props.type === 'variable') {
 		if (!props.q || props.q === '') {
-			mfmTags.value = MFM_TAGS;
+			vars.value = VARS;
 			return;
 		}
 
-		mfmTags.value = MFM_TAGS.filter(tag => tag.startsWith(props.q ?? ''));
-	} else if (props.type === 'mfmParam') {
-		if (props.q.params.at(-1) === '') {
-			mfmParams.value = MFM_PARAMS[props.q.tag] ?? [];
-			return;
-		}
-
-		mfmParams.value = MFM_PARAMS[props.q.tag].filter(param => param.startsWith(props.q.params.at(-1) ?? ''));
+		vars.value = VARS.filter(tag => tag.startsWith(props.q ?? ''));
 	}
 }
 
