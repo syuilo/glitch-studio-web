@@ -38,8 +38,14 @@ export class Engine {
 			this.renderer = null;
 		}
 
-		options.canvas.width = options.resolution.width;
-		options.canvas.height = options.resolution.height;
+		// Scaled preview dimensions can be fractional. Use the same integer pixel
+		// dimensions for the canvas, textures, shader uniforms, and storage buffers.
+		const resolution = {
+			width: Math.max(1, Math.floor(options.resolution.width)),
+			height: Math.max(1, Math.floor(options.resolution.height)),
+		};
+		options.canvas.width = resolution.width;
+		options.canvas.height = resolution.height;
 
 		const adapter = await navigator.gpu?.requestAdapter({
 			powerPreference: 'high-performance',
@@ -65,7 +71,7 @@ export class Engine {
 		this.renderer = new Renderer({
 			gpuDevice: device,
 			gpuContext: context,
-			resolution: options.resolution,
+			resolution,
 			enableFloat32Filtering: this.enableFloat32Filtering,
 			enableStats: this.enableStats,
 			histogramCanvas: this.histogramCanvas,
