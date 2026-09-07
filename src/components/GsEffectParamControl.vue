@@ -87,7 +87,7 @@
 		/>
 	</div>
 	<div v-else-if="type === 'signal'">
-		<XSignal :signal="value" @input="changeValue($event)"/>
+		<GsSignal :signal="value" @input="changeValue($event)"/>
 	</div>
 	<div v-else-if="type === 'xy'">
 		<XXy :modelValue="value" @update:modelValue="v => changeValue(v)" :step="options.step ?? 0.1" :min="options.min" :max="options.max"/>
@@ -172,7 +172,7 @@
 
 <script lang="ts" setup>
 import { onMounted, shallowRef } from 'vue';
-import XSignal from './common/signal.vue';
+import GsSignal from './common/GsSignal.vue';
 import XXy from './common/xy.vue';
 import XXySlider from './common/xy-slider.vue';
 import XColor from './common/GsColor.vue';

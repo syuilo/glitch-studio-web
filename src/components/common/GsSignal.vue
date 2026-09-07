@@ -1,8 +1,8 @@
 <template>
-<div class="signal-component">
-	<GsButton @click="change('r')" :primary="r">R</GsButton>
-	<GsButton @click="change('g')" :primary="g">G</GsButton>
-	<GsButton @click="change('b')" :primary="b">B</GsButton>
+<div :class="$style.root">
+	<GsButton inline @click="change('r')" :primary="r">R</GsButton>
+	<GsButton inline @click="change('g')" :primary="g">G</GsButton>
+	<GsButton inline @click="change('b')" :primary="b">B</GsButton>
 </div>
 </template>
 
@@ -31,12 +31,9 @@ function change(color: string) {
 }
 </script>
 
-<style scoped lang="scss">
-.signal-component {
+<style module lang="scss">
+.root {
 	display: flex;
-	
-	> *:nth-child(2) {
-		margin: 0 8px;
-	}
+	gap: 8px;
 }
 </style>
