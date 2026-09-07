@@ -13,7 +13,7 @@
 		<div v-for="param in Object.keys(paramDefs).filter(k => subStore.showAllParams ? true : !k.startsWith('_'))" :key="param" v-show="paramDefs[param].visibility == null || paramDefs[param].visibility(node.params)">
 			<label :class="{ expression: isExpression(param) }" @click="changeValueType(param, $event)">{{ paramDefs[param].label }}</label>
 			<div v-if="isExpression(param)">
-				<input type="text" class="expression" :value="getParam(param)" @change="updateParamAsExpression(param, $event.target.value)"/>
+				<GsInput type="text" class="expression" :model-value="getParam(param)" @change:model-value="updateParamAsExpression(param, $event.target.value)"/>
 			</div>
 			<div v-else-if="isAutomation(param)">
 				<GsButton class="automation" @click="selectAutomation(param, $event)">{{ node.params[param].value ? store.automations.find(a => a.id === node.params[param].value).name : '(none)' }}</GsButton>
@@ -38,6 +38,7 @@ import { useStore } from '@/store';
 import { i18n } from '@/i18n';
 import { GsFxNode, GsGroupNode } from '@/engine/renderer-legacy.ts';
 import GsButton from './common/GsButton.vue';
+import GsInput from './common/GsInput.vue';
 import { wireMap } from '@/app';
 import { GsAutomation } from '@/engine/types';
 import * as ui from '@/ui';

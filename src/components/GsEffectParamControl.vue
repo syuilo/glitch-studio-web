@@ -15,7 +15,7 @@
 		<XSlider2 :modelValue="value" :step="options.step ?? 1" :min="options.min" :max="options.max" :title="`${options.min} ~ ${options.max}`" @update:modelValue="v => changeValue(v)"/>
 	</div>
 	<div v-else-if="type === 'number'">
-		<input type="number" :value="value" :min="options.min" :max="options.max" @change="changeValue(parseFloat($event.target.value, 10))"/>
+		<GsInput type="number" :value="value" :min="options.min" :max="options.max" @change="changeValue(parseFloat($event.target.value, 10))"/>
 	</div>
 	<div v-else-if="type === 'bool'">
 		<GsButton @click="changeValue(!value)" :primary="value">{{ value ? 'On' : 'Off' }}</GsButton>
@@ -176,6 +176,7 @@ import GsSignal from './common/GsSignal.vue';
 import GsXy from './common/GsXy.vue';
 import XXySlider from './common/xy-slider.vue';
 import XColor from './common/GsColor.vue';
+import GsInput from './common/GsInput.vue';
 import GsRange from './common/GsRange.vue';
 import XSlider2 from './common/slider2.vue';
 import XNodesInput from './nodes-input.vue';

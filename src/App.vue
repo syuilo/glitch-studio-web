@@ -36,17 +36,12 @@
 import { Ref, nextTick, onMounted, ref, shallowRef, useTemplateRef, watch } from 'vue';
 import GsAboutDialog from '@/components/GsAboutDialog.vue';
 import GsDashboardDialog from '@/components/GsDashboardDialog.vue';
-import XSavePreset from '@/components/save-preset.vue';
-import XExportPreset from '@/components/export-preset.vue';
 import GsWorkspaceDivider from '@/components/GsWorkspaceDivider.vue';
-import XHistogram from '@/components/histogram.vue';
 import { useStore } from '@/store';
 import { i18n } from '@/i18n';
-import { genId } from './utility/misc';
 import { frame, frameMax, appReady, rendererEnv, saveProject, engine, openProject, resolutionFactor, fpsLimit } from './app';
 import * as api from '@/api.js';
 import GsButton from '@/components/common/GsButton.vue';
-import { loadProjectFile } from '@/api.js';
 import { version } from './version';
 import * as ui from '@/ui.js';
 
