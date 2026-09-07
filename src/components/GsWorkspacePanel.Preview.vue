@@ -36,6 +36,10 @@ const canvas = useTemplateRef('canvas');
 const ZOOM_STEP = 1.25;
 const zoom = ref(1 / ZOOM_STEP / ZOOM_STEP / ZOOM_STEP);
 
+watch(resolutionFactor, (newFactor, oldFactor) => {
+	zoom.value *= (oldFactor ?? 1) / newFactor;
+}, { immediate: true });
+
 watch(() => [canvas.value, store.renderWidth, store.renderHeight, resolutionFactor.value], () => {
 	if (canvas.value != null) {
 		engine.setCanvas({
