@@ -15,7 +15,7 @@
 		<XSlider2 :modelValue="value" :step="options.step ?? 1" :min="options.min" :max="options.max" :title="`${options.min} ~ ${options.max}`" @update:modelValue="v => changeValue(v)"/>
 	</div>
 	<div v-else-if="type === 'number'">
-		<GsInput small type="number" :value="value" :min="options.min" :max="options.max" @change="changeValue(parseFloat($event.target.value, 10))"/>
+		<GsInput small type="number" :modelValue="value" :min="options.min" :max="options.max" @update:modelValue="changeValue(parseFloat($event, 10))"/>
 	</div>
 	<div v-else-if="type === 'bool'">
 		<GsButton small @click="changeValue(!value)" :primary="value">{{ value ? 'On' : 'Off' }}</GsButton>
