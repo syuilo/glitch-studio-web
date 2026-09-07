@@ -7,6 +7,7 @@ import { getHTMLElementOrNull } from '@/utility/get-dom-node-or-null.js';
 import { focusParent } from '@/utility/focus.js';
 import GsPopupMenu from '@/components/common/GsPopupMenu.vue';
 import GsContextMenu from '@/components/common/GsContextMenu.vue';
+import GsDialog from '@/components/common/GsDialog.vue';
 import type { OverloadToUnion } from '@/types/overload-to-union.js';
 
 export const DI = {

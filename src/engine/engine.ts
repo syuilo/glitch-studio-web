@@ -4,6 +4,7 @@ import { ref } from "vue";
 import { GsAutomation } from "./types.ts";
 import { deepClone } from "@/utility/deep-clone.ts";
 import { playVideoAfterFirstFrameIsReady } from "@/utility/video.ts";
+import * as ui from '@/ui.ts';
 
 export class Engine {
 	private renderer: Renderer | null = null;
@@ -44,6 +45,15 @@ export class Engine {
 			width: Math.max(1, Math.floor(options.resolution.width)),
 			height: Math.max(1, Math.floor(options.resolution.height)),
 		};
+
+		if (resolution.width > 8192 || resolution.height > 8192) {
+			ui.alert({
+				type: 'error',
+				text: 'maximum supported resolution is 8192x8192',
+			});
+			throw new Error('maximum supported resolution is 8192x8192');
+		}
+
 		options.canvas.width = resolution.width;
 		options.canvas.height = resolution.height;
 

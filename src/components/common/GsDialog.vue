@@ -22,8 +22,8 @@
 		</GsInput>
 		<GsSelect v-if="select" v-model="selectedValue" :items="selectDef" autofocus></GsSelect>
 		<div v-if="(showOkButton || showCancelButton) && !actions" :class="$style.buttons">
-			<GsButton v-if="showOkButton" data-testid="modal-dialog-ok" inline primary rounded :autofocus="!input && !select" @click="ok">{{ okText ?? ((showCancelButton || input || select) ? i18n.ts.ok : i18n.ts.gotIt) }}</GsButton>
-			<GsButton v-if="showCancelButton || input || select" data-testid="modal-dialog-cancel" inline rounded @click="cancel">{{ cancelText ?? i18n.ts.cancel }}</GsButton>
+			<GsButton v-if="showOkButton" data-testid="modal-dialog-ok" inline primary rounded :autofocus="!input && !select" @click="ok">{{ okText ?? ((showCancelButton || input || select) ? 'OK' : 'Got It') }}</GsButton>
+			<GsButton v-if="showCancelButton || input || select" data-testid="modal-dialog-cancel" inline rounded @click="cancel">{{ cancelText ?? 'Cancel' }}</GsButton>
 		</div>
 		<div v-if="actions" :class="$style.buttons">
 			<GsButton v-for="action in actions" :key="action.text" inline rounded :primary="action.primary" :danger="action.danger" @click="() => { action.callback(); modal?.close(); }">{{ action.text }}</GsButton>

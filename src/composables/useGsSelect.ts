@@ -6,7 +6,7 @@ import type { OptionValue } from '@/types/option-value.js';
 type UnwrapReadonlyItems<T> = T extends readonly (infer U)[] ? U[] : T;
 
 /** 指定したオプション定義をもとに型を狭めたrefを生成するコンポーサブル */
-export function useMkSelect<
+export function useGsSelect<
 	const TItemsInput extends MaybeRefOrGetter<GsSelectItem[]>,
 	const TItems extends TItemsInput extends MaybeRefOrGetter<infer U> ? U : never,
 	TInitialValue extends OptionValue | void = void,
