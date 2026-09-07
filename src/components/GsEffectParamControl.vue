@@ -95,7 +95,7 @@
 	<div v-else-if="type === 'wh'">
 		<XXySlider :modelValue="value" @update:modelValue="v => changeValue(v)" :step="options.step ?? 0.1" :min="options.min" :max="options.max"/>
 	</div>
-	<div v-else-if="type === 'vector'">
+	<div v-else-if="type === 'vector'" style="max-width: 150px;">
 		<GsXy :modelValue="value" @update:modelValue="v => changeValue(v)" :step="options.step ?? 0.1" :min="options.min" :max="options.max"/>
 	</div>
 	<div v-else-if="type === 'color'">
