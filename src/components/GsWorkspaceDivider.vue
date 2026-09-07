@@ -21,12 +21,14 @@ import {} from 'vue';
 import { WorkspaceDivider } from '@/types/workspace.ts';
 import XPreview from '@/components/GsWorkspacePanel.Preview.vue';
 import XNodesEditor from '@/components/GsWorkspacePanel.NodesEditor.vue';
+import XHistogram from '@/components/GsWorkspacePanel.Histogram.vue';
 import XWaveform from '@/components/GsWorkspacePanel.Waveform.vue';
 import XStats from '@/components/GsWorkspacePanel.Stats.vue';
 
 const panelComponents = {
 	preview: XPreview,
 	nodesEditor: XNodesEditor,
+	histogram: XHistogram,
 	waveform: XWaveform,
 	stats: XStats,
 };
