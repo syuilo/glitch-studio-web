@@ -8,6 +8,7 @@ import multiply from './fx/multiply/main.ts';
 import image from './fx/image/main.ts';
 import video from './fx/video/main.ts';
 import quadtreeFilter from './fx/quadtreeFilter/main.ts';
+import chromaticAberration from './fx/chromaticAberration/main.ts';
 
 const _fxs = {
 	test,
@@ -18,6 +19,7 @@ const _fxs = {
 	image,
 	video,
 	quadtreeFilter,
+	chromaticAberration,
 } as Record<string, Effect<any>>;
 
 const fxs = {} as typeof _fxs;
