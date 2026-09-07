@@ -274,10 +274,10 @@ function onMousedown(ev: MouseEvent | TouchEvent) {
 		}
 	}
 
-	$thumbHeight: 32px;
-	$thumbWidth: 32px;
-	$thumbInnerHeight: 19px;
-	$thumbInnerWidth: 19px;
+	$thumbHeight: 30px;
+	$thumbWidth: 30px;
+	$thumbInnerHeight: 17px;
+	$thumbInnerWidth: 17px;
 
 	> .body {
 		display: flex;
@@ -285,9 +285,6 @@ function onMousedown(ev: MouseEvent | TouchEvent) {
 		justify-content: center;
 		gap: 8px;
 		padding: 0px 4px;
-		background: var(--THEME-panel);
-		border: solid 1px var(--THEME-panel);
-		border-radius: 6px;
 
 		&.disabled {
 			pointer-events: none;
@@ -308,7 +305,7 @@ function onMousedown(ev: MouseEvent | TouchEvent) {
 				margin: auto;
 				width: calc(100% - #{$thumbWidth});
 				height: 3px;
-				background: rgba(0, 0, 0, 0.1);
+				background: rgba(0, 0, 0, 0.3);
 				border-radius: 999px;
 				overflow: clip;
 
@@ -316,7 +313,7 @@ function onMousedown(ev: MouseEvent | TouchEvent) {
 					position: absolute;
 					top: 0;
 					height: 100%;
-					background: color(from var(--THEME-buttonGradateA) srgb r g b / 0.5);
+					background: color(from var(--THEME-accent) srgb r g b / 0.5);
 					overflow: clip;
 
 					> .shine {
@@ -330,14 +327,14 @@ function onMousedown(ev: MouseEvent | TouchEvent) {
 				> .highlight.right {
 					> .shine.right {
 						right: calc(#{$thumbInnerWidth} / 2);
-						background: linear-gradient(-90deg, var(--THEME-buttonGradateB), color(from var(--THEME-buttonGradateA) srgb r g b / 0));
+						background: linear-gradient(-90deg, var(--THEME-accent2), color(from var(--THEME-accent) srgb r g b / 0));
 					}
 				}
 
 				> .highlight.left {
 					> .shine.left {
 						left: calc(#{$thumbInnerWidth} / 2);
-						background: linear-gradient(90deg, var(--THEME-buttonGradateB), color(from var(--THEME-buttonGradateA) srgb r g b / 0));
+						background: linear-gradient(90deg, var(--THEME-accent2), color(from var(--THEME-accent) srgb r g b / 0));
 					}
 				}
 			}
