@@ -9,6 +9,7 @@ fn convertTexCoords(uv: vec2f) -> vec2f {
 struct Uniforms {
 	amount: u32,
 	channelShift: f32,
+	angle: f32,
 	shifts: array<vec4f, 128>,
 };
 
@@ -23,17 +24,22 @@ struct FragmentIn {
 @fragment
 fn fs(fragData: FragmentIn) -> @location(0) vec4f {
 	let uv = convertTexCoords(fragData.uv);
+	let direction = vec2f(cos(uniforms.angle), sin(uniforms.angle));
+	let normal = vec2f(-direction.y, direction.x);
+	let projectionSize = abs(normal.x) + abs(normal.y);
+	let bandPosition = dot(uv - 0.5, normal) / projectionSize + 0.5;
 	var shift = 0.0;
 
 	for (var i = 0u; i < uniforms.amount; i++) {
 		let tearing = uniforms.shifts[i];
-		if (uv.y > tearing.x - tearing.z && uv.y < tearing.x + tearing.z) {
+		if (bandPosition > tearing.x - tearing.z && bandPosition < tearing.x + tearing.z) {
 			shift += tearing.y;
 		}
 	}
 
-	let center = textureSample(sourceTexture, sourceSampler, uv + vec2f(shift, 0.0));
-	let red = textureSample(sourceTexture, sourceSampler, uv + vec2f(shift * (1.0 + uniforms.channelShift), 0.0)).r;
-	let blue = textureSample(sourceTexture, sourceSampler, uv + vec2f(shift * (1.0 + uniforms.channelShift / 2.0), 0.0)).b;
+	let offset = direction * shift;
+	let center = textureSample(sourceTexture, sourceSampler, uv + offset);
+	let red = textureSample(sourceTexture, sourceSampler, uv + offset * (1.0 + uniforms.channelShift)).r;
+	let blue = textureSample(sourceTexture, sourceSampler, uv + offset * (1.0 + uniforms.channelShift / 2.0)).b;
 	return premultiplyAlpha(vec4f(red, center.g, blue, center.a));
 }
