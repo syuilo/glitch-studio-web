@@ -147,8 +147,8 @@ function onViewWheel(ev: WheelEvent) {
 	height: 100%;
 	display: grid;
 	place-content: center;
-	$color1: #3a3a3a;
-	$color2: #303030;
+	$color1: #1a1a1a;
+	$color2: #101010;
 	background-color: $color1;
 	background-image: linear-gradient(45deg, $color2 25%, transparent 25%, transparent 75%, $color2 75%, $color2), linear-gradient(-45deg, $color2 25%, transparent 25%, transparent 75%, $color2 75%, $color2);
 	background-size: 32px 32px;
