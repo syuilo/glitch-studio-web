@@ -30,10 +30,20 @@ type VectorOptionSchema = {
 	label: string;
 };
 
+type SignalOptionSchema = {
+	type: 'signal';
+	label: string;
+};
+
+type BlendModeOptionSchema = {
+	type: 'blendMode';
+	label: string;
+};
+
 type EnumOptionSchema = {
 	type: 'enum';
 	label: string;
-	enum: {
+	options: {
 		value: string | number | null;
 		label: string;
 	}[];
@@ -62,7 +72,7 @@ type NodeOptionSchema = {
 	label: string;
 };
 
-type EffectOptionsSchema = Record<string, NumberOptionSchema | BooleanOptionSchema | ColorOptionSchema | VectorOptionSchema | EnumOptionSchema | RangeOptionSchema | ImageOptionSchema | VideoOptionSchema | NodeOptionSchema>;
+type EffectOptionsSchema = Record<string, NumberOptionSchema | BooleanOptionSchema | ColorOptionSchema | VectorOptionSchema | SignalOptionSchema | BlendModeOptionSchema | EnumOptionSchema | RangeOptionSchema | ImageOptionSchema | VideoOptionSchema | NodeOptionSchema>;
 
 type GetEffectOptionsSchemaValues<T extends EffectOptionsSchema> = {
 	[K in keyof T]:
@@ -70,7 +80,9 @@ type GetEffectOptionsSchemaValues<T extends EffectOptionsSchema> = {
 	T[K] extends BooleanOptionSchema ? boolean :
 	T[K] extends ColorOptionSchema ? Readonly<[number, number, number]> :
 	T[K] extends VectorOptionSchema ? Readonly<[number, number]> :
-	T[K] extends EnumOptionSchema ? T[K]['enum'][number]['value'] :
+	T[K] extends SignalOptionSchema ? Readonly<[boolean, boolean, boolean]> :
+	T[K] extends BlendModeOptionSchema ? string :
+	T[K] extends EnumOptionSchema ? T[K]['options'][number]['value'] :
 	T[K] extends RangeOptionSchema ? number :
 	T[K] extends ImageOptionSchema ? GPUTexture | null :
 	T[K] extends VideoOptionSchema ? GPUTexture | null :

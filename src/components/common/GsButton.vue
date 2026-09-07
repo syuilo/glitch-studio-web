@@ -76,7 +76,7 @@ onMounted(() => {
 	position: relative;
 	z-index: 1; // 他コンポーネントのbox-shadowに隠されないようにするため
 	display: block;
-	min-width: 100px;
+	min-width: 80px;
 	width: max-content;
 	padding: 7px 14px;
 	text-align: center;
@@ -109,7 +109,7 @@ onMounted(() => {
 
 	&.small {
 		font-size: 90%;
-		padding: 6px 12px;
+		padding: 5px 10px;
 	}
 
 	&.large {
@@ -180,7 +180,6 @@ onMounted(() => {
 	&.inline {
 		display: inline-block;
 		width: auto;
-		min-width: 100px;
 	}
 }
 

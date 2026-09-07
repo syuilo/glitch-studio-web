@@ -1,8 +1,8 @@
 <template>
 <div :class="$style.root">
-	<GsButton inline @click="change('r')" :primary="r">R</GsButton>
-	<GsButton inline @click="change('g')" :primary="g">G</GsButton>
-	<GsButton inline @click="change('b')" :primary="b">B</GsButton>
+	<GsButton inline small @click="change('r')" :primary="r">R <span style="color: #f00;">●</span></GsButton>
+	<GsButton inline small @click="change('g')" :primary="g">G <span style="color: #0f0;">●</span></GsButton>
+	<GsButton inline small @click="change('b')" :primary="b">B <span style="color: #00f;">●</span></GsButton>
 </div>
 </template>
 
