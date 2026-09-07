@@ -4,6 +4,7 @@ import test from './fx/test/main.ts';
 import fill from './fx/fill/main.ts';
 import shift from './fx/shift/main.ts';
 import snoise from './fx/snoise/main.ts';
+import gradient from './fx/gradient/main.ts';
 import multiply from './fx/multiply/main.ts';
 import image from './fx/image/main.ts';
 import video from './fx/video/main.ts';
@@ -20,6 +21,7 @@ const _fxs = {
 	fill,
 	shift,
 	snoise,
+	gradient,
 	multiply,
 	image,
 	video,
@@ -38,3 +40,4 @@ Object.keys(_fxs).sort().forEach(key => {
 });
 
 export { fxs };
+
