@@ -22,14 +22,26 @@ export const useStore = defineStore('main', () => {
 		id: 'root',
 		direction: 'horizontal',
 		children: [{
-			id: 'a', type: 'preview',
+			id: '938e3eedc00d4287885b6894ee3ea8c3',
+			ratio: 0.5,
+			type: 'preview',
 		}, {
-			id: 'b', type: null,
+			id: '441518aeb37940b2af7fb0027fd530a9',
+			ratio: 0.25,
+			type: 'nodesEditor',
+		}, {
+			id: '8aec4dd7bf82460eba420680fda4f652',
+			ratio: 0.25,
+			type: null,
 			direction: 'vertical',
 			children: [{
-				id: 'c', type: 'waveform',
+				id: '0f34c5f4c9cb449683c7f1281851b759',
+				ratio: 0.5,
+				type: 'waveform',
 			}, {
-				id: 'd', type: 'stats',
+				id: 'b3d6059aaa554ae79441286cd2beb685',
+				ratio: 0.5,
+				type: 'stats',
 			}],
 		}]
 	});

@@ -10,8 +10,8 @@
 
 <script lang="ts" setup>
 import { onMounted, ref, shallowRef, watch } from 'vue';
-import GsRange from './common/GsRange.vue';
-import GsButton from './common/GsButton.vue';
+import GsRange from './GsRange.vue';
+import GsButton from './GsButton.vue';
 
 const props = withDefaults(defineProps<{
 	modelValue: [number, number];

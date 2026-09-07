@@ -1,7 +1,5 @@
 <template>
-<div>
-	<canvas :class="$style.canvas" :width="width" :height="height" ref="canvas"/>
-</div>
+<canvas :class="$style.canvas" :width="width" :height="height" ref="canvas"/>
 </template>
 
 <script lang="ts" setup>

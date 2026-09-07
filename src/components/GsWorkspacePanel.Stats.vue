@@ -5,7 +5,7 @@
 	</template>
 
 	<div :class="$style.root">
-		<XStats />
+		<GsRenderingStats />
 	</div>
 </GsWorkspacePanel>
 </template>
@@ -15,7 +15,7 @@ import { watch, useTemplateRef, ref, onMounted } from 'vue';
 import GsWorkspacePanel from './GsWorkspacePanel.vue';
 import { WorkspacePanel } from '@/types/workspace.ts';
 import { i18n } from '@/i18n';
-import XStats from '@/components/stats.vue';
+import GsRenderingStats from '@/components/GsRenderingStats.vue';
 
 const props = defineProps<{
 	panel: WorkspacePanel;

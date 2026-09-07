@@ -41,6 +41,7 @@ export type GsDialogReturnType<T = Result> = { canceled: true, result: undefined
 import { ref, useTemplateRef, computed } from 'vue';
 import GsModal from '@/components/common/GsModal.vue';
 import GsButton from '@/components/common/GsButton.vue';
+import GsSystemIcon from '@/components/common/GsSystemIcon.vue';
 import GsInput from '@/components/common/GsInput.vue';
 import GsSelect from '@/components/common/GsSelect.vue';
 import type { GsSelectItem } from '@/components/common/GsSelect.vue';

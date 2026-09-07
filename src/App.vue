@@ -34,8 +34,8 @@
 
 <script lang="ts" setup>
 import { Ref, nextTick, onMounted, ref, shallowRef, useTemplateRef, watch } from 'vue';
-import XAbout from '@/components/about.vue';
-import XDashboard from '@/components/dashboard.vue';
+import GsAboutDialog from '@/components/GsAboutDialog.vue';
+import GsDashboardDialog from '@/components/GsDashboardDialog.vue';
 import XSavePreset from '@/components/save-preset.vue';
 import XExportPreset from '@/components/export-preset.vue';
 import GsWorkspaceDivider from '@/components/GsWorkspaceDivider.vue';
@@ -43,7 +43,7 @@ import XHistogram from '@/components/histogram.vue';
 import { useStore } from '@/store';
 import { i18n } from '@/i18n';
 import { genId } from './utility/misc';
-import { frame, frameMax, appReady, rendererEnv, saveProject, engine } from './app';
+import { frame, frameMax, appReady, rendererEnv, saveProject, engine, openProject } from './app';
 import * as api from '@/api.js';
 import GsButton from '@/components/common/GsButton.vue';
 import { loadProjectFile } from '@/api.js';
@@ -101,13 +101,13 @@ async function importPreset() {
 }
 
 function showAbout() {
-	const { dispose } = ui.popup(XAbout, {}, {
+	const { dispose } = ui.popup(GsAboutDialog, {}, {
 		closed: () => dispose(),
 	});
 }
 
 onMounted(() => {
-	const { dispose } = ui.popup(XDashboard, {}, {
+	const { dispose } = ui.popup(GsDashboardDialog, {}, {
 		closed: () => dispose(),
 	});
 });
