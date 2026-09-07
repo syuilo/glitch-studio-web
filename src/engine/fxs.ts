@@ -12,6 +12,7 @@ import quadtreeFilter from './fx/quadtreeFilter/main.ts';
 import chromaticAberration from './fx/chromaticAberration/main.ts';
 import channelShift from './fx/channelShift/main.ts';
 import blur from './fx/blur/main.ts'; 
+import bloom from './fx/bloom/main.ts';
 import rgbTo from './fx/rgbTo/main.ts'; 
 import tearings from './fx/tearings/main.ts';
 import pixelSort from './fx/pixelSort/main.ts';
@@ -29,6 +30,7 @@ const _fxs = {
 	chromaticAberration,
 	channelShift,
 	blur,
+	bloom,
 	rgbTo,
 	tearings,
 	pixelSort,
