@@ -53,6 +53,7 @@ export class Renderer {
 	private videoElements: Map<GsFxNode['id'], HTMLVideoElement> = new Map();
 	private effectInstances: Map<GsFxNode['id'], EffectInstance | null> = new Map();
 	private effectOuts: Map<GsFxNode['id'], GPUTexture> = new Map();
+	private effectCacheKeys: Map<GsFxNode['id'], string> = new Map();
 	private timingHelper: TimingHelper;
 	private finalRenderPipeline: GPURenderPipeline;
 	private finalRenderUniformValues: ReturnType<typeof makeStructuredView>;
@@ -243,53 +244,57 @@ export class Renderer {
 		}
 	}
 
-	private evalCacheKey(node: GsNode, visited: GsNode['id'][] = []): string {
+	private evalCacheKey(node: GsNode, visited: GsNode['id'][] = []): string | null {
 		if (visited.includes(node.id)) {
 			throw new Error('circular dependency detected');
 		}
 
-		const key = {
-			_isEnabled: node.isEnabled,
-		};
+		let key = `isEnabled=${node.isEnabled};`;
 
 		if (node.type === 'group') {
-			key.nodes = [];
 			for (const n of node.nodes) {
-				key.nodes.push(this.evalCacheKey(n, [...visited, node.id]));
+				const childKey = this.evalCacheKey(n, [...visited, node.id]);
+				if (childKey == null) return null;
+				key += `childKey=${childKey};`;
 			}
 
 			// TODO: macro
 		} else {
 			// 動画ノードはキャッシュさせない
 			if (fxs[node.fx].name === 'webcamera') {
-				return Math.random().toString();
+				return null;
+			} else if (fxs[node.fx].name === 'video') {
+				return null;
 			}
 
 			const paramDefs = fxs[node.fx].paramDefs;
 
 			for (const [k, v] of Object.entries(this.evaledNodeParams.get(node.id))) {
-				key[k] = v;
+				key += `${k}=${JSON.stringify(v)};`;
 
 				if (paramDefs[k].type === 'node') {
 					if (v) {
 						const targetNode = this.findNode(v);
 						if (targetNode) {
-							key[k] = this.evalCacheKey(targetNode, [...visited, node.id]);
+							const targetNodeCacheKey = this.evalCacheKey(targetNode, [...visited, node.id]);
+							if (targetNodeCacheKey == null) return null;
+							key += `${k}=${targetNodeCacheKey};`;
 						}
 					}
 				} else if (paramDefs[k].type === 'nodes') {
-					key[k] = [];
 					for (const n of v) {
 						const targetNode = this.findNode(n);
 						if (targetNode) {
-							key[k].push(this.evalCacheKey(targetNode, [...visited, node.id]));
+							const targetNodeCacheKey = this.evalCacheKey(targetNode, [...visited, node.id]);
+							if (targetNodeCacheKey == null) return null;
+							key += `${k}=${targetNodeCacheKey};`;
 						}
 					}
 				}
 			}
 		}
 
-		return JSON.stringify(key);
+		return key;
 	}
 
 	private async renderNode(node: GsNode, commandEncoder: GPUCommandEncoder, visited: GsNode['id'][]): Promise<void> {
@@ -305,6 +310,11 @@ export class Renderer {
 		}
 
 		const key = this.evalCacheKey(node);
+		const prevKey = this.effectCacheKeys.get(node.id);
+		if (key != null && key === prevKey) {
+			return;
+		}
+		this.effectCacheKeys.set(node.id, key);
 
 		const effect = fxs[node.fx];
 

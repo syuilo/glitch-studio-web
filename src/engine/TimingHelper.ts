@@ -127,7 +127,8 @@ export default class TimingHelper {
 	}
 
 	async getResult() {
-		if (!this.#canTimestamp) {
+		// Cached frames may not record any measured passes.
+		if (!this.#canTimestamp || this.#state === 'free') {
 			return 0;
 		}
 		assert(
