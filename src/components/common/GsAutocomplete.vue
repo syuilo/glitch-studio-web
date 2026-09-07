@@ -1,11 +1,10 @@
 <template>
 <div ref="rootEl" :class="$style.root" class="_popup _shadow" :style="{ zIndex }" @contextmenu.prevent="() => {}">
-	<ol v-else-if="type === 'variable' && vars.length > 0" ref="suggests" :class="$style.list">
+	<ol v-if="type === 'variable' && vars.length > 0" ref="suggests" :class="$style.list">
 		<li v-for="variable in vars" tabindex="-1" :class="$style.item" @click="complete(type, variable)" @keydown="onKeydown">
 			<span>{{ variable }}</span>
 		</li>
 	</ol>
-
 </div>
 </template>
 
