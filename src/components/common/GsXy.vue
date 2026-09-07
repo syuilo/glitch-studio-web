@@ -139,9 +139,8 @@ function formatValue(number: number): string {
 	aspect-ratio: 1;
 	overflow: hidden;
 	box-sizing: border-box;
-	border: 1px solid var(--THEME-buttonHoverBg);
 	border-radius: 5px;
-	background-color: var(--THEME-workspacePanelBody);
+	background-color: var(--THEME-bg);
 	background-image:
 		linear-gradient(to right, color-mix(in srgb, var(--THEME-fg) 12%, transparent) 1px, transparent 1px),
 		linear-gradient(to bottom, color-mix(in srgb, var(--THEME-fg) 12%, transparent) 1px, transparent 1px);
