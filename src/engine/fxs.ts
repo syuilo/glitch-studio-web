@@ -12,6 +12,7 @@ import chromaticAberration from './fx/chromaticAberration/main.ts';
 import channelShift from './fx/channelShift/main.ts';
 import blur from './fx/blur/main.ts'; 
 import rgbTo from './fx/rgbTo/main.ts'; 
+import tearings from './fx/tearings/main.ts';
 
 const _fxs = {
 	test,
@@ -26,6 +27,7 @@ const _fxs = {
 	channelShift,
 	blur,
 	rgbTo,
+	tearings,
 } as Record<string, Effect<any>>;
 
 const fxs = {} as typeof _fxs;
