@@ -452,6 +452,11 @@ export class Renderer {
 					out.destroy();
 					this.effectOuts.delete(node.id);
 				}
+				const instance = this.effectInstances.get(node.id);
+				if (instance) {
+					instance.dispose();
+					this.effectInstances.delete(node.id);
+				}
 			}
 		}
 

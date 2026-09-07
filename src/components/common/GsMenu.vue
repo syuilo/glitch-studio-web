@@ -195,6 +195,7 @@ import { computed, defineAsyncComponent, inject, nextTick, onBeforeUnmount, onMo
 import type { MenuItem, InnerMenuItem, MenuPending, MenuAction, MenuSwitch, MenuRadio, MenuRadioOption, MenuParent, MenuDivider } from '@/types/menu.js';
 import type { Keymap } from '@/utility/hotkey.js';
 import GsSwitchButton from '@/components/common/GsSwitch.button.vue';
+import GsEllipsis from '@/components/common/GsEllipsis.vue';
 import * as ui from '@/ui.js';
 import { isTouchUsing } from '@/utility/touch.js';
 import { isFocusable } from '@/utility/focus.js';
