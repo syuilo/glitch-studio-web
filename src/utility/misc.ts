@@ -1,8 +1,8 @@
 import { FxParamDef } from '@/types';
 import { ulid } from 'ulid';
 import CubicBezierEasing from 'bezier-easing';
-import { GsAutomation } from './engine/types';
-import { rawBezierEasing } from './utility/bezier';
+import { GsAutomation } from '../engine/types';
+import { rawBezierEasing } from './bezier';
 
 export function genEmptyValue(paramDef: Omit<FxParamDef, 'default'>): any {
 	if (paramDef.type === 'number') {

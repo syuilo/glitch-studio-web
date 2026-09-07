@@ -9,7 +9,7 @@ import { NonNegativeRollingAverage } from "./NonNegativeRollingAverage.ts";
 import { GsAutomation } from "./types.ts";
 import { GpuHistogram } from "./GpuHistogram.ts";
 import { GpuWaveform } from "./GpuWaveform.ts";
-import { evalAutomationValue, genEmptyValue } from "@/utils.ts";
+import { evalAutomationValue, genEmptyValue } from "@/utility/misc.ts";
 import { evaluate } from "mathjs";
 import { deepClone } from "@/utility/deep-clone.ts";
 import { isVideoFrameAvailable } from "@/utility/video.ts";

@@ -38,7 +38,7 @@ import XControl from './control.vue';
 import { useStore } from '@/store';
 import { i18n } from '@/i18n';
 import { Macro } from '@/types';
-import { genId } from '@/utils';
+import { genId } from '@/utility/misc.ts';
 import { GsGroupNode } from '@/engine/renderer-legacy.ts';
 import GsSelect from './common/GsSelect.vue';
 

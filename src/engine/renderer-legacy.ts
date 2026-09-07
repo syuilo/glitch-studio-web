@@ -1,5 +1,5 @@
 import * as math from 'mathjs';
-import { evalAutomationValue, genEmptyValue } from '@/utils';
+import { evalAutomationValue, genEmptyValue } from '@/utility/misc';
 import { fxs } from './fxs';
 import { Asset, Image, FxParamValue, Macro } from '@/types';
 import { GsAutomation } from './types';

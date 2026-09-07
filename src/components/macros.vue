@@ -32,7 +32,7 @@ import XMacroEditor from './macro-editor.vue';
 import { useStore } from '@/store';
 import { i18n } from '@/i18n';
 import { Macro } from '@/types';
-import { genId } from '@/utils';
+import { genId } from '@/utility/misc.ts';
 
 const store = useStore();
 

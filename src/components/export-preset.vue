@@ -19,7 +19,7 @@ import { version } from '@/version';
 import XDialog from './dialog.vue';
 import { encode } from '@msgpack/msgpack';
 import { useStore } from '@/store';
-import { genId } from '@/utils';
+import { genId } from '@/utility/misc.ts';
 import * as api from '@/api.js';
 
 const store = useStore();

@@ -19,7 +19,7 @@ import { version } from '@/version';
 import XDialog from './dialog.vue';
 import { subStore } from '@/sub-store';
 import { useStore } from '@/store';
-import { genId } from '@/utils';
+import { genId } from '@/utility/misc.ts';
 
 const store = useStore();
 

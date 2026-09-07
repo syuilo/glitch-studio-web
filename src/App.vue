@@ -46,7 +46,7 @@ import GsWorkspaceDivider from '@/components/GsWorkspaceDivider.vue';
 import XHistogram from '@/components/histogram.vue';
 import { useStore } from '@/store';
 import { i18n } from '@/i18n';
-import { genId } from './utils';
+import { genId } from './utility/misc';
 import { frame, frameMax, appReady, rendererEnv, saveProject, engine } from './app';
 import * as api from '@/api.js';
 import GsButton from '@/components/common/GsButton.vue';

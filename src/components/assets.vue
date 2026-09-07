@@ -18,7 +18,7 @@ import {} from 'vue';
 import XAsset from './asset.vue';
 import { useStore } from '@/store.js';
 import { i18n } from '@/i18n.js';
-import { genId } from '@/utils.js';
+import { genId } from '@/utility/misc.js';
 import * as api from '@/api.js';
 import GsButton from './common/GsButton.vue';
 

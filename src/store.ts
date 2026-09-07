@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia'
 import { fxs } from '@/engine/fxs';
-import { genEmptyValue } from '@/utils';
+import { genEmptyValue } from '@/utility/misc.ts';
 import { Macro, Asset, FxParamDefs } from '@/types';
 import { GsFxNode, GsGroupNode, GsNode } from '@/engine/renderer-legacy';
 import { GsAutomation } from './engine/types';
