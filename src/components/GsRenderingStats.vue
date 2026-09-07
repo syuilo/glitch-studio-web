@@ -7,7 +7,7 @@
 			<b>{{ formatMs(current[item.key]) }}</b>
 		</div>
 	</div>
-	<div :class="$style.chart">
+	<div ref="chartEl" :class="$style.chart">
 		<svg :viewBox="`0 0 ${chartWidth} ${chartHeight}`" :class="$style.svg">
 			<g :class="$style.grid">
 				<template v-for="tick in yTicks" :key="tick.value">
@@ -37,7 +37,7 @@
 <script lang="ts" setup>
 import { engine } from '@/app.ts';
 import { i18n } from '@/i18n.ts';
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue';
 
 type SeriesKey = 'fast' | 'medium' | 'slow';
 type RenderTimes = Record<SeriesKey, number>;
@@ -46,14 +46,15 @@ type Sample = RenderTimes & { timestamp: number };
 const sampleInterval = 100;
 const historyDuration = 30_000;
 const sampleLimit = historyDuration / sampleInterval;
-const chartWidth = 640;
-const chartHeight = 320;
+const chartEl = useTemplateRef('chartEl');
+const chartWidth = ref(640);
+const chartHeight = ref(320);
 const plotLeft = 44;
 const plotRight = 12;
 const plotTop = 18;
 const plotBottom = 28;
-const plotWidth = chartWidth - plotLeft - plotRight;
-const plotHeight = chartHeight - plotTop - plotBottom;
+const plotWidth = computed(() => chartWidth.value - plotLeft - plotRight);
+const plotHeight = computed(() => chartHeight.value - plotTop - plotBottom);
 
 const series = [
 	{ key: 'fast', label: 'fast', color: '#c2fe0c', strokeWidth: 1 },
@@ -66,16 +67,17 @@ const current = ref<RenderTimes>({ fast: 0, medium: 0, slow: 0 });
 const maxMs = computed(() => Math.max(4, Math.ceil(Math.max(...samples.value.flatMap(sample => series.map(item => sample[item.key]))) / 4) * 4));
 const yTicks = computed(() => Array.from({ length: 5 }, (_, index) => {
 	const value = maxMs.value * (4 - index) / 4;
-	return { value, y: plotTop + (index / 4) * plotHeight };
+	return { value, y: plotTop + (index / 4) * plotHeight.value };
 }));
-const xTicks = [
+const xTicks = computed(() => [
 	{ x: plotLeft, label: '-30s', anchor: 'start' as const },
-	{ x: plotLeft + plotWidth / 3, label: '-20s', anchor: 'middle' as const },
-	{ x: plotLeft + plotWidth * 2 / 3, label: '-10s', anchor: 'middle' as const },
-	{ x: chartWidth - plotRight, label: '0s', anchor: 'end' as const },
-];
+	{ x: plotLeft + plotWidth.value / 3, label: '-20s', anchor: 'middle' as const },
+	{ x: plotLeft + plotWidth.value * 2 / 3, label: '-10s', anchor: 'middle' as const },
+	{ x: chartWidth.value - plotRight, label: '0s', anchor: 'end' as const },
+]);
 
 let timer: number | undefined;
+let resizeObserver: ResizeObserver | undefined;
 
 function recordSample() {
 	const timestamp = performance.now();
@@ -91,8 +93,8 @@ function recordSample() {
 function polylinePoints(key: SeriesKey) {
 	const latestTimestamp = samples.value.at(-1)?.timestamp ?? 0;
 	return samples.value.map(sample => {
-		const x = plotLeft + (1 - (latestTimestamp - sample.timestamp) / historyDuration) * plotWidth;
-		const y = plotTop + (1 - sample[key] / maxMs.value) * plotHeight;
+		const x = plotLeft + (1 - (latestTimestamp - sample.timestamp) / historyDuration) * plotWidth.value;
+		const y = plotTop + (1 - sample[key] / maxMs.value) * plotHeight.value;
 		return `${x},${y}`;
 	}).join(' ');
 }
@@ -108,10 +110,16 @@ function toMs(value: number) {
 onMounted(() => {
 	recordSample();
 	timer = window.setInterval(recordSample, sampleInterval);
+	resizeObserver = new ResizeObserver(([entry]) => {
+		chartWidth.value = entry.contentRect.width;
+		chartHeight.value = entry.contentRect.height;
+	});
+	resizeObserver.observe(chartEl.value!);
 });
 
 onBeforeUnmount(() => {
 	if (timer != null) window.clearInterval(timer);
+	resizeObserver?.disconnect();
 });
 </script>
 
