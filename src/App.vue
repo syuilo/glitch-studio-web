@@ -22,7 +22,7 @@
 		<GsWorkspaceDivider style="flex: 1" :divider="store.workspaceDefinition" />
 	</div>
 	<div :class="$style.footer">
-		<div @click="openResolutionMenu">{{ store.renderWidth }} x {{ store.renderHeight }} px ({{ resolutionFactor }}x)</div>
+		<div @click="openResolutionMenu">{{ store.renderWidth }} x {{ store.renderHeight }} px ({{ resolutionFactor }}x) | {{ engine.fpsDisplay.value.toFixed(1) }}fps</div>
 		<div :class="$style.footerStats">
 			<div :class="$style.footerStatsItem">{{ (engine.gpuAverageDisplayFast.value / 1000).toFixed(1) }}ms</div>
 			<div :class="$style.footerStatsItem">{{ (engine.gpuAverageDisplayMedium.value / 1000).toFixed(1) }}ms</div>

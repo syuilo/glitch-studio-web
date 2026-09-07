@@ -17,10 +17,11 @@ export class Engine {
 	private waveformCanvas: HTMLCanvasElement | null = null;
 	private videoElements: Map<GsFxNode['id'], HTMLVideoElement> = new Map();
 	private currentRafId: number | null = null;
-	public fps: number | null = 60;
+	public fpsLimit: number | null = 60;
 	public gpuAverageDisplayFast = ref(0);
 	public gpuAverageDisplayMedium = ref(0);
 	public gpuAverageDisplaySlow = ref(0);
+	public fpsDisplay = ref(0);
 
 	constructor() {
 	}
@@ -92,6 +93,8 @@ export class Engine {
 			time: timeStamp,
 		});
 
+		this.fpsDisplay.value = this.renderer.fpsAverage.get();
+
 		if (this.enableStats) {
 			this.gpuAverageDisplayFast.value = this.renderer.gpuAverageFast.get();
 			this.gpuAverageDisplayMedium.value = this.renderer.gpuAverageMedium.get();
@@ -101,12 +104,12 @@ export class Engine {
 
 	public startRenderLoop() {
 		let then = 0;
-		const interval = 1000 / (this.fps ?? 30);
+		const interval = 1000 / (this.fpsLimit ?? 30);
 
 		const renderLoop = (timeStamp: number) => {
 			this.currentRafId = window.requestAnimationFrame(renderLoop);
 
-			if (this.fps != null) {
+			if (this.fpsLimit != null) {
 				const delta = timeStamp - then;
 				if (delta <= interval) return;
 				then = timeStamp - (delta % interval);

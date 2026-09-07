@@ -61,9 +61,11 @@ export class Renderer {
 	private finalRenderInputTexture: GPUTexture | null = null;
 	private enableFloat32Filtering = false;
 	private evaledNodeParams: Map<GsNode['id'], Record<string, any>> = new Map();
+	private latestTimestamp: number = performance.now();
 	public gpuAverageFast = new NonNegativeRollingAverage(10);
 	public gpuAverageMedium = new NonNegativeRollingAverage(100);
 	public gpuAverageSlow = new NonNegativeRollingAverage(1000);
+	public fpsAverage = new NonNegativeRollingAverage(30);
 
 	constructor(options: {
 		gpuDevice: GPUDevice;
@@ -376,6 +378,8 @@ export class Renderer {
 		const node = this.findNode(renderNodeId);
 		if (node == null) return;
 
+		const timeDelta = args.time - this.latestTimestamp;
+
 		this.evalNodeParams(this.nodes, {
 			TIME: args.time / 1000, // ms to seconds
 		});
@@ -419,6 +423,10 @@ export class Renderer {
 
 		this.gpuDevice.queue.submit([commandEncoder.finish()]);
 		//#endregion
+
+		this.latestTimestamp = args.time;
+
+		this.fpsAverage.addSample(1000 / timeDelta);
 
 		if (this.enableStats) {
 			this.timingHelper.getResult().then(gpuTime => {

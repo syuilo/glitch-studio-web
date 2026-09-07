@@ -125,7 +125,7 @@ export const rendererEnv = {
 export const engine = markRaw(new Engine());
 
 watch(fpsLimit, () => {
-	engine.fps = fpsLimit.value;
+	engine.fpsLimit = fpsLimit.value;
 	engine.stopRenderLoop();
 	engine.startRenderLoop();
 });
