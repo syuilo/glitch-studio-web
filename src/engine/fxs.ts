@@ -13,6 +13,7 @@ import channelShift from './fx/channelShift/main.ts';
 import blur from './fx/blur/main.ts'; 
 import rgbTo from './fx/rgbTo/main.ts'; 
 import tearings from './fx/tearings/main.ts';
+import pixelSort from './fx/pixelSort/main.ts';
 
 const _fxs = {
 	test,
@@ -28,6 +29,7 @@ const _fxs = {
 	blur,
 	rgbTo,
 	tearings,
+	pixelSort,
 } as Record<string, Effect<any>>;
 
 const fxs = {} as typeof _fxs;
