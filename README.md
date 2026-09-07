@@ -1,4 +1,4 @@
-# Glitch Studio for Web
+# Glitch Studio for Web (⚠️Under Development!!!)
 
 Glitch Studio for Webは、画像・動画編集や、シェーダーのplaygroundとして使えるWebアプリケーションです。
 
