@@ -18,6 +18,7 @@ import tearings from './fx/tearings/main.ts';
 import pixelSort from './fx/pixelSort/main.ts';
 import rainDropsOnWindow1 from './fx/rainDropsOnWindow1/main.ts';
 import rainDropsOnWindow2 from './fx/rainDropsOnWindow2/main.ts';
+import liquidMetal from './fx/liquidMetal/main.ts';
 
 const _fxs = {
 	test,
@@ -38,6 +39,7 @@ const _fxs = {
 	pixelSort,
 	rainDropsOnWindow1,
 	rainDropsOnWindow2,
+	liquidMetal,
 } as Record<string, Effect<any>>;
 
 const fxs = {} as typeof _fxs;
@@ -46,4 +48,3 @@ Object.keys(_fxs).sort().forEach(key => {
 });
 
 export { fxs };
-
