@@ -1,8 +1,8 @@
 <template>
 <div :class="$style.root">
 	<div :class="$style.fields">
-		<input :class="$style.field" type="text" :value="macro.label" @change="updateMacroLabel(macro, $event.target.value)"/>
-		<input :class="$style.field" type="text" :value="macro.name" @change="updateMacroName(macro, $event.target.value)"/>
+		<GsInput :class="$style.field" type="text" :modelValue="macro.label" @update:modelValue="updateMacroLabel(macro, $event)"/>
+		<GsInput :class="$style.field" type="text" :modelValue="macro.name" @update:modelValue="updateMacroName(macro, $event)"/>
 		<GsSelect
 			:class="$style.field"
 			:modelValue="macro.type"
@@ -15,19 +15,19 @@
 			]"
 			@update:modelValue="v => updateMacroType(macro, v)"
 		/>
-		<button :class="[$style.field, $style.remove]" title="Remove macro" @click="remove(macro.id)"><i class="ti ti-x"></i></button>
+		<GsButton v-tooltip="'Remove macro'" danger :class="[$style.field, $style.remove]" @click="remove(macro.id)"><i class="ti ti-x"></i></GsButton>
 	</div>
 	<div v-if="['number', 'range'].includes(macro.type)" :class="$style.option">
 		<label :class="$style.optionLabel">Min/Max</label>
 		<div :class="[$style.optionControl, { [$style.rangeBounds]: macro.type === 'range' }]">
-			<input type="number" :value="macro.typeOptions.min" @change="updateMacroTypeOption(macro, 'min', parseFloat($event.target.value, 10))"/>
-			<input type="number" :value="macro.typeOptions.max" @change="updateMacroTypeOption(macro, 'max', parseFloat($event.target.value, 10))"/>
+			<GsInput type="number" :modelValue="macro.typeOptions.min" @update:modelValue="updateMacroTypeOption(macro, 'min', parseFloat($event, 10))"/>
+			<GsInput type="number" :modelValue="macro.typeOptions.max" @update:modelValue="updateMacroTypeOption(macro, 'max', parseFloat($event, 10))"/>
 		</div>
 	</div>
 	<div v-if="['number', 'range'].includes(macro.type)" :class="$style.option">
 		<label :class="$style.optionLabel">Step</label>
 		<div :class="$style.optionControl">
-			<input type="number" :value="macro.typeOptions.step" @change="updateMacroTypeOption(macro, 'step', parseFloat($event.target.value, 10))"/>
+			<GsInput type="number" :modelValue="macro.typeOptions.step" @update:modelValue="updateMacroTypeOption(macro, 'step', parseFloat($event, 10))"/>
 		</div>
 	</div>
 </div>
@@ -35,6 +35,8 @@
 
 <script lang="ts" setup>
 import GsSelect from './common/GsSelect.vue';
+import GsInput from './common/GsInput.vue';
+import GsButton from './common/GsButton.vue';
 import { appContext } from '@/app.ts';
 import { i18n } from '@/i18n';
 import { FxParamDataType, Macro } from '@/types';
@@ -92,10 +94,6 @@ function remove(macroId: string) {
 
 	&:not(:first-child) {
 		border-top: solid 1px rgba(255, 255, 255, 0.05);
-	}
-
-	&:not(:last-child) {
-		border-bottom: solid 1px rgba(0, 0, 0, 0.5);
 	}
 }
 

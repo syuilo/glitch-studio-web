@@ -50,7 +50,7 @@ import { i18n } from '@/i18n';
 import { appContext, wireMap } from '@/app';
 import { GsAutomation } from '@/engine/types';
 import * as ui from '@/ui';
-import { GsFxNode } from '@/engine/renderer.ts';
+import { GsFxNode, GsGroupNode } from '@/engine/renderer.ts';
 import { genId } from '@/utility/id.ts';
 
 const props = defineProps<{
