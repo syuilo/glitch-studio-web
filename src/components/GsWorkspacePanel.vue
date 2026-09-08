@@ -105,6 +105,10 @@ function findParent(id: string, divider = appContext.workspaceDefinition.value):
 	}
 }
 
+// below/aboveかつ親のdirectionがverticalの場合、親のchildrenの自身の位置の下/上にempty typeのWorkspacePanelを追加
+// below/aboveかつ親のdirectionがhorizontalの場合、親のchildrenの自身の位置に新しいdivider(vertical)を追加し、そのdividerに自身を移動・empty typeのWorkspacePanelを追。
+// left/rightかつ親のdirectionがverticalの場合、親のchildrenの自身の位置に新しいdivider(horizontal)を追加し、そのdividerに自身を移動・empty typeのWorkspacePanelを追加
+// left/rightかつ親のdirectionがhorizontalの場合、親のchildrenの自身の位置の左/右にempty typeのWorkspacePanelを追加
 function addPanel(position: 'below' | 'above' | 'left' | 'right') {
 	const parent = findParent(props.panel.id);
 	if (!parent) return;
@@ -129,6 +133,7 @@ function addPanel(position: 'below' | 'above' | 'left' | 'right') {
 	}
 }
 
+// closeしたとき、親のdividerのchildrenが1つのpanelのみになった場合、dividerは不要なので親のdividerを削除し、children内にあったその1つのpanelを、削除した親のdividerが入っていたchildren内に移動
 function closePanel() {
 	const parent = findParent(props.panel.id);
 	if (!parent) return;
