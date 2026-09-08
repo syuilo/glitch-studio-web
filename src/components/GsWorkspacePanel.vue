@@ -1,6 +1,5 @@
 <template>
 <div
-	class="_forceShrinkSpacer"
 	:class="[$style.root, { [$style.active]: active, [$style.draghover]: draghover, [$style.dragging]: dragging, [$style.dropready]: dropready }]"
 	@dragover.prevent.stop="onDragover"
 	@dragleave="onDragleave"
@@ -13,7 +12,6 @@
 		@dragstart="onDragstart"
 		@dragend="onDragend"
 		@contextmenu.prevent.stop="onContextmenu"
-		@wheel.passive="emit('headerWheel', $event)"
 	>
 		<svg viewBox="0 0 256 128" :class="$style.tabShape">
 			<g transform="matrix(6.2431,0,0,6.2431,-677.417,-29.3839)">
@@ -58,7 +56,6 @@ const props = withDefaults(defineProps<{
 });
 
 const emit = defineEmits<{
-	(ev: 'headerWheel', ctx: WheelEvent): void;
 	(ev: 'headerClick', ctx: MouseEvent): void;
 }>();
 
