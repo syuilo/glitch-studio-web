@@ -23,6 +23,9 @@ type CommandLog = {
 };
 
 class AppContext {
+	public projectId: string | null = null;
+	public projectName: string | null = null;
+	public projectAuthor: string | null = null;
 	public state: AppState;
 	public undoStack = shallowRef([] as CommandLog[]);
 	public redoStack = shallowRef([] as CommandLog[]);
@@ -31,6 +34,8 @@ class AppContext {
 	// とりあえずundo/redo対象にする必要なさそうだからstate外で管理
 	public workspaceDefinition = ref<WorkspaceDivider>({
 		id: 'root',
+		ratio: 1,
+		type: null,
 		direction: 'horizontal',
 		children: [{
 			id: '938e3eedc00d4287885b6894ee3ea8c3',
@@ -271,26 +276,26 @@ export async function appReady(project: RawProject) {
 }
 
 export function saveProject() {
-	saveProjectFile({
-		id: store.id,
-		gsVersion: version,
-		name: store.name,
-		author: store.author,
-		macros: store.macros,
-		nodes: store.nodes,
-		automations: store.automations,
-		renderWidth: store.renderWidth,
-		renderHeight: store.renderHeight,
-		assets: store.assets.map(asset => ({
-			id: asset.id,
-			name: asset.name,
-			width: asset.width,
-			height: asset.height,
-			fileDataType: asset.fileDataType,
-			fileData: asset.fileData,
-			hash: asset.hash,
-		})),
-	});
+	//saveProjectFile({
+	//	id: store.id,
+	//	gsVersion: version,
+	//	name: store.name,
+	//	author: store.author,
+	//	macros: store.macros,
+	//	nodes: store.nodes,
+	//	automations: store.automations,
+	//	renderWidth: store.renderWidth,
+	//	renderHeight: store.renderHeight,
+	//	assets: store.assets.map(asset => ({
+	//		id: asset.id,
+	//		name: asset.name,
+	//		width: asset.width,
+	//		height: asset.height,
+	//		fileDataType: asset.fileDataType,
+	//		fileData: asset.fileData,
+	//		hash: asset.hash,
+	//	})),
+	//});
 }
 
 export async function openProject() {

@@ -105,7 +105,7 @@ export class Engine {
 		if (this.renderer == null) return;
 		if (this.nodes.length === 0) return;
 
-		this.renderer.render(renderNodeId ?? this.nodes.at(-1).id, {
+		this.renderer.render(renderNodeId ?? this.nodes.at(-1)!.id, {
 			time: timeStamp,
 		});
 
@@ -150,17 +150,17 @@ export class Engine {
 
 		for (const node of removedNodes) {
 			if (this.videoElements.has(node.id)) {
-				const video = this.videoElements.get(node.id);
-				video?.pause();
+				const video = this.videoElements.get(node.id)!;
+				video.pause();
 				this.videoElements.delete(node.id);
-				URL.revokeObjectURL(video?.src);
+				URL.revokeObjectURL(video.src);
 			}
 		}
 
 		for (const node of addedNodes) {
 			if (node.type === 'fx' && node.fx === 'video' && !this.videoElements.has(node.id)) {
-				const asset = this.assets.find(asset => asset.id === node.params.video.value);
-				const video = document.createElement('video');
+				const asset = this.assets.find(asset => asset.id === node.params.video.value)!;
+				const video = window.document.createElement('video');
 				video.src = URL.createObjectURL(new Blob([asset.fileData], { type: asset.fileDataType }));
 				video.loop = true;
 				this.videoElements.set(node.id, video);
@@ -205,7 +205,7 @@ export class Engine {
 			height: number;
 		};
 	}) {
-		const canvas = document.createElement('canvas');
+		const canvas = window.document.createElement('canvas');
 		canvas.width = options.resolution.width;
 		canvas.height = options.resolution.height;
 

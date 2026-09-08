@@ -12,7 +12,6 @@ import { GpuWaveform } from './GpuWaveform.ts';
 import { Asset, FxParamValue, Macro } from '@/types.ts';
 import { evalAutomationValue, genEmptyValue } from '@/utility/misc.ts';
 import { deepClone } from '@/utility/deep-clone.ts';
-import { isVideoFrameAvailable } from '@/utility/video.ts';
 
 const aisParser = new AiScript.Parser();
 
@@ -32,12 +31,26 @@ function evaluateExpression(expression: string, scope: Record<string, any>): any
 	return AiScript.utils.valToJs(aisVal);
 }
 
+function serializeAsset(asset: Asset | undefined) {
+	if (asset == null) return null;
+	return {
+		id: asset.id,
+		width: asset.width,
+		height: asset.height,
+		data: asset.data,
+		hash: asset.hash,
+	};
+}
+
 export type GsFxNode = {
 	id: string;
 	type: 'fx';
 	fx: string;
 	isEnabled: boolean;
 	params: Record<string, FxParamValue>;
+
+	// 2D平面上でノードを配置できるようになった時のため
+	pos?: { x: number; y: number };
 };
 
 export type GsGroupNode = {
@@ -47,6 +60,9 @@ export type GsGroupNode = {
 	name: string;
 	nodes: GsNode[];
 	macros: Macro[];
+
+	// 2D平面上でノードを配置できるようになった時のため
+	pos?: { x: number; y: number };
 };
 
 export type GsNode = GsFxNode | GsGroupNode;
@@ -85,6 +101,7 @@ export class Renderer {
 	public gpuAverageMedium = new NonNegativeRollingAverage(100);
 	public gpuAverageSlow = new NonNegativeRollingAverage(1000);
 	public fpsAverage = new NonNegativeRollingAverage(30);
+	private frame = 0; // TODO
 
 	constructor(options: {
 		gpuDevice: GPUDevice;
@@ -159,7 +176,7 @@ export class Renderer {
 	}
 
 	public findNode(nodeId: string, nodes: GsNode[] = this.nodes): GsNode | undefined {
-		const search = (nodes: GsNode[]) => {
+		const search = (nodes: GsNode[]): GsNode | undefined => {
 			for (const node of nodes) {
 				if (node.id === nodeId) {
 					return node;
@@ -234,7 +251,7 @@ export class Renderer {
 						: v.type === 'expression' && v.value
 							? evaluateExpression(v.value, mixedScope)
 							: v.type === 'automation' && v.value
-								? evalAutomationValue(this.automations.find(a => a.id === v.value), this.frame)
+								? evalAutomationValue(this.automations.find(a => a.id === v.value)!, this.frame)
 								: genEmptyValue(paramDefs[k]);
 			}
 
@@ -287,7 +304,7 @@ export class Renderer {
 
 			const paramDefs = fxs[node.fx].paramDefs;
 
-			for (const [k, v] of Object.entries(this.evaledNodeParams.get(node.id))) {
+			for (const [k, v] of Object.entries(this.evaledNodeParams.get(node.id)!)) {
 				key += `${k}=${JSON.stringify(v)};`;
 
 				if (paramDefs[k].type === 'node') {
@@ -324,7 +341,7 @@ export class Renderer {
 			if (node.nodes.length === 0) {
 				return;
 			}
-			return this.renderNode(node.nodes.at(-1), commandEncoder, [...visited, node.id]);
+			return this.renderNode(node.nodes.at(-1)!, commandEncoder, [...visited, node.id]);
 		}
 
 		const key = this.evalCacheKey(node);
@@ -333,7 +350,7 @@ export class Renderer {
 		if (key != null && key === prevKey) {
 			return;
 		}
-		this.effectCacheKeys.set(node.id, key);
+		if (key != null) this.effectCacheKeys.set(node.id, key);
 
 		const effect = fxs[node.fx];
 
@@ -418,7 +435,7 @@ export class Renderer {
 		this.renderNode(node, commandEncoder, []);
 
 		//#region nodeのoutをcanvasに描画
-		if (this.finalRenderBindGroup == null || this.finalRenderInputTexture != this.effectOuts.get(node.id)) {
+		if (this.finalRenderBindGroup == null || this.finalRenderInputTexture !== this.effectOuts.get(node.id)) {
 			this.finalRenderInputTexture = this.effectOuts.get(node.id)!;
 			this.finalRenderBindGroup = this.gpuDevice.createBindGroup({
 				layout: this.finalRenderPipeline.getBindGroupLayout(0),
@@ -528,29 +545,7 @@ export class Renderer {
 				});
 				this.assetTextures.set(asset.id, tex);
 			}
-
-			/*
-			// gif
-			const gif = GIF.parseGIF(asset.buffer);
-			const frames = GIF.decompressFrames(gif, true);
-			const canvas = document.createElement('canvas');
-			const gifCanvas = document.createElement('canvas');
-			const tempCanvas = document.createElement('canvas');
-			document.body.appendChild(canvas);
-			this.gifs.set(asset.id, {
-				gif,
-				frames,
-				canvas,
-				canvasCtx: canvas.getContext('2d')!,
-				gifCanvas,
-				gifCanvasCtx: gifCanvas.getContext('2d')!,
-				tempCanvas,
-				tempCanvasCtx: tempCanvas.getContext('2d')!,
-			});
-			*/
 		}
-
-		//this.clearNodeCache();
 	}
 
 	public setHistogramCanvas(canvas: HTMLCanvasElement | null) {
@@ -561,7 +556,7 @@ export class Renderer {
 	}
 
 	private initHistogram() {
-		if (!this.gpuDevice || !this.histogramCanvas) return;
+		if (this.histogramCanvas == null) return;
 		this.gpuHistogram?.dispose();
 		this.gpuHistogram = new GpuHistogram(
 			this.gpuDevice,
@@ -578,7 +573,7 @@ export class Renderer {
 	}
 
 	private initWaveform() {
-		if (!this.gpuDevice || !this.waveformCanvas) return;
+		if (this.waveformCanvas == null) return;
 		this.gpuWaveform?.dispose();
 		this.gpuWaveform = new GpuWaveform(
 			this.gpuDevice,
@@ -594,7 +589,7 @@ export class Renderer {
 		this.gpuWaveform = null;
 
 		for (const instance of this.effectInstances.values()) {
-			instance.dispose();
+			instance?.dispose();
 		}
 		this.effectInstances.clear();
 

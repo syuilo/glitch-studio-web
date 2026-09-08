@@ -66,6 +66,7 @@ export function openImageOrVideoFile(options): Promise<{
 	name: string;
 	type: string;
 	fileData: Uint8Array;
+	hash?: string;
 }> {
 	return new Promise((resolve, reject) => {
 		const input = document.createElement('input');

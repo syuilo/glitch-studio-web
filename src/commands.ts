@@ -1,7 +1,7 @@
 import { AiSON } from '@syuilo/aiscript';
 import { fxs } from './engine/fxs.ts';
 import { GsFxNode, GsGroupNode, GsNode } from './engine/renderer.ts';
-import { AppState, FxParamDefs } from './types.ts';
+import { AppState, Asset, FxParamDataType, FxParamDefs } from './types.ts';
 import { deepClone } from './utility/deep-clone.ts';
 import { genEmptyValue } from './utility/misc.ts';
 
@@ -19,7 +19,7 @@ function defineCommand<Payload>(def: CommandDef<Payload>) {
 
 const stateUtility = {
 	findNode: (state: AppState, nodeId: string): GsNode | undefined => {
-		const search = (nodes: GsNode[]) => {
+		const search = (nodes: GsNode[]): GsNode | undefined => {
 			for (const node of nodes) {
 				if (node.id === nodeId) {
 					return node;
@@ -56,7 +56,7 @@ const addFxNodeCommandDef = defineCommand<{ id: string; fx: string; params?: Rec
 						params[k] = { type: 'expression', value: 'TIME' };
 					} else if (v.type === 'node' && v.primary) {
 						if ((group ? group.nodes : state.nodes.value).length > 0) {
-							params[k] = { type: 'literal', value: (group ? group.nodes : state.nodes.value).at(-1).id };
+							params[k] = { type: 'literal', value: (group ? group.nodes : state.nodes.value).at(-1)!.id };
 						} else {
 							params[k] = { type: 'literal', value: null };
 						}
@@ -73,8 +73,7 @@ const addFxNodeCommandDef = defineCommand<{ id: string; fx: string; params?: Rec
 							...params,
 							...deepClone(payload.params ?? {}),
 						},
-						x: 0,
-						y: 0,
+						pos: { x: 0, y: 0 },
 					});
 				} else {
 					state.nodes.value.push({
@@ -86,8 +85,7 @@ const addFxNodeCommandDef = defineCommand<{ id: string; fx: string; params?: Rec
 							...params,
 							...deepClone(payload.params ?? {}),
 						},
-						x: 0,
-						y: 0,
+						pos: { x: 0, y: 0 },
 					});
 				}
 			},
@@ -148,6 +146,8 @@ const addGroupNodeCommandDef = defineCommand<{ id: string; groupId?: GsGroupNode
 						type: 'group',
 						nodes: [],
 						macros: [],
+						name: '',
+						pos: { x: 0, y: 0 },
 					});
 				} else {
 					state.nodes.value.push({
@@ -156,6 +156,8 @@ const addGroupNodeCommandDef = defineCommand<{ id: string; groupId?: GsGroupNode
 						type: 'group',
 						nodes: [],
 						macros: [],
+						name: '',
+						pos: { x: 0, y: 0 },
 					});
 				}
 			},
@@ -166,7 +168,7 @@ const addGroupNodeCommandDef = defineCommand<{ id: string; groupId?: GsGroupNode
 	},
 });
 
-const addAssetCommandDef = defineCommand<{ id: string; name: string; width: number; height: number; data: any; fileDataType: string; fileData: any; hash: string }>({
+const addAssetCommandDef = defineCommand<Asset>({
 	label: 'Add asset',
 	create: (payload) => {
 		return {
@@ -178,7 +180,7 @@ const addAssetCommandDef = defineCommand<{ id: string; name: string; width: numb
 					height: payload.height,
 					data: deepClone(payload.data),
 					fileDataType: payload.fileDataType,
-					fileData: deepClone(payload.fileData),
+					fileData: payload.fileData, // blobはimmutableなので多分deepCloneの必要なし
 					hash: payload.hash,
 				});
 			},
@@ -198,17 +200,19 @@ const removeAssetCommandDef = defineCommand<{ assetId: string }>({
 
 				// そのAssetを参照しているパラメータをnullにする
 				for (const node of state.nodes.value) {
-					const imageParams = Object.entries(fxs[node.fx].paramDefs).filter(([k, v]) => v.type === 'image').map(([k, v]) => k);
-					for (const p of imageParams) {
-						if (node.params[p].type === 'literal' && node.params[p].value === payload.assetId) {
-							node.params[p].value = null;
+					if (node.type === 'fx') {
+						const imageParams = Object.entries(fxs[node.fx].paramDefs).filter(([k, v]) => v.type === 'image').map(([k, v]) => k);
+						for (const p of imageParams) {
+							if (node.params[p].type === 'literal' && node.params[p].value === payload.assetId) {
+								node.params[p].value = null;
+							}
 						}
 					}
 				}
 
 				// そのAssetを参照しているマクロをnullにする
 				for (const macro of state.macros.value.filter(m => m.type === 'image' && m.value.type === 'literal')) {
-					macro.value = null;
+					macro.value.value = null;
 				}
 			},
 			undo(state) {
@@ -394,7 +398,7 @@ const updateMacroNameCommandDef = defineCommand<{ groupId?: GsGroupNode['id']; m
 	},
 });
 
-const updateMacroTypeCommandDef = defineCommand<{ groupId?: GsGroupNode['id']; macroId: string; value: string }>({
+const updateMacroTypeCommandDef = defineCommand<{ groupId?: GsGroupNode['id']; macroId: string; value: FxParamDataType }>({
 	label: 'Update macro type',
 	create: (payload) => {
 		return {

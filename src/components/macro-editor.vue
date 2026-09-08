@@ -36,7 +36,7 @@
 import {} from 'vue';
 import GsSelect from './common/GsSelect.vue';
 import { i18n } from '@/i18n';
-import { Macro } from '@/types';
+import { FxParamDataType, Macro } from '@/types';
 import { GsGroupNode } from '@/engine/renderer.ts';
 
 const props = defineProps<{
@@ -67,7 +67,7 @@ function updateMacroName(macro: Macro, value: string) {
 	});
 }
 
-function updateMacroType(macro: Macro, value: string) {
+function updateMacroType(macro: Macro, value: FxParamDataType) {
 	store.updateMacroType({
 		macroId: macro.id,
 		value: value,

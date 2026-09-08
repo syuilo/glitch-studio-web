@@ -50,6 +50,7 @@ async function saveImage() {
 }
 
 async function saveAnimation() {
+	/*
 	const dirPath = await api.selectDirectory({
 	});
 	if (dirPath == null) return;
@@ -66,6 +67,7 @@ async function saveAnimation() {
 			});
 		});
 	}
+		*/
 }
 
 async function saveAnimationGif() {
@@ -73,6 +75,7 @@ async function saveAnimationGif() {
 }
 
 async function importPreset() {
+	/*
 	const result = await api.openPresetFile({});
 	if (result == null) return;
 
@@ -85,6 +88,7 @@ async function importPreset() {
 	for (const node of result.preset.nodes) {
 		store.nodes.push(node);
 	}
+		*/
 }
 
 function showAbout() {

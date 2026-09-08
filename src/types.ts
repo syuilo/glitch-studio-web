@@ -10,7 +10,7 @@ export type AppState = {
 	automations: Ref<GsAutomation[]>;
 };
 
-type FxParamDataType = 'number' | 'range' | 'range2' | 'enum' | 'bool' | 'blendMode' | 'signal' | 'xy' | 'wh' | 'color' | 'vector' | 'seed' | 'time' | 'image' | 'video' | 'node' | 'nodes';
+export type FxParamDataType = 'number' | 'range' | 'range2' | 'enum' | 'bool' | 'blendMode' | 'signal' | 'xy' | 'wh' | 'color' | 'vector' | 'seed' | 'time' | 'image' | 'video' | 'node' | 'nodes';
 
 export type FxParamValue = {
 	type: 'literal';
@@ -20,7 +20,7 @@ export type FxParamValue = {
 	value: string;
 } | {
 	type: 'automation';
-	value: string;
+	value: string | null;
 };
 
 export type Macro = {
@@ -40,7 +40,7 @@ export type Asset = {
 	data: Uint8Array;
 	fileDataType: string;
 	fileData: Blob;
-	hash: string;
+	hash?: string;
 };
 
 export type FxParamDef = Record<string, any> & {
