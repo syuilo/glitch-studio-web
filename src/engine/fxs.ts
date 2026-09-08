@@ -16,6 +16,7 @@ import bloom from './fx/bloom/main.ts';
 import rgbTo from './fx/rgbTo/main.ts'; 
 import tearings from './fx/tearings/main.ts';
 import pixelSort from './fx/pixelSort/main.ts';
+import rainThroughTheWindow from './fx/rainThroughTheWindow/main.ts';
 
 const _fxs = {
 	test,
@@ -34,6 +35,7 @@ const _fxs = {
 	rgbTo,
 	tearings,
 	pixelSort,
+	rainThroughTheWindow,
 } as Record<string, Effect<any>>;
 
 const fxs = {} as typeof _fxs;
