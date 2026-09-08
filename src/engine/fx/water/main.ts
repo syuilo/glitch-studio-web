@@ -54,7 +54,12 @@ export default defineEffect({
 			size: uniformValues.arrayBuffer.byteLength,
 			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
 		});
-		const sampler = device.createSampler({ magFilter: 'linear', minFilter: 'linear' });
+		const sampler = device.createSampler({
+			magFilter: 'linear',
+			minFilter: 'linear',
+			addressModeU: 'mirror-repeat',
+			addressModeV: 'mirror-repeat',
+		});
 		let inputTexture = params.input;
 		let bindGroup: GPUBindGroup;
 		const updateInput = () => {

@@ -21,16 +21,6 @@ struct Uniforms {
 
 struct FragmentIn { @location(0) uv: vec2f };
 
-fn getUvFrame(uv: vec2f) -> f32 {
-	let aax = max(2.0 * fwidth(uv.x), 0.000001);
-	let aay = max(2.0 * fwidth(uv.y), 0.000001);
-	let left = smoothstep(0.0, aax, uv.x);
-	let right = 1.0 - smoothstep(1.0 - aax, 1.0, uv.x);
-	let bottom = smoothstep(0.0, aay, uv.y);
-	let top = 1.0 - smoothstep(1.0 - aay, 1.0, uv.y);
-	return left * right * bottom * top;
-}
-
 fn rotate2D(r: f32) -> mat2x2f {
 	return mat2x2f(cos(r), sin(r), -sin(r), cos(r));
 }
@@ -101,11 +91,11 @@ fn fs(frag: FragmentIn) -> @location(0) vec4f {
 	imageUV += vec2f(wavesDistortion, -wavesDistortion);
 	imageUV += vec2f(uniforms.caustic * causticNoiseDistortion);
 
-	let frame = getUvFrame(imageUV);
+	// Mirror-repeat sampling reflects displaced UVs at the image edges.
 	let image = textureSampleLevel(sourceTexture, sourceSampler, imageUV, 0.0);
-	// Engine textures already carry premultiplied RGB. Only apply the UV frame.
-	var color = image.rgb * frame;
-	var opacity = image.a * frame;
+	// Engine textures already carry premultiplied RGB.
+	var color = image.rgb;
+	var opacity = image.a;
 	causticNoise = max(-0.2, causticNoise);
 	let highlight = 0.025 * uniforms.highlights * causticNoise * uniforms.colorHighlight.a;
 	color = mix(color, uniforms.colorHighlight.rgb, 0.05 * uniforms.highlights * causticNoise * uniforms.colorHighlight.a);
