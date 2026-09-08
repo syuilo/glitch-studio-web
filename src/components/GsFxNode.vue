@@ -15,7 +15,19 @@
 			<div :class="$style.paramBody">
 				<GsInput v-if="isExpression(param)" type="text" :modelValue="getParam(param)" @update:modelValue="updateParamAsExpression(param, $event)"/>
 				<GsButton v-else-if="isAutomation(param)" @click="selectAutomation(param, $event)">{{ node.params[param].value ? store.automations.find(a => a.id === node.params[param].value).name : '(none)' }}</GsButton>
-				<XControl v-else :type="paramDefs[param].type" :group="group" :node="node" :name="param" :options="paramDefs[param]" :value="getParam(param)" @input="updateParamAsLiteral(param, $event)"/>
+				<XControl
+					v-else
+					:type="paramDefs[param].type"
+					:group="group"
+					:node="node"
+					:name="param"
+					:options="paramDefs[param]"
+					:value="getParam(param)"
+					@input="updateParamAsLiteral(param, $event)"
+					@beginChanging="onBeginChanging(param)"
+					@changeContinuous="changeContinuous(param, $event)"
+					@changeFinished="onFinishChanging(param)"
+				/>
 			</div>
 		</div>
 	</div>
@@ -120,6 +132,24 @@ async function changeValueType(param: string, ev: MouseEvent) {
 		param: param,
 		type: type,
 	});
+}
+
+let continuousChangeCtx: ReturnType<typeof appContext.beginContinuousNodeLiteralParamUpdation> | null = null;
+
+function onBeginChanging(param: string) {
+	continuousChangeCtx = appContext.beginContinuousNodeLiteralParamUpdation({
+		nodeId: props.node.id,
+		param: param,
+	});
+}
+
+function changeContinuous(param: string, value: any) {
+	continuousChangeCtx?.update(value);
+}
+
+function onFinishChanging(param: string) {
+	continuousChangeCtx?.commit();
+	continuousChangeCtx = null;
 }
 
 function updateParamAsLiteral(param: string, value: any) {

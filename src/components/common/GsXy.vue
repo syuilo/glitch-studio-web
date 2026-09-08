@@ -47,6 +47,8 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
 	(ev: 'update:modelValue', value: [number, number]): void;
+	(ev: 'beginChanging'): void;
+	(ev: 'changeFinished', value: [number, number]): void;
 }>();
 
 type AxisLock = 'x' | 'y' | null;
@@ -90,6 +92,7 @@ function updateFromPointer(event: PointerEvent) {
 
 function onPointerDown(event: PointerEvent) {
 	if (event.button !== 0) return;
+	emit('beginChanging');
 	activePointerId.value = event.pointerId;
 	surface.value?.setPointerCapture(event.pointerId);
 	updateFromPointer(event);
@@ -105,6 +108,7 @@ function onPointerUp(event: PointerEvent) {
 	updateFromPointer(event);
 	activePointerId.value = null;
 	if (surface.value?.hasPointerCapture(event.pointerId)) surface.value.releasePointerCapture(event.pointerId);
+	emit('changeFinished', value.value);
 }
 
 function onKeydown(event: KeyboardEvent) {

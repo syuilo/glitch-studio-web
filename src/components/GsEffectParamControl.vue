@@ -91,13 +91,13 @@
 		<GsSignal :signal="value" @input="changeValue($event)"/>
 	</div>
 	<div v-else-if="type === 'xy'">
-		<GsXy :modelValue="value" :step="options.step ?? 0.1" :min="options.min" :max="options.max" @update:modelValue="v => changeValue(v)"/>
+		<GsXy :modelValue="value" :step="options.step ?? 0.1" :min="options.min" :max="options.max" @beginChanging="onBeginChanging" @update:modelValue="v => changeContinuous(v)" @changeFinished="onFinishChanging"/>
 	</div>
 	<div v-else-if="type === 'wh'">
 		<XXySlider :modelValue="value" :step="options.step ?? 0.1" :min="options.min" :max="options.max" @update:modelValue="v => changeValue(v)"/>
 	</div>
 	<div v-else-if="type === 'vector'" style="max-width: 150px;">
-		<GsXy :modelValue="value" :step="options.step ?? 0.1" :min="options.min" :max="options.max" @update:modelValue="v => changeValue(v)"/>
+		<GsXy :modelValue="value" :step="options.step ?? 0.1" :min="options.min" :max="options.max" @beginChanging="onBeginChanging" @update:modelValue="v => changeContinuous(v)" @changeFinished="onFinishChanging"/>
 	</div>
 	<div v-else-if="type === 'color'">
 		<XColor :color="value" @input="changeValue($event)"/>
@@ -202,12 +202,27 @@ const props = defineProps<{
 
 const emit = defineEmits<{
 	(ev: 'input', value: any): void;
+	(ev: 'beginChanging'): void;
+	(ev: 'changeFinished'): void;
+	(ev: 'changeContinuous', value: any): void;
 }>();
 
 const portEl = shallowRef<HTMLElement>();
 
 function changeValue(value: any) {
 	emit('input', value);
+}
+
+function onBeginChanging() {
+	emit('beginChanging');
+}
+
+function changeContinuous(value: any) {
+	emit('changeContinuous', value);
+}
+
+function onFinishChanging() {
+	emit('changeFinished');
 }
 
 onMounted(() => {

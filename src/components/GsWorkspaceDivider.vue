@@ -1,26 +1,29 @@
 <template>
 <div ref="root" :class="[$style.root, { [$style.horizontal]: divider.direction === 'horizontal', [$style.vertical]: divider.direction === 'vertical' }]">
 	<template v-for="(child, i) in divider.children" :key="child.id">
-		<GsWorkspaceDivider v-if="child.type === null"
+		<GsWorkspaceDivider
+			v-if="child.type === null"
 			:divider="child"
 			:class="$style.child"
 			:style="{ flexGrow: child.ratio }"
 		/>
-		<component v-else
+		<component
 			:is="panelComponents[child.type]"
+			v-else
 			:ref="child.id"
 			:key="child.id"
 			:panel="child"
 			:class="$style.child"
 			:style="{ flexGrow: child.ratio }"
 		/>
-		<div v-if="i < divider.children.length - 1"
+		<div
+			v-if="i < divider.children.length - 1"
 			:class="$style.handle"
 			@pointerdown.prevent="onPointerDown($event, i)"
 			@pointermove="onPointerMove"
 			@pointerup="onPointerEnd"
 			@pointercancel="onPointerEnd"
-		/>
+		></div>
 	</template>
 </div>
 </template>
@@ -33,6 +36,7 @@ import XNodesEditor from '@/components/GsWorkspacePanel.NodesEditor.vue';
 import XHistogram from '@/components/GsWorkspacePanel.Histogram.vue';
 import XWaveform from '@/components/GsWorkspacePanel.Waveform.vue';
 import XStats from '@/components/GsWorkspacePanel.Stats.vue';
+import XCommandLog from '@/components/GsWorkspacePanel.CommandLog.vue';
 
 const panelComponents = {
 	preview: XPreview,
@@ -40,12 +44,13 @@ const panelComponents = {
 	histogram: XHistogram,
 	waveform: XWaveform,
 	stats: XStats,
+	commandLog: XCommandLog,
 };
 
 const props = withDefaults(defineProps<{
 	divider: WorkspaceDivider;
 }>(), {
-	
+
 });
 
 const root = useTemplateRef('root');

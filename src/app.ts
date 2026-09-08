@@ -1,4 +1,4 @@
-import { Ref, ref, markRaw, Component, reactive, watch } from 'vue';
+import { Ref, ref, markRaw, Component, reactive, watch, shallowRef, triggerRef } from 'vue';
 import { AiSON } from '@syuilo/aiscript';
 import { genId } from './utility/id.ts';
 import { fxs } from './engine/fxs';
@@ -17,41 +17,6 @@ import * as api from '@/api.js';
 
 type TODO = any;
 
-interface Command<State> {
-	execute(state: State): void;
-	undo(state: State): void;
-}
-
-class CommandManager<State> {
-	private undoStack: Command<State>[] = [];
-	private redoStack: Command<State>[] = [];
-
-	execute(command: Command<State>, state: State) {
-		command.execute(state);
-
-		this.undoStack.push(command);
-		this.redoStack = [];
-	}
-
-	undo(state: State) {
-		const command = this.undoStack.pop();
-
-		if (!command) return;
-
-		command.undo(state);
-		this.redoStack.push(command);
-	}
-
-	redo(state: State) {
-		const command = this.redoStack.pop();
-
-		if (!command) return;
-
-		command.execute(state);
-		this.undoStack.push(command);
-	}
-}
-
 type AppState = {
 	resolution: Ref<{ width: number; height: number }>;
 	assets: Ref<Asset[]>;
@@ -66,6 +31,13 @@ type CommandDef<Payload> = {
 		execute(state: AppState): void;
 		undo(state: AppState): void;
 	};
+};
+
+type CommandLog = {
+	type: string;
+	date: number;
+	execute: (state: AppState) => void;
+	undo: (state: AppState) => void;
 };
 
 function defineCommand<Payload>(def: CommandDef<Payload>) {
@@ -593,8 +565,10 @@ const COMMAND_DEFS = {
 };
 
 class AppContext {
-	state: AppState;
-	commandManager: CommandManager<AppState>;
+	public state: AppState;
+	public undoStack = shallowRef([] as CommandLog[]);
+	public redoStack = shallowRef([] as CommandLog[]);
+	private maxUndoStackSize = 100;
 
 	// とりあえずundo/redo対象にする必要なさそうだからstate外で管理
 	public workspaceDefinition = ref<WorkspaceDivider>({
@@ -615,16 +589,20 @@ class AppContext {
 			direction: 'vertical',
 			children: [{
 				id: '0f34c5f4c9cb449683c7f1281851b759',
-				ratio: 0.2,
+				ratio: 0.25,
 				type: 'histogram',
 			}, {
 				id: 'b3d6059aaa554ae79441286cd2beb685',
-				ratio: 0.4,
+				ratio: 0.25,
 				type: 'waveform',
 			}, {
 				id: '47edf72197d94d28b6b2811bfecc97e5',
-				ratio: 0.4,
+				ratio: 0.25,
 				type: 'stats',
+			}, {
+				id: 'test',
+				ratio: 0.25,
+				type: 'commandLog',
 			}],
 		}],
 	});
@@ -637,22 +615,81 @@ class AppContext {
 			macros: ref<Macro[]>([]),
 			automations: ref<GsAutomation[]>([]),
 		};
-		this.commandManager = new CommandManager<AppState>();
+	}
+
+	private pushCommand(type: string, execute: (state: AppState) => void, undo: (state: AppState) => void) {
+		this.undoStack.value.push({
+			type,
+			date: Date.now(),
+			execute,
+			undo,
+		});
+		triggerRef(this.undoStack);
+		this.redoStack.value = [];
+		if (this.undoStack.value.length > this.maxUndoStackSize) {
+			this.undoStack.value.shift();
+			triggerRef(this.undoStack);
+		}
 	}
 
 	public commit<T extends keyof typeof COMMAND_DEFS>(type: T, payload: Parameters<typeof COMMAND_DEFS[T]['create']>[0]) {
 		const commandDef = COMMAND_DEFS[type] as CommandDef<any>;
-		const command = commandDef.create(payload);
-		this.commandManager.execute(command, this.state);
-		console.log('Committed command:', type, payload);
+		const command = commandDef.create(deepClone(payload));
+		command.execute(this.state);
+		this.pushCommand(type, command.execute, command.undo);
+		console.log('Committed command:', type, deepClone(payload));
+	}
+
+	public beginContinuousNodeLiteralParamUpdation(payload: { nodeId: string; param: string; }) {
+		const node = stateUtility.findNode(this.state, payload.nodeId) as GsFxNode;
+		const before = deepClone(node.params[payload.param].value);
+		let after = before;
+		return {
+			update: (newValue: any) => {
+				after = deepClone(newValue);
+				node.params[payload.param] = {
+					type: 'literal',
+					value: after,
+				};
+			},
+			commit: () => {
+				this.pushCommand('updateParamAsLiteral',
+					(state) => { // execute
+						node.params[payload.param] = {
+							type: 'literal',
+							value: after,
+						};
+					},
+					(state) => { // undo
+						node.params[payload.param] = {
+							type: 'literal',
+							value: before,
+						};
+					},
+				);
+			},
+			cancel: () => {
+				// TODO
+			},
+		};
 	}
 
 	public undo() {
-		this.commandManager.undo(this.state);
+		const command = this.undoStack.value.pop();
+		triggerRef(this.undoStack);
+		if (command == null) return;
+		command.undo(this.state);
+		this.redoStack.value.push(command);
+		triggerRef(this.redoStack);
 	}
 
 	public redo() {
-		this.commandManager.redo(this.state);
+		const command = this.redoStack.value.pop();
+		triggerRef(this.redoStack);
+		if (command == null) return;
+		command.execute(this.state);
+		this.undoStack.value.push(command);
+		triggerRef(this.undoStack);
 	}
 }
 
