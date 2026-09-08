@@ -37,6 +37,7 @@ import XHistogram from '@/components/GsWorkspacePanel.Histogram.vue';
 import XWaveform from '@/components/GsWorkspacePanel.Waveform.vue';
 import XStats from '@/components/GsWorkspacePanel.Stats.vue';
 import XCommandLog from '@/components/GsWorkspacePanel.CommandLog.vue';
+import XMacros from '@/components/GsWorkspacePanel.Macros.vue';
 
 const panelComponents = {
 	preview: XPreview,
@@ -45,6 +46,7 @@ const panelComponents = {
 	waveform: XWaveform,
 	stats: XStats,
 	commandLog: XCommandLog,
+	macros: XMacros,
 };
 
 const props = withDefaults(defineProps<{

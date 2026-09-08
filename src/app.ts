@@ -65,7 +65,7 @@ class AppContext {
 			}, {
 				id: 'test',
 				ratio: 0.25,
-				type: 'commandLog',
+				type: 'macros',
 			}],
 		}],
 	});
