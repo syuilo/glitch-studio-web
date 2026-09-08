@@ -42,7 +42,9 @@ import { onBeforeUnmount, onMounted, provide, watch, useTemplateRef, ref, comput
 import type { MenuItem } from '@/types/menu.js';
 import * as ui from '@/ui.js';
 import { i18n } from '@/i18n.js';
-import { WorkspacePanel } from '@/types/workspace.ts';
+import { WorkspaceDivider, WorkspacePanel } from '@/types/workspace.ts';
+import { appContext } from '@/app.ts';
+import { genId } from '@/utility/id.ts';
 //import { checkDragDataType, getDragData, setDragData } from '@/drag-and-drop.js';
 
 const props = withDefaults(defineProps<{
@@ -93,6 +95,56 @@ function onOtherDragEnd() {
 function toggleActive() {
 }
 
+function findParent(id: string, divider = appContext.workspaceDefinition.value): WorkspaceDivider | undefined {
+	for (const child of divider.children) {
+		if (child.id === id) return divider;
+		if (child.type === null) {
+			const parent = findParent(id, child);
+			if (parent) return parent;
+		}
+	}
+}
+
+function addPanel(position: 'below' | 'above' | 'left' | 'right') {
+	const parent = findParent(props.panel.id);
+	if (!parent) return;
+
+	const index = parent.children.findIndex(child => child.id === props.panel.id);
+	const direction = position === 'below' || position === 'above' ? 'vertical' : 'horizontal';
+	const before = position === 'above' || position === 'left';
+	const panel: WorkspacePanel = { id: genId(), type: 'empty', ratio: props.panel.ratio };
+
+	if (parent.direction === direction) {
+		props.panel.ratio /= 2;
+		panel.ratio = props.panel.ratio;
+		parent.children.splice(index + (before ? 0 : 1), 0, panel);
+	} else {
+		parent.children.splice(index, 1, {
+			id: genId(),
+			type: null,
+			ratio: props.panel.ratio,
+			direction,
+			children: before ? [panel, props.panel] : [props.panel, panel],
+		});
+	}
+}
+
+function closePanel() {
+	const parent = findParent(props.panel.id);
+	if (!parent) return;
+
+	const index = parent.children.findIndex(child => child.id === props.panel.id);
+	parent.children.splice(index, 1);
+	if (parent.children.length !== 1) return;
+
+	const grandparent = findParent(parent.id);
+	if (!grandparent) return;
+
+	const remaining = parent.children[0];
+	remaining.ratio = parent.ratio;
+	grandparent.children.splice(grandparent.children.findIndex(child => child.id === parent.id), 1, remaining);
+}
+
 function getMenu() {
 	const menuItems: MenuItem[] = [];
 
@@ -109,36 +161,26 @@ function getMenu() {
 	menuItems.push({
 		icon: 'ti ti-box-align-bottom',
 		text: 'Add panel to below',
-		action: () => {
-
-		},
+		action: () => addPanel('below'),
 	}, {
 		icon: 'ti ti-box-align-top',
 		text: 'Add panel to above',
-		action: () => {
-
-		},
+		action: () => addPanel('above'),
 	}, {
 		icon: 'ti ti-box-align-left',
 		text: 'Add panel to left',
-		action: () => {
-
-		},
+		action: () => addPanel('left'),
 	}, {
 		icon: 'ti ti-box-align-right',
 		text: 'Add panel to right',
-		action: () => {
-
-		},
+		action: () => addPanel('right'),
 	});
 
 	menuItems.push({ type: 'divider' }, {
 		icon: 'ti ti-x',
 		text: 'Close panel',
 		danger: true,
-		action: () => {
-
-		},
+		action: closePanel,
 	});
 
 	return menuItems;
