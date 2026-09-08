@@ -37,7 +37,7 @@ watch(resolutionFactor, (newFactor, oldFactor) => {
 	zoom.value *= (oldFactor ?? 1) / newFactor;
 }, { immediate: true });
 
-watch(() => [canvas.value, appContext.state.resolution, resolutionFactor.value], () => {
+watch(() => [canvas.value, appContext.state.resolution.value, resolutionFactor.value], () => {
 	if (canvas.value != null) {
 		engine.setCanvas({
 			canvas: canvas.value,

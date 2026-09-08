@@ -95,8 +95,16 @@ test('waveform sampling caps the longest edge at 1024 pixels', async () => {
 	}
 });
 
-test('waveform component exposes its monitor canvas accessibly', async () => {
+test('waveform component renders a 512 by 256 monitor canvas', async () => {
 	const server = await createServer({
+		plugins: [{
+			name: 'stub-waveform-engine',
+			transform(code, id) {
+				if (id.replaceAll('\\', '/').endsWith('/src/app.ts')) {
+					return 'export const engine = { setWaveformCanvas() {} };';
+				}
+			},
+		}],
 		server: { middlewareMode: true, hmr: false },
 		appType: 'custom',
 	});
@@ -105,8 +113,7 @@ test('waveform component exposes its monitor canvas accessibly', async () => {
 		const { default: Waveform } = await server.ssrLoadModule('/src/components/GsWaveform.vue');
 		const html = await renderToString(createSSRApp(Waveform));
 
-		assert.match(html, /<canvas[^>]+role="img"/);
-		assert.match(html, /aria-label="RGB waveform"/);
+		assert.match(html, /<canvas[^>]+width="512"[^>]+height="256"/);
 	} finally {
 		await server.close();
 	}

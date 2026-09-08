@@ -7,7 +7,9 @@ import { deepClone } from '../src/utility/deep-clone.ts';
 
 // Load commands without starting the renderer or the browser application.
 const source = readFileSync(new URL('../src/app.ts', import.meta.url), 'utf8');
-const code = source.slice(source.indexOf('function defineCommand'), source.indexOf('export const appContext'));
+const commandsSource = readFileSync(new URL('../src/commands.ts', import.meta.url), 'utf8');
+const code = commandsSource.slice(commandsSource.indexOf('function defineCommand')) + '\n'
+	+ source.slice(source.indexOf('class AppContext'), source.indexOf('export const appContext'));
 const compiled = ts.transpileModule(code.replace('export const COMMAND_DEFS', 'const COMMAND_DEFS'), {
 	compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None },
 }).outputText;
