@@ -5,7 +5,7 @@
 	</template>
 
 	<div :class="$style.root">
-		<GsRenderingStats />
+		<GsRenderingStats/>
 	</div>
 </GsWorkspacePanel>
 </template>
@@ -26,5 +26,7 @@ const props = defineProps<{
 <style module lang="scss">
 .root {
 	height: 100%;
+	padding: 2px 12px 12px 12px;
+	box-sizing: border-box;
 }
 </style>

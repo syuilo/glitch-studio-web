@@ -7,19 +7,20 @@
 	</div>
 	-->
 	<div :class="$style.scope">
-		<canvas :class="$style.canvas"
+		<canvas
 			ref="canvas"
+			:class="$style.canvas"
 			:width="width"
 			:height="height"
-		/>
+		></canvas>
 	</div>
 </div>
 </template>
 
 <script lang="ts" setup>
+import { onBeforeUnmount, onMounted, useTemplateRef } from 'vue';
 import { engine } from '@/app.ts';
 import { i18n } from '@/i18n.ts';
-import { onBeforeUnmount, onMounted, useTemplateRef } from 'vue';
 
 const width = 512;
 const height = 256;
@@ -42,7 +43,6 @@ onBeforeUnmount(() => {
 	height: 100%;
 	min-height: 0;
 	box-sizing: border-box;
-	padding: 12px;
 }
 
 .header {

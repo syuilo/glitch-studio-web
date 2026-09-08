@@ -35,9 +35,9 @@
 </template>
 
 <script lang="ts" setup>
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue';
 import { engine } from '@/app.ts';
 import { i18n } from '@/i18n.ts';
-import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue';
 
 type SeriesKey = 'fast' | 'medium' | 'slow';
 type RenderTimes = Record<SeriesKey, number>;
@@ -130,7 +130,6 @@ onBeforeUnmount(() => {
 	box-sizing: border-box;
 	height: 100%;
 	min-height: 0;
-	padding: 12px;
 }
 
 .legend {
