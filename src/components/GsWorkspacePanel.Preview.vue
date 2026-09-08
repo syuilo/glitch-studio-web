@@ -27,7 +27,7 @@ import { engine, rendererEnv, resolutionFactor } from '@/app.ts';
 
 const props = defineProps<{
 	panel: WorkspacePanel;
-	isStacked: boolean;
+	isStacked?: boolean;
 }>();
 
 const store = useStore();

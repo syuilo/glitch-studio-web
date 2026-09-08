@@ -19,7 +19,7 @@ import GsHistogram from '@/components/GsHistogram.vue';
 
 const props = defineProps<{
 	panel: WorkspacePanel;
-	isStacked: boolean;
+	isStacked?: boolean;
 }>();
 </script>
 

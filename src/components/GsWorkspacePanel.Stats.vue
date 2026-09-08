@@ -19,7 +19,7 @@ import GsRenderingStats from '@/components/GsRenderingStats.vue';
 
 const props = defineProps<{
 	panel: WorkspacePanel;
-	isStacked: boolean;
+	isStacked?: boolean;
 }>();
 </script>
 

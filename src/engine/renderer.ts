@@ -520,7 +520,6 @@ export class Renderer {
 		}
 
 		for (const asset of this.assets) {
-			console.log(asset);
 			if (asset.fileDataType.startsWith('image/')) {
 				const tex = createTextureFromSource(this.gpuDevice, {
 					data: asset.data,

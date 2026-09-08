@@ -19,7 +19,7 @@ import GsWaveform from '@/components/GsWaveform.vue';
 
 const props = defineProps<{
 	panel: WorkspacePanel;
-	isStacked: boolean;
+	isStacked?: boolean;
 }>();
 </script>
 

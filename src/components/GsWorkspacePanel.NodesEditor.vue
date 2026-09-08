@@ -19,7 +19,7 @@ import GsNodesEditor from '@/components/GsNodesEditor.vue';
 
 const props = defineProps<{
 	panel: WorkspacePanel;
-	isStacked: boolean;
+	isStacked?: boolean;
 }>();
 </script>
 

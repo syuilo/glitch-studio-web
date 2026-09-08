@@ -603,7 +603,7 @@ function guardMouseMove(ev: MouseEvent) {
 	display: flex;
 	align-items: center;
 	position: relative;
-	padding: 5px 16px;
+	padding: 4px 16px;
 	width: 100%;
 	box-sizing: border-box;
 	white-space: nowrap;
