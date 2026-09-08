@@ -19,6 +19,7 @@ import pixelSort from './fx/pixelSort/main.ts';
 import rainDropsOnWindow1 from './fx/rainDropsOnWindow1/main.ts';
 import rainDropsOnWindow2 from './fx/rainDropsOnWindow2/main.ts';
 import liquidMetal from './fx/liquidMetal/main.ts';
+import water from './fx/water/main.ts';
 
 const _fxs = {
 	test,
@@ -40,6 +41,7 @@ const _fxs = {
 	rainDropsOnWindow1,
 	rainDropsOnWindow2,
 	liquidMetal,
+	water,
 } as Record<string, Effect<any>>;
 
 const fxs = {} as typeof _fxs;
