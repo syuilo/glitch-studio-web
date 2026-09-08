@@ -1,3 +1,4 @@
+import { AiSON } from '@syuilo/aiscript';
 import { fxs } from './engine/fxs.ts';
 import { GsFxNode, GsGroupNode, GsNode } from './engine/renderer.ts';
 import { AppState, FxParamDefs } from './types.ts';
