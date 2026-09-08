@@ -29,7 +29,7 @@ export default defineEffect({
 	getDefaultParams: () => ({
 		colorBack: { type: 'literal', value: [170 / 255, 170 / 255, 172 / 255] },
 		colorTint: { type: 'literal', value: [1, 1, 1] },
-		colorBackAlpha: { type: 'literal', value: 1 },
+		colorBackAlpha: { type: 'literal', value: 0 },
 		colorTintAlpha: { type: 'literal', value: 1 },
 		repetition: { type: 'literal', value: 2 },
 		softness: { type: 'literal', value: 0.2 },
