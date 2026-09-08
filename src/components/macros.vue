@@ -1,6 +1,6 @@
 <template>
-<div class="macros-componet _gs-container">
-	<div class="macros _gs-container">
+<div class="macros-componet">
+	<div class="macros">
 		<div v-for="macro in store.macros" :key="macro.id">
 			<label :class="{ expression: macro.value.type === 'expression' }" @dblclick="toggleMacroValueType(macro)">{{ macro.label }}</label>
 			<div v-if="macro.value.type === 'expression'">
@@ -10,7 +10,7 @@
 		</div>
 		<p v-if="store.macros.length === 0" class="_gs-no-contents">{{ i18n.ts.NoMacros }}</p>
 	</div>
-	<div class="macros-editor _gs-container">
+	<div class="macros-editor">
 		<button @click="addMacro()">{{ i18n.ts.AddMacro }}</button>
 		<header>
 			<div>{{ i18n.ts._Macro.Label }}</div>
