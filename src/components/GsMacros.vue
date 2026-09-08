@@ -111,10 +111,6 @@ function toggleMacroValueType(macro: Macro) {
 	&:not(:first-child) {
 		border-top: solid 1px rgba(255, 255, 255, 0.05);
 	}
-
-	&:not(:last-child) {
-		border-bottom: solid 1px rgba(0, 0, 0, 0.5);
-	}
 }
 
 .macroLabel {
