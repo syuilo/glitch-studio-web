@@ -28,7 +28,7 @@ type AppState = {
 type CommandDef<Payload> = {
 	label: string;
 	create: (payload: Payload) => {
-		execute(state: AppState): void;
+		execute(state: AppState, merge?: { payload: Payload }): void;
 		undo(state: AppState): void;
 	};
 };
@@ -36,8 +36,9 @@ type CommandDef<Payload> = {
 type CommandLog = {
 	type: string;
 	date: number;
-	execute: (state: AppState) => void;
+	execute: (state: AppState, merge?: { payload: any }) => void;
 	undo: (state: AppState) => void;
+	mergeKey?: string | null;
 };
 
 function defineCommand<Payload>(def: CommandDef<Payload>) {
@@ -493,14 +494,14 @@ const changeParamValueTypeCommandDef = defineCommand<{ nodeId: GsNode['id']; par
 const updateParamAsLiteralCommandDef = defineCommand<{ nodeId: GsNode['id']; param: string; value: any }>({
 	label: 'Update param as literal',
 	create: (payload) => {
-		let before: any;
+		let before: GsFxNode['params'][string];
 		return {
-			execute(state) {
+			execute(state, merge) {
 				const node = stateUtility.findNode(state, payload.nodeId) as GsFxNode;
-				before = node.params[payload.param];
+				if (merge == null) before = node.params[payload.param];
 				node.params[payload.param] = {
 					type: 'literal',
-					value: payload.value,
+					value: merge?.payload.value ?? payload.value,
 				};
 			},
 			undo(state) {
@@ -547,7 +548,7 @@ const updateParamAsAutomationCommandDef = defineCommand<{ nodeId: GsNode['id']; 
 	},
 });
 
-const COMMAND_DEFS = {
+export const COMMAND_DEFS = {
 	addFxNode: addFxNodeCommandDef,
 	removeFxNode: removeFxNodeCommandDef,
 	addGroupNode: addGroupNodeCommandDef,
@@ -620,12 +621,13 @@ class AppContext {
 		};
 	}
 
-	private pushCommand(type: string, execute: (state: AppState) => void, undo: (state: AppState) => void) {
+	private pushCommand(type: string, execute: (state: AppState, merge?: { payload: any }) => void, undo: (state: AppState) => void, mergeKey?: string | null) {
 		this.undoStack.value.push({
 			type,
 			date: Date.now(),
 			execute,
 			undo,
+			mergeKey,
 		});
 		triggerRef(this.undoStack);
 		this.redoStack.value = [];
@@ -635,47 +637,17 @@ class AppContext {
 		}
 	}
 
-	public commit<T extends keyof typeof COMMAND_DEFS>(type: T, payload: Parameters<typeof COMMAND_DEFS[T]['create']>[0]) {
+	public commit<T extends keyof typeof COMMAND_DEFS>(type: T, payload: Parameters<typeof COMMAND_DEFS[T]['create']>[0], mergeKey?: string | null) {
+		const latest = this.undoStack.value.at(-1);
+		if (latest != null && mergeKey != null && latest.mergeKey === mergeKey) {
+			latest.execute(this.state, { payload });
+			return;
+		}
 		const commandDef = COMMAND_DEFS[type] as CommandDef<any>;
 		const command = commandDef.create(deepClone(payload));
 		command.execute(this.state);
-		this.pushCommand(type, command.execute, command.undo);
+		this.pushCommand(type, command.execute, command.undo, mergeKey);
 		console.log('Committed command:', type, deepClone(payload));
-	}
-
-	// 例えばスライダーのようなコントロールをドラッグして操作する場合、連続的に変化する値をstateにリアルタイム反映はしたいが、操作履歴としてはひとつにまとめたいので、その時に使用する
-	public beginContinuousNodeLiteralParamUpdation(payload: { nodeId: string; param: string; }) {
-		const node = stateUtility.findNode(this.state, payload.nodeId) as GsFxNode;
-		const before = deepClone(node.params[payload.param].value);
-		let after = before;
-		return {
-			update: (newValue: any) => {
-				after = deepClone(newValue);
-				node.params[payload.param] = {
-					type: 'literal',
-					value: after,
-				};
-			},
-			commit: () => {
-				this.pushCommand('updateParamAsLiteral',
-					(state) => { // execute
-						node.params[payload.param] = {
-							type: 'literal',
-							value: after,
-						};
-					},
-					(state) => { // undo
-						node.params[payload.param] = {
-							type: 'literal',
-							value: before,
-						};
-					},
-				);
-			},
-			cancel: () => {
-				// TODO
-			},
-		};
 	}
 
 	public undo() {

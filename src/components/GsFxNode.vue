@@ -51,6 +51,7 @@ import { appContext, wireMap } from '@/app';
 import { GsAutomation } from '@/engine/types';
 import * as ui from '@/ui';
 import { GsFxNode } from '@/engine/renderer.ts';
+import { genId } from '@/utility/id.ts';
 
 const props = defineProps<{
 	node: GsFxNode,
@@ -134,22 +135,22 @@ async function changeValueType(param: string, ev: MouseEvent) {
 	});
 }
 
-let continuousChangeCtx: ReturnType<typeof appContext.beginContinuousNodeLiteralParamUpdation> | null = null;
+let commandMergeKey: string | null = null;
 
 function onBeginChanging(param: string) {
-	continuousChangeCtx = appContext.beginContinuousNodeLiteralParamUpdation({
-		nodeId: props.node.id,
-		param: param,
-	});
+	commandMergeKey = genId();
 }
 
 function changeContinuous(param: string, value: any) {
-	continuousChangeCtx?.update(value);
+	appContext.commit('updateParamAsLiteral', {
+		nodeId: props.node.id,
+		param: param,
+		value: value,
+	}, commandMergeKey);
 }
 
 function onFinishChanging(param: string) {
-	continuousChangeCtx?.commit();
-	continuousChangeCtx = null;
+	commandMergeKey = null;
 }
 
 function updateParamAsLiteral(param: string, value: any) {
