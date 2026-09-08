@@ -28,7 +28,7 @@ type AppState = {
 type CommandDef<Payload> = {
 	label: string;
 	create: (payload: Payload) => {
-		execute(state: AppState, merge?: { payload: Payload }): void;
+		execute(state: AppState): void;
 		undo(state: AppState): void;
 	};
 };
@@ -36,7 +36,7 @@ type CommandDef<Payload> = {
 type CommandLog = {
 	type: string;
 	date: number;
-	execute: (state: AppState, merge?: { payload: any }) => void;
+	execute: (state: AppState) => void;
 	undo: (state: AppState) => void;
 	mergeKey?: string | null;
 };
@@ -496,12 +496,12 @@ const updateParamAsLiteralCommandDef = defineCommand<{ nodeId: GsNode['id']; par
 	create: (payload) => {
 		let before: GsFxNode['params'][string];
 		return {
-			execute(state, merge) {
+			execute(state) {
 				const node = stateUtility.findNode(state, payload.nodeId) as GsFxNode;
-				if (merge == null) before = node.params[payload.param];
+				before = node.params[payload.param];
 				node.params[payload.param] = {
 					type: 'literal',
-					value: merge?.payload.value ?? payload.value,
+					value: payload.value,
 				};
 			},
 			undo(state) {
@@ -621,7 +621,7 @@ class AppContext {
 		};
 	}
 
-	private pushCommand(type: string, execute: (state: AppState, merge?: { payload: any }) => void, undo: (state: AppState) => void, mergeKey?: string | null) {
+	private pushCommand(type: string, execute: (state: AppState) => void, undo: (state: AppState) => void, mergeKey?: string | null) {
 		this.undoStack.value.push({
 			type,
 			date: Date.now(),
@@ -638,16 +638,17 @@ class AppContext {
 	}
 
 	public commit<T extends keyof typeof COMMAND_DEFS>(type: T, payload: Parameters<typeof COMMAND_DEFS[T]['create']>[0], mergeKey?: string | null) {
-		const latest = this.undoStack.value.at(-1);
-		if (latest != null && mergeKey != null && latest.mergeKey === mergeKey) {
-			latest.execute(this.state, { payload });
-			return;
-		}
 		const commandDef = COMMAND_DEFS[type] as CommandDef<any>;
 		const command = commandDef.create(deepClone(payload));
 		command.execute(this.state);
-		this.pushCommand(type, command.execute, command.undo, mergeKey);
-		console.log('Committed command:', type, deepClone(payload));
+
+		const latest = this.undoStack.value.at(-1);
+		if (latest != null && mergeKey != null && latest.mergeKey === mergeKey) {
+			latest.execute = command.execute;
+		} else {
+			this.pushCommand(type, command.execute, command.undo, mergeKey);
+			console.log('Committed command:', type, deepClone(payload));
+		}
 	}
 
 	public undo() {
