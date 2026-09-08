@@ -209,7 +209,6 @@ onMounted(() => {
 	font-weight: bold;
 	cursor: move;
 	line-height: 32px;
-	text-shadow: 0 -1px #000;
 
 	&.disabled {
 		pointer-events: none;

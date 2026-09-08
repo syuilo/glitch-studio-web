@@ -10,7 +10,7 @@
 <script lang="ts" setup>
 import { computed, defineAsyncComponent } from 'vue';
 import XFxNode from './GsFxNode.vue';
-import XGroupNode from './group-node.vue';
+import XGroupNode from './GsGroupNode.vue';
 import { i18n } from '@/i18n';
 import { GsGroupNode, GsNode } from '@/engine/renderer.ts';
 import { appContext } from '@/app.ts';

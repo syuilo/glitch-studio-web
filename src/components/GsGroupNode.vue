@@ -163,10 +163,8 @@ onMounted(() => {
 <style module lang="scss">
 .root {
 	position: relative;
-	background: #222;
-	border: solid 1px rgba(255, 255, 255, 0.1);
+	background: var(--THEME-nodeBg);
 	border-radius: 4px;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
 	overflow: clip;
 	contain: content;
 }
@@ -184,11 +182,8 @@ onMounted(() => {
 	text-overflow: ellipsis;
 	font-size: 14px;
 	font-weight: bold;
-	background: linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(255, 255, 255, 0.025));
-	border-bottom: solid 1px rgba(0, 0, 0, 0.5);
 	cursor: move;
 	line-height: 32px;
-	text-shadow: 0 -1px #000;
 }
 
 .indicator {
@@ -285,9 +280,7 @@ onMounted(() => {
 }
 
 .nodes {
-	border: solid 1px rgba(255, 255, 255, 0.1);
-	background: rgba(0, 0, 0, 0.3);
-	box-shadow: 0 2px 2px rgba(0, 0, 0, 0.7) inset;
+	background: var(--THEME-bg);
 	border-radius: 6px;
 	margin: 8px;
 	padding: 8px;
