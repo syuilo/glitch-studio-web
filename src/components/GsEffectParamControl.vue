@@ -14,7 +14,7 @@
 		/>
 	</div>
 	<div v-if="type === 'range2'">
-		<XSlider2 :modelValue="value" :step="options.step ?? 1" :min="options.min" :max="options.max" :title="`${options.min} ~ ${options.max}`" @beginChanging="onBeginChanging" @update:modelValue="changeContinuous" @changeFinished="onFinishChanging"/>
+		<!--<XSlider2 :modelValue="value" :step="options.step ?? 1" :min="options.min" :max="options.max" :title="`${options.min} ~ ${options.max}`" @beginChanging="onBeginChanging" @update:modelValue="changeContinuous" @changeFinished="onFinishChanging"/>-->
 	</div>
 	<div v-else-if="type === 'number'">
 		<GsInput small type="number" :modelValue="value" :min="options.min" :max="options.max" @update:modelValue="changeValue(parseFloat($event, 10))"/>
@@ -184,7 +184,6 @@ import XXySlider from './common/xy-slider.vue';
 import XColor from './common/GsColor.vue';
 import GsInput from './common/GsInput.vue';
 import GsRange from './common/GsRange.vue';
-import XSlider2 from './common/slider2.vue';
 import XNodesInput from './nodes-input.vue';
 import GsButton from './common/GsButton.vue';
 import GsSelect from './common/GsSelect.vue';
