@@ -5,7 +5,7 @@
 			v-if="child.type === null"
 			:divider="child"
 			:class="$style.child"
-			:style="{ flexGrow: child.ratio }"
+			:style="{ flexGrow: child.ratio / totalRatio }"
 		/>
 		<component
 			:is="panelComponents[child.type]"
@@ -14,7 +14,7 @@
 			:key="child.id"
 			:panel="child"
 			:class="$style.child"
-			:style="{ flexGrow: child.ratio }"
+			:style="{ flexGrow: child.ratio / totalRatio }"
 		/>
 		<div
 			v-if="i < divider.children.length - 1"
@@ -29,7 +29,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useTemplateRef } from 'vue';
+import { computed, useTemplateRef } from 'vue';
 import { WorkspaceDivider } from '@/types/workspace.ts';
 import XEmpty from '@/components/GsWorkspacePanel.Empty.vue';
 import XPreview from '@/components/GsWorkspacePanel.Preview.vue';
@@ -58,6 +58,9 @@ const props = withDefaults(defineProps<{
 });
 
 const root = useTemplateRef('root');
+
+// flex-grow の合計が 1 未満だと余白が残るため、兄弟間で正規化
+const totalRatio = computed(() => props.divider.children.reduce((total, child) => total + child.ratio, 0));
 
 const handleSize = 5;
 const minPanelSize = 32;
