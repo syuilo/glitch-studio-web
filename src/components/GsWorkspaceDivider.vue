@@ -31,6 +31,7 @@
 <script lang="ts" setup>
 import { useTemplateRef } from 'vue';
 import { WorkspaceDivider } from '@/types/workspace.ts';
+import XEmpty from '@/components/GsWorkspacePanel.Empty.vue';
 import XPreview from '@/components/GsWorkspacePanel.Preview.vue';
 import XNodesEditor from '@/components/GsWorkspacePanel.NodesEditor.vue';
 import XHistogram from '@/components/GsWorkspacePanel.Histogram.vue';
@@ -40,6 +41,7 @@ import XCommandLog from '@/components/GsWorkspacePanel.CommandLog.vue';
 import XMacros from '@/components/GsWorkspacePanel.Macros.vue';
 
 const panelComponents = {
+	empty: XEmpty,
 	preview: XPreview,
 	nodesEditor: XNodesEditor,
 	histogram: XHistogram,

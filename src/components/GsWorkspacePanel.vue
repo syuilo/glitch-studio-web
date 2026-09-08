@@ -29,7 +29,7 @@
 		<svg viewBox="0 0 16 16" version="1.1" :class="$style.grabber">
 			<path fill="currentColor" d="M10 13a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm0-4a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm-4 4a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm5-9a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM6 5a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path>
 		</svg>
-		<button v-tooltip="i18n.ts.settings" :class="$style.menu" class="_button" @click.stop="showSettingsMenu"><i class="ti ti-dots"></i></button>
+		<button :class="$style.menu" class="_button" @click.stop="showSettingsMenu"><i class="ti ti-dots"></i></button>
 	</header>
 	<div v-if="active" ref="body" :class="$style.body">
 		<slot></slot>
@@ -50,7 +50,6 @@ const props = withDefaults(defineProps<{
 	isStacked?: boolean;
 	handleScrollToTop?: boolean;
 	menu?: MenuItem[];
-	refresher?: () => Promise<void>;
 }>(), {
 	isStacked: false,
 	handleScrollToTop: true,
@@ -92,10 +91,6 @@ function onOtherDragEnd() {
 }
 
 function toggleActive() {
-	if (!props.isStacked) return;
-	updateColumn(props.panel.id, {
-		active: props.panel.active == null ? false : !props.panel.active,
-	});
 }
 
 function getMenu() {
@@ -105,18 +100,6 @@ function getMenu() {
 		menuItems.push(...props.menu);
 	}
 
-	if (props.refresher) {
-		menuItems.push({
-			icon: 'ti ti-refresh',
-			text: i18n.ts.reload,
-			action: () => {
-				if (props.refresher) {
-					props.refresher();
-				}
-			},
-		});
-	}
-
 	if (menuItems.length > 0) {
 		menuItems.push({
 			type: 'divider',
@@ -124,109 +107,37 @@ function getMenu() {
 	}
 
 	menuItems.push({
-		icon: 'ti ti-settings',
-		text: i18n.ts._deck.configureColumn,
-		action: async () => {
-			const name = props.panel.name ?? i18n.ts._deck._columns[props.panel.type];
-			const { canceled, result } = await os.form(name, {
-				name: {
-					type: 'string',
-					label: i18n.ts.name,
-					default: props.panel.name,
-				},
-				width: {
-					type: 'number',
-					label: i18n.ts.width,
-					description: i18n.ts._deck.usedAsMinWidthWhenFlexible,
-					default: props.panel.width,
-				},
-				flexible: {
-					type: 'boolean',
-					label: i18n.ts._deck.flexible,
-					default: props.panel.flexible ?? null,
-				},
-			});
-			if (canceled) return;
-			updateColumn(props.panel.id, result);
-		},
-	});
-
-	const flexibleRef = ref(props.panel.flexible ?? false);
-
-	watch(flexibleRef, flexible => {
-		updateColumn(props.panel.id, {
-			flexible,
-		});
-	});
-
-	menuItems.push({
-		type: 'switch',
-		icon: 'ti ti-arrows-horizontal',
-		text: i18n.ts._deck.flexible,
-		ref: flexibleRef,
-	});
-
-	const moveToMenuItems: MenuItem[] = [];
-
-	moveToMenuItems.push({
-		icon: 'ti ti-arrow-left',
-		text: i18n.ts._deck.swapLeft,
+		icon: 'ti ti-box-align-bottom',
+		text: 'Add panel to below',
 		action: () => {
-			swapLeftColumn(props.panel.id);
+
 		},
 	}, {
-		icon: 'ti ti-arrow-right',
-		text: i18n.ts._deck.swapRight,
+		icon: 'ti ti-box-align-top',
+		text: 'Add panel to above',
 		action: () => {
-			swapRightColumn(props.panel.id);
+
 		},
-	});
-
-	if (props.isStacked) {
-		moveToMenuItems.push({
-			icon: 'ti ti-arrow-up',
-			text: i18n.ts._deck.swapUp,
-			action: () => {
-				swapUpColumn(props.panel.id);
-			},
-		}, {
-			icon: 'ti ti-arrow-down',
-			text: i18n.ts._deck.swapDown,
-			action: () => {
-				swapDownColumn(props.panel.id);
-			},
-		});
-	}
-
-	menuItems.push({
-		type: 'parent',
-		text: i18n.ts.move + '...',
-		icon: 'ti ti-arrows-move',
-		children: moveToMenuItems,
 	}, {
-		icon: 'ti ti-stack-2',
-		text: i18n.ts._deck.stackLeft,
+		icon: 'ti ti-box-align-left',
+		text: 'Add panel to left',
 		action: () => {
-			stackLeftColumn(props.panel.id);
+
+		},
+	}, {
+		icon: 'ti ti-box-align-right',
+		text: 'Add panel to right',
+		action: () => {
+
 		},
 	});
-
-	if (props.isStacked) {
-		menuItems.push({
-			icon: 'ti ti-window-maximize',
-			text: i18n.ts._deck.popRight,
-			action: () => {
-				popRightColumn(props.panel.id);
-			},
-		});
-	}
 
 	menuItems.push({ type: 'divider' }, {
-		icon: 'ti ti-trash',
-		text: i18n.ts.remove,
+		icon: 'ti ti-x',
+		text: 'Close panel',
 		danger: true,
 		action: () => {
-			removeColumn(props.panel.id);
+
 		},
 	});
 
@@ -234,11 +145,11 @@ function getMenu() {
 }
 
 function showSettingsMenu(ev: PointerEvent) {
-	os.popupMenu(getMenu(), ev.currentTarget ?? ev.target);
+	ui.popupMenu(getMenu(), ev.currentTarget ?? ev.target);
 }
 
 function onContextmenu(ev: PointerEvent) {
-	os.contextMenu(getMenu(), ev);
+	ui.contextMenu(getMenu(), ev);
 }
 
 function goTop(ev: PointerEvent) {
