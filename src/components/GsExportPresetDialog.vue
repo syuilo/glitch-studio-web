@@ -2,7 +2,7 @@
 <GsModal ref="modal" preferType="dialog" @closed="emit('closed')">
 	<div>
 		<div>
-			<input type="text" v-model="name"/>
+			<input v-model="name" type="text"/>
 		</div>
 		<footer>
 			<button @click="cancel()">Cancel</button>
@@ -14,15 +14,12 @@
 
 <script lang="ts" setup>
 import { ref, useTemplateRef } from 'vue';
+import { encode } from '@msgpack/msgpack';
+import GsModal from './common/GsModal.vue';
 import { SettingsStore } from '@/settings';
 import { version } from '@/version';
-import { encode } from '@msgpack/msgpack';
-import { useStore } from '@/store';
 import { genId } from '@/utility/id.ts';
 import * as api from '@/api.js';
-import GsModal from './common/GsModal.vue';
-
-const store = useStore();
 
 const modal = useTemplateRef('modal');
 
@@ -45,8 +42,8 @@ async function save() {
 		defaultPath: name.value,
 		filters: [{
 			name: 'Glitch Studio Preset',
-			extensions: ['gsp']
-		}]
+			extensions: ['gsp'],
+		}],
 	}, data);
 	ok();
 }

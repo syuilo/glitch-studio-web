@@ -13,6 +13,7 @@ import XFxNode from './GsFxNode.vue';
 import XGroupNode from './group-node.vue';
 import { i18n } from '@/i18n';
 import { GsGroupNode, GsNode } from '@/engine/renderer.ts';
+import { appContext } from '@/app.ts';
 
 const Sortable = defineAsyncComponent(() => import('vuedraggable').then(x => x.default));
 
@@ -22,19 +23,10 @@ const props = defineProps<{
 
 const nodes = computed({
 	get(): GsNode[] {
-		return props.group ? props.group.nodes : store.nodes;
+		return props.group ? props.group.nodes : appContext.state.nodes.value;
 	},
 	set(val): void {
 		//store.setNodes({ nodes: val }, props.group);
-	},
-});
-
-const renderNodeId = computed({
-	get() {
-		return store.renderNodeId;
-	},
-	set(val) {
-		store.renderNodeId = val;
 	},
 });
 </script>

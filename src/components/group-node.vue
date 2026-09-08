@@ -6,17 +6,17 @@
 	<div class="buttons">
 		<GsButton class="expand" @click="expanded = !expanded"><i class="ti" :class="expanded ? 'ti-chevron-up' : 'ti-chevron-down'"></i></GsButton>
 		<GsButton class="showSettings" @click="showSettings = !showSettings"><i class="ti ti-settings"></i></GsButton>
-		<GsButton class="remove" @click="remove()" :title="i18n.ts.RemoveEffect"><i class="ti ti-x"></i></GsButton>
+		<GsButton class="remove" :title="i18n.ts.RemoveEffect" @click="remove()"><i class="ti ti-x"></i></GsButton>
 	</div>
 
 	<div v-if="showSettings" v-show="expanded" style="margin: 4px; padding: 4px;" class="_gaps_s">
 		<button @click="exportPreset">Export as preset</button>
 		<input type="text" :value="node.name" @change="changeName($event.target.value)"/>
 		<button @click="addMacro">Add macro</button>
-		<XMacroEditor class="_gs-container" style="padding: 8px;" v-for="macro in node.macros" :macro="macro" :group="node" :key="macro.id"/>
+		<XMacroEditor v-for="macro in node.macros" :key="macro.id" class="_gs-container" style="padding: 8px;" :macro="macro" :group="node"/>
 	</div>
 
-	<div class="params" v-show="expanded">
+	<div v-show="expanded" class="params">
 		<div v-for="macro in Object.values(node.macros)" :key="macro.id">
 			<label :class="{ expression: isExpression(macro) }" @dblclick="toggleMacroValueType(macro.id)">{{ macro.label }}</label>
 			<div v-if="isExpression(macro)">
@@ -39,22 +39,19 @@
 
 <script lang="ts" setup>
 import { ref, computed, onMounted, shallowRef } from 'vue';
-import GsNodes from './GsNodes.vue';
-import { subStore } from '@/sub-store';
-import { useStore } from '@/store';
-import { i18n } from '@/i18n';
-import XControl from './GsEffectParamControl.vue';
-import { Asset, Macro } from '@/types';
-import XMacroEditor from './macro-editor.vue';
-import { genId } from '@/utility/id.ts';
 import * as msgpack from '@msgpack/msgpack';
-import { version } from '@/version';
+import GsNodes from './GsNodes.vue';
+import XControl from './GsEffectParamControl.vue';
+import XMacroEditor from './macro-editor.vue';
 import GsButton from './common/GsButton.vue';
+import { subStore } from '@/sub-store';
+import { i18n } from '@/i18n';
+import { Asset, Macro } from '@/types';
+import { genId } from '@/utility/id.ts';
+import { version } from '@/version';
 import { wireMap } from '@/app';
 import * as api from '@/api.js';
 import { GsGroupNode } from '@/engine/renderer.ts';
-
-const store = useStore();
 
 const props = defineProps<{
 	node: GsGroupNode,

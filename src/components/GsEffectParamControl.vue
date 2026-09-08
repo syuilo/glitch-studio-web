@@ -18,7 +18,7 @@
 		<GsInput small type="number" :modelValue="value" :min="options.min" :max="options.max" @update:modelValue="changeValue(parseFloat($event, 10))"/>
 	</div>
 	<div v-else-if="type === 'bool'">
-		<GsButton small @click="changeValue(!value)" :primary="value">{{ value ? 'On' : 'Off' }}</GsButton>
+		<GsButton small :primary="value" @click="changeValue(!value)">{{ value ? 'On' : 'Off' }}</GsButton>
 	</div>
 	<div v-else-if="type === 'enum'">
 		<GsSelect small :modelValue="value" :items="options.options" @update:modelValue="v => changeValue(v)"/>
@@ -91,13 +91,13 @@
 		<GsSignal :signal="value" @input="changeValue($event)"/>
 	</div>
 	<div v-else-if="type === 'xy'">
-		<GsXy :modelValue="value" @update:modelValue="v => changeValue(v)" :step="options.step ?? 0.1" :min="options.min" :max="options.max"/>
+		<GsXy :modelValue="value" :step="options.step ?? 0.1" :min="options.min" :max="options.max" @update:modelValue="v => changeValue(v)"/>
 	</div>
 	<div v-else-if="type === 'wh'">
-		<XXySlider :modelValue="value" @update:modelValue="v => changeValue(v)" :step="options.step ?? 0.1" :min="options.min" :max="options.max"/>
+		<XXySlider :modelValue="value" :step="options.step ?? 0.1" :min="options.min" :max="options.max" @update:modelValue="v => changeValue(v)"/>
 	</div>
 	<div v-else-if="type === 'vector'" style="max-width: 150px;">
-		<GsXy :modelValue="value" @update:modelValue="v => changeValue(v)" :step="options.step ?? 0.1" :min="options.min" :max="options.max"/>
+		<GsXy :modelValue="value" :step="options.step ?? 0.1" :min="options.min" :max="options.max" @update:modelValue="v => changeValue(v)"/>
 	</div>
 	<div v-else-if="type === 'color'">
 		<XColor :color="value" @input="changeValue($event)"/>
@@ -123,10 +123,10 @@
 						value: node.id,
 					})),
 				}] : []),
-				...(store.nodes.length > 0 ? [{
+				...(appContext.state.nodes.value.length > 0 ? [{
 					type: 'group' as const,
 					label: 'Nodes',
-					items: store.nodes.filter(x => x.id !== props.node.id).map(node => ({
+					items: appContext.state.nodes.value.filter(x => x.id !== props.node.id).map(node => ({
 						label: `${node.type === 'fx' ? fxs[node.fx].displayName : node.name} [${node.id}]`,
 						value: node.id,
 					})),
@@ -136,7 +136,7 @@
 		/>
 	</div>
 	<div v-else-if="type === 'nodes'">
-		<XNodesInput :modelValue="value" @update:modelValue="v => changeValue(v)" :node="node" :group="group" :name="name"/>
+		<XNodesInput :modelValue="value" :node="node" :group="group" :name="name" @update:modelValue="v => changeValue(v)"/>
 	</div>
 	<div v-else-if="type === 'image'">
 		<GsSelect
@@ -144,10 +144,10 @@
 			:modelValue="value"
 			:items="[
 				{ label: i18n.ts.None, value: null },
-				...(store.assets.length > 0 ? [{
+				...(appContext.state.assets.value.length > 0 ? [{
 					type: 'group' as const,
 					label: 'Assets',
-					items: store.assets.filter(asset => asset.fileDataType.startsWith('image/')).map(asset => ({ label: asset.name, value: asset.id })),
+					items: appContext.state.assets.value.filter(asset => asset.fileDataType.startsWith('image/')).map(asset => ({ label: asset.name, value: asset.id })),
 				}] : []),
 			]"
 			@update:modelValue="v => changeValue(v)"
@@ -159,10 +159,10 @@
 			:modelValue="value"
 			:items="[
 				{ label: i18n.ts.None, value: null },
-				...(store.assets.length > 0 ? [{
+				...(appContext.state.assets.value.length > 0 ? [{
 					type: 'group' as const,
 					label: 'Assets',
-					items: store.assets.filter(asset => asset.fileDataType.startsWith('video/')).map(asset => ({ label: asset.name, value: asset.id })),
+					items: appContext.state.assets.value.filter(asset => asset.fileDataType.startsWith('video/')).map(asset => ({ label: asset.name, value: asset.id })),
 				}] : []),
 			]"
 			@update:modelValue="v => changeValue(v)"
@@ -184,15 +184,12 @@ import GsInput from './common/GsInput.vue';
 import GsRange from './common/GsRange.vue';
 import XSlider2 from './common/slider2.vue';
 import XNodesInput from './nodes-input.vue';
-import { fxs } from '@/engine/fxs';
-import { useStore } from '@/store';
-import { i18n } from '@/i18n';
 import GsButton from './common/GsButton.vue';
 import GsSelect from './common/GsSelect.vue';
-import { wireMap } from '@/app';
+import { fxs } from '@/engine/fxs';
+import { i18n } from '@/i18n';
+import { appContext, wireMap } from '@/app';
 import { GsGroupNode, GsNode } from '@/engine/renderer.ts';
-
-const store = useStore();
 
 const props = defineProps<{
 	type: string;

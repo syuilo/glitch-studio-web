@@ -644,6 +644,7 @@ class AppContext {
 		const commandDef = COMMAND_DEFS[type] as CommandDef<any>;
 		const command = commandDef.create(payload);
 		this.commandManager.execute(command, this.state);
+		console.log('Committed command:', type, payload);
 	}
 
 	public undo() {

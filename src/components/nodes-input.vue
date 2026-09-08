@@ -1,9 +1,9 @@
 <template>
 <div class="_gaps_s">
-	<Sortable class="nodes _gaps_s" v-model="value" itemKey="id" tag="div" handle=".drag-handle" :animation="150" :swapThreshold="0.5">
+	<Sortable v-model="value" class="nodes _gaps_s" itemKey="id" tag="div" handle=".drag-handle" :animation="150" :swapThreshold="0.5">
 		<template #item="{element}">
 			<div style="display: flex;">
-				<div class="port" :ref="el => portEls[element.id] = el">・</div>
+				<div :ref="el => portEls[element.id] = el" class="port">・</div>
 				<GsSelect
 					:modelValue="element.node"
 					:items="[
@@ -28,7 +28,7 @@
 					style="flex: 1;"
 					@update:modelValue="ev => value.find(x => x.id === element.id).node = ev"
 				/>
-				<GsButton @click="remove(element)" style="margin-left: 4px;"><i class="ti ti-x"></i></GsButton>
+				<GsButton style="margin-left: 4px;" @click="remove(element)"><i class="ti ti-x"></i></GsButton>
 				<div class="drag-handle" style="margin-left: 4px;">
 					<svg viewBox="0 0 16 16" version="1.1" class="grabber">
 						<path fill="currentColor" d="M10 13a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm0-4a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm-4 4a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm5-9a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM6 5a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path>
@@ -43,18 +43,15 @@
 
 <script lang="ts" setup>
 import { defineAsyncComponent, ref, shallowRef, watch } from 'vue';
-import { fxs } from '@/engine/fxs';
-import { i18n } from '@/i18n';
-import { useStore } from '@/store';
 import GsButton from './common/GsButton.vue';
 import GsSelect from './common/GsSelect.vue';
+import { fxs } from '@/engine/fxs';
+import { i18n } from '@/i18n';
 import { wireMap } from '@/app';
 import { genId } from '@/utility/id.ts';
 import { GsGroupNode, GsNode } from '@/engine/renderer.ts';
 
 const Sortable = defineAsyncComponent(() => import('vuedraggable').then(x => x.default));
-
-const store = useStore();
 
 const props = defineProps<{
 	modelValue: string[];

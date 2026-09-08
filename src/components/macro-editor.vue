@@ -16,14 +16,14 @@
 		/>
 		<button class="remove" title="Remove macro" @click="remove(macro.id)"><i class="ti ti-x"></i></button>
 	</div>
-	<div class="minmax" v-if="['number', 'range'].includes(macro.type)">
+	<div v-if="['number', 'range'].includes(macro.type)" class="minmax">
 		<label>Min/Max</label>
 		<div>
 			<input type="number" :value="macro.typeOptions.min" @change="updateMacroTypeOption(macro, 'min', parseFloat($event.target.value, 10))"/>
 			<input type="number" :value="macro.typeOptions.max" @change="updateMacroTypeOption(macro, 'max', parseFloat($event.target.value, 10))"/>
 		</div>
 	</div>
-	<div class="step" v-if="['number', 'range'].includes(macro.type)">
+	<div v-if="['number', 'range'].includes(macro.type)" class="step">
 		<label>Step</label>
 		<div>
 			<input type="number" :value="macro.typeOptions.step" @change="updateMacroTypeOption(macro, 'step', parseFloat($event.target.value, 10))"/>
@@ -34,13 +34,10 @@
 
 <script lang="ts" setup>
 import {} from 'vue';
-import { useStore } from '@/store';
+import GsSelect from './common/GsSelect.vue';
 import { i18n } from '@/i18n';
 import { Macro } from '@/types';
-import GsSelect from './common/GsSelect.vue';
 import { GsGroupNode } from '@/engine/renderer.ts';
-
-const store = useStore();
 
 const props = defineProps<{
 	macro: Macro;
