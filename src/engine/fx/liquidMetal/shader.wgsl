@@ -15,15 +15,6 @@ struct Uniforms {
 	distortion: f32, // Noise distortion over the stripes pattern (0 to 1)
 	contour: f32, // Strength of the distortion on the shape edges (0 to 1)
 	angle: f32, // Direction of pattern animation in degrees
-	fit: f32,
-	scale: f32,
-	rotation: f32,
-	originX: f32,
-	originY: f32,
-	offsetX: f32,
-	offsetY: f32,
-	worldWidth: f32,
-	worldHeight: f32,
 };
 @group(0) @binding(0) var<uniform> uniforms: Uniforms;
 @group(0) @binding(1) var sourceSampler: sampler;
@@ -41,25 +32,7 @@ fn rotate(uv: vec2f, th: f32) -> vec2f {
 }
 
 fn imageUV(position: vec2f) -> vec2f {
-	let size = vec2f(textureDimensions(sourceTexture));
-	let ratio = size.x / size.y;
-	var width = 10.0; // Upstream's image fit = none uses a 10px reference box.
-	if (uniforms.fit == 1.0) {
-		width = min(uniforms.resolution.x / ratio, uniforms.resolution.y) * ratio;
-	} else if (uniforms.fit == 2.0) {
-		width = max(uniforms.resolution.x / ratio, uniforms.resolution.y) * ratio;
-	}
-	// worldWidth/worldHeight are retained for API parity; the original image
-	// branch ignores them (they only affect the removed procedural shapes).
-	let boxScale = uniforms.resolution / vec2f(width, width / ratio);
-	let boxOrigin = vec2f(0.5 - uniforms.originX, uniforms.originY - 0.5);
-	var uv = position * 0.5 * boxScale;
-	uv += boxOrigin * (boxScale - vec2f(1.0));
-	uv += vec2f(-uniforms.offsetX, uniforms.offsetY);
-	uv /= uniforms.scale;
-	uv.x *= ratio;
-	uv = rotate(uv, uniforms.rotation * PI / 180.0);
-	uv.x /= ratio;
+	var uv = position * 0.5;
 	uv += vec2f(0.5);
 	return vec2f(uv.x, 1.0 - uv.y);
 }

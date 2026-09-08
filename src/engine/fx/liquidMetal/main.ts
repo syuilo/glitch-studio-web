@@ -22,21 +22,9 @@ export default defineEffect({
 		distortion: { type: 'range', label: 'Distortion', min: 0, max: 1, step: 0.01 },
 		contour: { type: 'range', label: 'Contour', min: 0, max: 1, step: 0.01 },
 		angle: { type: 'range', label: 'Angle', min: 0, max: 360, step: 0.01 },
-		scale: { type: 'range', label: 'Scale', min: 0.1, max: 4, step: 0.01 },
-		rotation: { type: 'range', label: 'Rotation', min: 0, max: 360, step: 0.01 },
-		originX: { type: 'range', label: 'Origin X', min: 0, max: 1, step: 0.01 },
-		originY: { type: 'range', label: 'Origin Y', min: 0, max: 1, step: 0.01 },
-		offsetX: { type: 'range', label: 'Offset X', min: -1, max: 1, step: 0.01 },
-		offsetY: { type: 'range', label: 'Offset Y', min: -1, max: 1, step: 0.01 },
 		time: { type: 'number', label: 'Time (s)', step: 0.01 },
 		speed: { type: 'number', label: 'Speed', step: 0.01 },
 		frame: { type: 'number', label: 'Frame offset (ms)', step: 1 },
-		fit: { type: 'enum', label: 'Fit', options: [
-			{ value: 0, label: 'None' }, { value: 1, label: 'Contain' }, { value: 2, label: 'Cover' },
-		] },
-		// Retained upstream sizing options; only procedural shapes used these.
-		worldWidth: { type: 'number', label: 'World width (unused for image)', min: 0 },
-		worldHeight: { type: 'number', label: 'World height (unused for image)', min: 0 },
 	},
 	getDefaultParams: () => ({
 		colorBack: { type: 'literal', value: [170 / 255, 170 / 255, 172 / 255] },
@@ -44,24 +32,15 @@ export default defineEffect({
 		colorBackAlpha: { type: 'literal', value: 1 },
 		colorTintAlpha: { type: 'literal', value: 1 },
 		repetition: { type: 'literal', value: 2 },
-		softness: { type: 'literal', value: 0.1 },
+		softness: { type: 'literal', value: 0.2 },
 		shiftRed: { type: 'literal', value: 0.3 },
 		shiftBlue: { type: 'literal', value: 0.3 },
 		distortion: { type: 'literal', value: 0.07 },
-		contour: { type: 'literal', value: 0.4 },
+		contour: { type: 'literal', value: 1 },
 		angle: { type: 'literal', value: 70 },
-		scale: { type: 'literal', value: 0.6 },
-		rotation: { type: 'literal', value: 0 },
-		originX: { type: 'literal', value: 0.5 },
-		originY: { type: 'literal', value: 0.5 },
-		offsetX: { type: 'literal', value: 0 },
-		offsetY: { type: 'literal', value: 0 },
 		time: { type: 'expression', value: 'TIME' },
 		speed: { type: 'literal', value: 1 },
 		frame: { type: 'literal', value: 0 },
-		fit: { type: 'literal', value: 1 },
-		worldWidth: { type: 'literal', value: 0 },
-		worldHeight: { type: 'literal', value: 0 },
 	}),
 	getOut: ({ wgpu, resolution }) => wgpu.device.createTexture({
 		size: resolution,
@@ -146,7 +125,6 @@ export default defineEffect({
 					// Upstream frame is milliseconds. Explicit time makes seeking deterministic.
 					time: p.time * p.speed + p.frame / 1000,
 					repetition: Math.max(1, p.repetition),
-					scale: Math.max(0.0001, p.scale),
 				});
 				device.queue.writeBuffer(uniformBuffer, 0, uniformValues.arrayBuffer);
 				ctx.commandEncoder.clearBuffer(maximum);
