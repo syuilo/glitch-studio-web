@@ -498,15 +498,15 @@ const updateParamAsLiteralCommandDef = defineCommand<{ nodeId: GsNode['id']; par
 		return {
 			execute(state) {
 				const node = stateUtility.findNode(state, payload.nodeId) as GsFxNode;
-				before = node.params[payload.param];
+				before = deepClone(node.params[payload.param]);
 				node.params[payload.param] = {
 					type: 'literal',
-					value: payload.value,
+					value: deepClone(payload.value),
 				};
 			},
 			undo(state) {
 				const node = stateUtility.findNode(state, payload.nodeId) as GsFxNode;
-				node.params[payload.param] = before;
+				node.params[payload.param] = deepClone(before);
 			},
 		};
 	},
@@ -621,22 +621,6 @@ class AppContext {
 		};
 	}
 
-	private pushCommand(type: string, execute: (state: AppState) => void, undo: (state: AppState) => void, mergeKey?: string | null) {
-		this.undoStack.value.push({
-			type,
-			date: Date.now(),
-			execute,
-			undo,
-			mergeKey,
-		});
-		triggerRef(this.undoStack);
-		this.redoStack.value = [];
-		if (this.undoStack.value.length > this.maxUndoStackSize) {
-			this.undoStack.value.shift();
-			triggerRef(this.undoStack);
-		}
-	}
-
 	public commit<T extends keyof typeof COMMAND_DEFS>(type: T, payload: Parameters<typeof COMMAND_DEFS[T]['create']>[0], mergeKey?: string | null) {
 		const commandDef = COMMAND_DEFS[type] as CommandDef<any>;
 		const command = commandDef.create(deepClone(payload));
@@ -646,9 +630,22 @@ class AppContext {
 		if (latest != null && mergeKey != null && latest.mergeKey === mergeKey) {
 			latest.execute = command.execute;
 		} else {
-			this.pushCommand(type, command.execute, command.undo, mergeKey);
+			this.undoStack.value.push({
+				type,
+				date: Date.now(),
+				execute: command.execute,
+				undo: command.undo,
+				mergeKey,
+			});
+			if (this.undoStack.value.length > this.maxUndoStackSize) {
+				this.undoStack.value.shift();
+			}
+			triggerRef(this.undoStack);
 			console.log('Committed command:', type, deepClone(payload));
 		}
+
+		this.redoStack.value = [];
+		triggerRef(this.redoStack);
 	}
 
 	public undo() {
