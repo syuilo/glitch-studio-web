@@ -3,12 +3,12 @@ import { useStore } from './store';
 import { genId } from './utility/id.ts';
 import { fxs } from './engine/fxs';
 import { GsGroupNode } from './engine/renderer';
-import { version } from '@/version';
 import { loadProjectFile, saveProjectFile, decodeAssets } from './api';
 import { RawProject } from './settings';
 import { Engine } from './engine/engine.ts';
-import * as ui from '@/ui.js';
 import { deepClone } from './utility/deep-clone.ts';
+import * as ui from '@/ui.js';
+import { version } from '@/version';
 import * as api from '@/api.js';
 
 export const wireMap = reactive<{
@@ -28,17 +28,17 @@ export function showAddNodeMenu(ev: MouseEvent, group?: GsGroupNode) {
 		text: 'Group',
 		action: () => {
 			store.addGroupNode({
-				id: genId()
+				id: genId(),
 			}, group);
-		}
+		},
 	}, ...Object.entries(fxs).filter(([_, v]) => v.category === '').map(x => ({
 		text: x[1].displayName,
 		action: () => {
 			store.addFxNode({
 				fx: x[1].name,
-				id: genId()
+				id: genId(),
 			}, group);
-		}
+		},
 	})), {
 		type: 'label',
 		text: 'Glitch',
@@ -47,9 +47,9 @@ export function showAddNodeMenu(ev: MouseEvent, group?: GsGroupNode) {
 		action: () => {
 			store.addFxNode({
 				fx: x[1].name,
-				id: genId()
+				id: genId(),
 			}, group);
-		}
+		},
 	})), {
 		type: 'label',
 		text: 'Effect',
@@ -58,9 +58,9 @@ export function showAddNodeMenu(ev: MouseEvent, group?: GsGroupNode) {
 		action: () => {
 			store.addFxNode({
 				fx: x[1].name,
-				id: genId()
+				id: genId(),
 			}, group);
-		}
+		},
 	})), {
 		type: 'label',
 		text: 'Draw',
@@ -69,9 +69,9 @@ export function showAddNodeMenu(ev: MouseEvent, group?: GsGroupNode) {
 		action: () => {
 			store.addFxNode({
 				fx: x[1].name,
-				id: genId()
+				id: genId(),
 			}, group);
-		}
+		},
 	})), {
 		type: 'label',
 		text: 'Color',
@@ -80,9 +80,9 @@ export function showAddNodeMenu(ev: MouseEvent, group?: GsGroupNode) {
 		action: () => {
 			store.addFxNode({
 				fx: x[1].name,
-				id: genId()
+				id: genId(),
 			}, group);
-		}
+		},
 	})), {
 		type: 'label',
 		text: 'Utility',
@@ -91,9 +91,9 @@ export function showAddNodeMenu(ev: MouseEvent, group?: GsGroupNode) {
 		action: () => {
 			store.addFxNode({
 				fx: x[1].name,
-				id: genId()
+				id: genId(),
 			}, group);
-		}
+		},
 	}))], ev.currentTarget ?? ev.target);
 }
 
@@ -102,12 +102,12 @@ function addFx(fx: string) {
 	if (fx == '') return;
 	if (fx == '_group') {
 		store.addGroupNode({
-			id: genId()
+			id: genId(),
 		}, props.group);
 	} else {
 		store.addFxNode({
 			fx: fx,
-			id: genId()
+			id: genId(),
 		}, props.group);
 	}
 }
@@ -149,21 +149,21 @@ export async function appReady(project: RawProject) {
 
 	watch(() => store.nodes, () => {
 		engine.updateNodes(deepClone(store.nodes));
-	
+
 		// TODO: グループ考慮
 		if (store.nodes.some(n => n.type === 'fx' && n.fx === 'webcamera')) {
 			glitchRenderer.setupWebcam();
 		}
 	}, { deep: true, immediate: true });
-	
+
 	watch(() => store.macros, () => {
 		engine.updateMacros(deepClone(store.macros));
 	}, { deep: true, immediate: true });
-	
+
 	watch(() => store.automations, () => {
 		engine.updateAutomations(deepClone(store.automations));
 	}, { deep: true, immediate: true });
-	
+
 	watch(() => store.assets, () => {
 		engine.updateAssets(deepClone(store.assets));
 	}, { deep: true, immediate: true });
@@ -252,16 +252,16 @@ export async function newProjectFromImageOrVideo() {
 			fx: 'image',
 			id: genId(),
 			params: {
-				image: { type: 'literal', value: assetId }
-			}
+				image: { type: 'literal', value: assetId },
+			},
 		});
 	} else if (result.type.startsWith('video/')) {
 		store.addFxNode({
 			fx: 'video',
 			id: genId(),
 			params: {
-				video: { type: 'literal', value: assetId }
-			}
+				video: { type: 'literal', value: assetId },
+			},
 		});
 	}
 }

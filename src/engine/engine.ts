@@ -1,15 +1,15 @@
-import { Asset, Macro } from "@/types.ts";
-import { GsFxNode, GsNode, Renderer } from "./renderer.ts";
-import { ref } from "vue";
-import { GsAutomation } from "./types.ts";
-import { deepClone } from "@/utility/deep-clone.ts";
-import { playVideoAfterFirstFrameIsReady } from "@/utility/video.ts";
+import { ref } from 'vue';
+import { GsFxNode, GsNode, Renderer } from './renderer.ts';
+import { GsAutomation } from './types.ts';
+import { Asset, Macro } from '@/types.ts';
+import { deepClone } from '@/utility/deep-clone.ts';
+import { playVideoAfterFirstFrameIsReady } from '@/utility/video.ts';
 import * as ui from '@/ui.ts';
 
 export class Engine {
 	private renderer: Renderer | null = null;
-	private enableFloat32Filtering: boolean = false;
-	private enableStats: boolean = true;
+	private enableFloat32Filtering = false;
+	private enableStats = true;
 	private nodes: GsNode[] = [];
 	private assets: Asset[] = [];
 	private macros: Macro[] = [];
@@ -26,7 +26,7 @@ export class Engine {
 
 	constructor() {
 	}
-	
+
 	async setCanvas(options: {
 		canvas: HTMLCanvasElement;
 		resolution: {

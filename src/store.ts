@@ -1,12 +1,12 @@
 import { ref } from 'vue';
-import { defineStore } from 'pinia'
-import { fxs } from '@/engine/fxs';
-import { genEmptyValue } from '@/utility/misc.ts';
-import { Macro, Asset, FxParamDefs } from '@/types';
+import { defineStore } from 'pinia';
+import { AiSON } from '@syuilo/aiscript';
 import { GsAutomation } from './engine/types';
 import { WorkspaceDivider } from './types/workspace.ts';
 import { GsFxNode, GsGroupNode, GsNode } from './engine/renderer.ts';
-import { AiSON } from '@syuilo/aiscript';
+import { fxs } from '@/engine/fxs';
+import { genEmptyValue } from '@/utility/misc.ts';
+import { Macro, Asset, FxParamDefs } from '@/types';
 
 export const useStore = defineStore('main', () => {
 	const id = ref<string | null>(null);
@@ -48,7 +48,7 @@ export const useStore = defineStore('main', () => {
 				ratio: 0.4,
 				type: 'stats',
 			}],
-		}]
+		}],
 	});
 
 	function findNode(nodeId: string): GsNode | undefined {
@@ -70,7 +70,7 @@ export const useStore = defineStore('main', () => {
 
 	function addFxNode(payload, group?: GsGroupNode) {
 		const paramDefs = fxs[payload.fx].paramDefs as FxParamDefs;
-		
+
 		const params = {} as GsFxNode['params'];
 		const defaultParams = fxs[payload.fx].getDefaultParams();
 
@@ -182,8 +182,8 @@ export const useStore = defineStore('main', () => {
 			name: 'macro',
 			value: {
 				type: 'literal',
-				value: 0
-			}
+				value: 0,
+			},
 		});
 	}
 
@@ -195,17 +195,17 @@ export const useStore = defineStore('main', () => {
 		if (payload.type === 'expression') {
 			node.params[payload.param] = {
 				type: 'expression',
-				value: currentValue.type === 'literal' ? AiSON.stringify(currentValue.value) : defaultValue.type === 'literal' ? AiSON.stringify(defaultValue.value) : AiSON.stringify(emptyValue)
+				value: currentValue.type === 'literal' ? AiSON.stringify(currentValue.value) : defaultValue.type === 'literal' ? AiSON.stringify(defaultValue.value) : AiSON.stringify(emptyValue),
 			};
 		} else if (payload.type === 'literal') {
 			node.params[payload.param] = {
 				type: 'literal',
-				value: defaultValue // TODO: currentValueがexpressionだった場合評価した値を入れる
+				value: defaultValue, // TODO: currentValueがexpressionだった場合評価した値を入れる
 			};
 		} else if (payload.type === 'automation') {
 			node.params[payload.param] = {
 				type: 'automation',
-				value: null
+				value: null,
 			};
 		}
 	}
@@ -214,7 +214,7 @@ export const useStore = defineStore('main', () => {
 		const node = findNode(payload.nodeId)!;
 		node.params[payload.param] = {
 			type: 'literal',
-			value: payload.value
+			value: payload.value,
 		};
 	}
 
@@ -222,7 +222,7 @@ export const useStore = defineStore('main', () => {
 		const node = findNode(payload.nodeId)!;
 		node.params[payload.param] = {
 			type: 'expression',
-			value: payload.value
+			value: payload.value,
 		};
 	}
 
@@ -230,7 +230,7 @@ export const useStore = defineStore('main', () => {
 		const node = findNode(payload.nodeId)!;
 		node.params[payload.param] = {
 			type: 'automation',
-			value: payload.value
+			value: payload.value,
 		};
 	}
 
@@ -250,12 +250,12 @@ export const useStore = defineStore('main', () => {
 		if (isLiteral) {
 			macro.value = {
 				type: 'expression',
-				value: ''
+				value: '',
 			};
 		} else {
 			macro.value = {
 				type: 'literal',
-				value: genEmptyValue(macro)
+				value: genEmptyValue(macro),
 			};
 		}
 	}
@@ -264,7 +264,7 @@ export const useStore = defineStore('main', () => {
 		const macro = (payload.group ? payload.group.macros : macros.value).find(macro => macro.id === payload.macroId)!;
 		macro.value = {
 			type: 'literal',
-			value: payload.value
+			value: payload.value,
 		};
 	}
 
@@ -272,7 +272,7 @@ export const useStore = defineStore('main', () => {
 		const macro = (payload.group ? payload.group.macros : macros.value).find(macro => macro.id === payload.macroId)!;
 		macro.value = {
 			type: 'expression',
-			value: payload.value
+			value: payload.value,
 		};
 	}
 
@@ -291,7 +291,7 @@ export const useStore = defineStore('main', () => {
 		macro.type = payload.value;
 		macro.value = {
 			type: 'literal',
-			value: genEmptyValue(macro)
+			value: genEmptyValue(macro),
 		};
 	}
 
@@ -310,7 +310,7 @@ export const useStore = defineStore('main', () => {
 
 	//async function applyPreset(payload: Preset) {
 	//	const assets = await api.decodeAssets(payload.assets ?? []);
-//
+	//
 	//	nodes.value = payload.nodes;
 	//	macros.value = payload.macros;
 	//	assets.value = assets;
@@ -375,7 +375,7 @@ export const useStore = defineStore('main', () => {
 		renderWidth,
 		renderHeight,
 		workspaceDefinition,
-	
+
 		addFxNode,
 		addGroupNode,
 		removeNode,

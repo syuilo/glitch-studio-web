@@ -1,6 +1,6 @@
-import { defineEffect } from '@/engine/fx-utils';
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
 import code from './shader.wgsl?raw';
+import { defineEffect } from '@/engine/fx-utils';
 
 export default defineEffect({
 	name: 'snoise',
@@ -57,7 +57,7 @@ export default defineEffect({
 		const bindGroup = wgpu.device.createBindGroup({
 			layout: pipeline.getBindGroupLayout(0),
 			entries: [
-				{ binding: 1, resource: { buffer: uniformBuffer }},
+				{ binding: 1, resource: { buffer: uniformBuffer } },
 			],
 		});
 
@@ -69,7 +69,7 @@ export default defineEffect({
 					time: ctx.params.time,
 				});
 				wgpu.device.queue.writeBuffer(uniformBuffer, 0, uniformValues.arrayBuffer);
-				
+
 				const passEncoder = ctx.createPassEncoder(ctx.commandEncoder);
 				passEncoder.setPipeline(pipeline);
 				passEncoder.setBindGroup(0, bindGroup);

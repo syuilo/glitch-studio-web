@@ -1,9 +1,9 @@
-import type { Asset, Image } from './types';
 import imageType from 'image-type';
 import { PNG } from 'pngjs/browser';
 import JPEG from 'jpeg-js';
-import { Preset, RawPreset, RawProject } from './settings';
 import * as msgpack from '@msgpack/msgpack';
+import { Preset, RawPreset, RawProject } from './settings';
+import type { Asset, Image } from './types';
 
 const TODO = () => {};
 

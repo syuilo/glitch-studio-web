@@ -3,7 +3,7 @@ export const basicParamDefs = {
 	_wh: {
 		label: 'WH',
 		type: 'wh' as const,
-		default: { type: 'expression' as const, value: '[WIDTH, HEIGHT]' }
+		default: { type: 'expression' as const, value: '[WIDTH, HEIGHT]' },
 	},
 };
 
@@ -70,7 +70,7 @@ type ImageOptionSchema = {
 type VideoOptionSchema = {
 	type: 'video';
 	label: string;
-}; 
+};
 
 type NodeOptionSchema = {
 	type: 'node';

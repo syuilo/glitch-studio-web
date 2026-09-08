@@ -1,6 +1,6 @@
-import { defineEffect } from '@/engine/fx-utils';
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
 import code from './shader.wgsl?raw';
+import { defineEffect } from '@/engine/fx-utils';
 
 const blendModes: Record<string, number> = {
 	normal: 0,
@@ -93,7 +93,7 @@ export default defineEffect({
 			bindGroup = wgpu.device.createBindGroup({
 				layout: pipeline.getBindGroupLayout(0),
 				entries: [
-					{ binding: 1, resource: { buffer: uniformBuffer }},
+					{ binding: 1, resource: { buffer: uniformBuffer } },
 					{ binding: 2, resource: samplers[wrap] },
 					{ binding: 3, resource: (inputTexture ?? fallbackTexture).createView() },
 				],

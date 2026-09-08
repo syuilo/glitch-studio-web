@@ -1,8 +1,8 @@
 import { encode, decode } from '@msgpack/msgpack';
 import { GsNode } from './glitch';
+import { GsAutomation } from './engine/types';
 import { Macro, Asset } from '@/types';
 import { version } from '@/version';
-import { GsAutomation } from './engine/types';
 
 //export const userDataPath = electron.remote.app.getPath('userData');
 //const filePath = path.join(userDataPath, 'settings');
@@ -63,7 +63,7 @@ export class SettingsStore {
 			const data = fs.readFileSync(filePath);
 			this.settings = {
 				...defaultSettings,
-				...(decode(data) as Record<string, any>)
+				...(decode(data) as Record<string, any>),
 			} as Settings;
 			console.debug('Settings loaded', filePath);
 		} catch (e) {

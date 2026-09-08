@@ -1,18 +1,18 @@
-import { Asset, FxParamValue, Macro } from "@/types.ts";
-import { EffectInstance } from "./fx-utils.ts";
+import { createTextureFromSource, makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
+import * as AiScript from '@syuilo/aiscript';
+import { EffectInstance } from './fx-utils.ts';
 import defaultVertexShaderCode from './vertex.wgsl?raw';
 import TimingHelper from './TimingHelper.ts';
-import { fxs } from "./fxs.ts";
-import { createTextureFromSource, makeShaderDataDefinitions, makeStructuredView } from "webgpu-utils";
+import { fxs } from './fxs.ts';
 import finalRenderShaderCode from './render.wgsl?raw';
-import { NonNegativeRollingAverage } from "./NonNegativeRollingAverage.ts";
-import { GsAutomation } from "./types.ts";
-import { GpuHistogram } from "./GpuHistogram.ts";
-import { GpuWaveform } from "./GpuWaveform.ts";
-import { evalAutomationValue, genEmptyValue } from "@/utility/misc.ts";
-import { deepClone } from "@/utility/deep-clone.ts";
-import { isVideoFrameAvailable } from "@/utility/video.ts";
-import * as AiScript from '@syuilo/aiscript';
+import { NonNegativeRollingAverage } from './NonNegativeRollingAverage.ts';
+import { GsAutomation } from './types.ts';
+import { GpuHistogram } from './GpuHistogram.ts';
+import { GpuWaveform } from './GpuWaveform.ts';
+import { Asset, FxParamValue, Macro } from '@/types.ts';
+import { evalAutomationValue, genEmptyValue } from '@/utility/misc.ts';
+import { deepClone } from '@/utility/deep-clone.ts';
+import { isVideoFrameAvailable } from '@/utility/video.ts';
 
 const aisParser = new AiScript.Parser();
 
@@ -61,8 +61,8 @@ export class Renderer {
 	private gpuWaveform: GpuWaveform | null = null;
 	private defaultVertexShaderModule: GPUShaderModule;
 	private fallbackTexture: GPUTexture;
-	private enableStats: boolean = true;
-	private hasAlpha: boolean = false;
+	private enableStats = true;
+	private hasAlpha = false;
 	private nodes: GsNode[] = [];
 	private assets: Asset[] = [];
 	private macros: Macro[] = [];
@@ -192,7 +192,7 @@ export class Renderer {
 					: macro.value.value
 						? evaluateExpression(macro.value.value, scope)
 						: genEmptyValue(macro);
-	
+
 			if (macro.type === 'image') {
 				macroScope[macro.name] = serializeAsset(
 					this.assets.find(a => a.id === macroScope[macro.name]));
@@ -205,39 +205,39 @@ export class Renderer {
 		for (const automation of this.automations) {
 			automationScope[automation.name] = evalAutomationValue(automation, this.frame);
 		}
-		
+
 		for (const node of nodes.filter((n): n is GsFxNode => n.type === 'fx')) {
 			const params = node.params;
 			const paramDefs = fxs[node.fx].paramDefs;
-		
+
 			// Bake all params
 			const defaults = {} as GsFxNode['params'];
-		
+
 			for (const [k, v] of Object.entries(paramDefs)) {
 				defaults[k] = v.default;
 			}
-		
+
 			const mergedParams = { ...defaults, ...params } as GsFxNode['params'];
-		
+
 			const evaluatedParams = {} as Record<string, any>;
-		
+
 			const mixedScope = {
 				...macroScope,
 				...automationScope,
 				...scope,
 			};
-		
+
 			for (const [k, v] of Object.entries(mergedParams)) {
 				evaluatedParams[k] =
 					v.type === 'literal'
 						? v.value
 						: v.type === 'expression' && v.value
-								? evaluateExpression(v.value, mixedScope)
-								: v.type === 'automation' && v.value
-									? evalAutomationValue(this.automations.find(a => a.id === v.value), this.frame)
-									: genEmptyValue(paramDefs[k]);
-				}
-		
+							? evaluateExpression(v.value, mixedScope)
+							: v.type === 'automation' && v.value
+								? evalAutomationValue(this.automations.find(a => a.id === v.value), this.frame)
+								: genEmptyValue(paramDefs[k]);
+			}
+
 			this.evaledNodeParams.set(node.id, evaluatedParams);
 		}
 
@@ -251,13 +251,13 @@ export class Renderer {
 						: macro.value.value
 							? evaluateExpression(macro.value.value, scope)
 							: genEmptyValue(macro);
-		
+
 				if (macro.type === 'image') {
 					groupMacroValues[macro.name] = serializeAsset(
 						this.assets.find(a => a.id === groupMacroValues[macro.name]));
 				}
 			}
-			
+
 			this.evalNodeParams(node.nodes, groupMacroValues);
 		}
 	}
@@ -423,7 +423,7 @@ export class Renderer {
 			this.finalRenderBindGroup = this.gpuDevice.createBindGroup({
 				layout: this.finalRenderPipeline.getBindGroupLayout(0),
 				entries: [
-					{ binding: 1, resource: { buffer: this.finalRenderUniformBuffer }},
+					{ binding: 1, resource: { buffer: this.finalRenderUniformBuffer } },
 					{ binding: 2, resource: this.finalRenderInputTexture.createView() }, // TODO: cache view
 				],
 			});
@@ -472,10 +472,10 @@ export class Renderer {
 
 		for (const node of addedNodes) {
 			if (node.type === 'fx') {
-				const effect = fxs[node.fx]; 
+				const effect = fxs[node.fx];
 				const out = effect.getOut({
 					wgpu: { device: this.gpuDevice, enableFloat32Filtering: this.enableFloat32Filtering },
-					resolution: { width: this.resolution.width, height: this.resolution.height }
+					resolution: { width: this.resolution.width, height: this.resolution.height },
 				});
 				this.effectOuts.set(node.id, out);
 			}

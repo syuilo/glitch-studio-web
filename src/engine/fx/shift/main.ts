@@ -1,6 +1,6 @@
-import { defineEffect } from '@/engine/fx-utils';
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
 import code from './shader.wgsl?raw';
+import { defineEffect } from '@/engine/fx-utils';
 
 export default defineEffect({
 	name: 'shift',
@@ -87,7 +87,7 @@ export default defineEffect({
 			bindGroup = wgpu.device.createBindGroup({
 				layout: pipeline.getBindGroupLayout(0),
 				entries: [
-					{ binding: 1, resource: { buffer: uniformBuffer }},
+					{ binding: 1, resource: { buffer: uniformBuffer } },
 					{ binding: 2, resource: samplers[wrap] },
 					{ binding: 3, resource: (inputTexture ?? fallbackTexture).createView() },
 				],
@@ -107,7 +107,7 @@ export default defineEffect({
 					amount: ctx.params.amount,
 				});
 				wgpu.device.queue.writeBuffer(uniformBuffer, 0, uniformValues.arrayBuffer);
-				
+
 				const passEncoder = ctx.createPassEncoder(ctx.commandEncoder);
 				passEncoder.setPipeline(pipeline);
 				passEncoder.setBindGroup(0, bindGroup);

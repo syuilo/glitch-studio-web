@@ -1,5 +1,5 @@
-import { defineEffect } from '@/engine/fx-utils';
 import code from './shader.wgsl?raw';
+import { defineEffect } from '@/engine/fx-utils';
 
 export default defineEffect({
 	name: 'pixelSort',
@@ -80,7 +80,8 @@ export default defineEffect({
 				} });
 				const mergeGroups = Array.from({ length: maxPasses }, (_, pass) => device.createBindGroup({
 					layout: merge.getBindGroupLayout(0),
-					entries: [uniformEntry(pass + 1),
+					entries: [
+						uniformEntry(pass + 1),
 						{ binding: 2, resource: { buffer: buffers[pass % 2] } },
 						{ binding: 3, resource: { buffer: buffers[1 - pass % 2] } },
 					],

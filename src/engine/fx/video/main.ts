@@ -1,6 +1,6 @@
-import { defineEffect } from '@/engine/fx-utils';
 import { createTextureFromSource, makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
 import code from './shader.wgsl?raw';
+import { defineEffect } from '@/engine/fx-utils';
 import { isVideoFrameAvailable } from '@/utility/video.ts';
 
 export default defineEffect({
@@ -85,7 +85,7 @@ export default defineEffect({
 		const bindGroup = wgpu.device.createBindGroup({
 			layout: pipeline.getBindGroupLayout(0),
 			entries: [
-				{ binding: 1, resource: { buffer: uniformBuffer }},
+				{ binding: 1, resource: { buffer: uniformBuffer } },
 				{ binding: 2, resource: sampler },
 				{ binding: 3, resource: tex.createView() },
 			],
@@ -102,14 +102,14 @@ export default defineEffect({
 						{ width: tex.width, height: tex.height },
 					);
 				}
-				
+
 				uniformValues.set({
 					aspectRatio: resolution.width / resolution.height,
 					sourceAspectRatio: tex.width / tex.height,
 					mode: ctx.params.sizeMode,
 				});
 				wgpu.device.queue.writeBuffer(uniformBuffer, 0, uniformValues.arrayBuffer);
-				
+
 				const passEncoder = ctx.createPassEncoder(ctx.commandEncoder);
 				passEncoder.setPipeline(pipeline);
 				passEncoder.setBindGroup(0, bindGroup);
