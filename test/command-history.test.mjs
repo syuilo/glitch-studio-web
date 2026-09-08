@@ -33,6 +33,21 @@ test('node creation keeps supplied and default parameters separate from state', 
 	}
 });
 
+test('group names can be changed, undone and redone, including nested groups', () => {
+	const app = new AppContext();
+	app.commit('addGroupNode', { id: 'parent' });
+	app.commit('addGroupNode', { id: 'child', groupId: 'parent' });
+	for (const group of [app.state.nodes.value[0], app.state.nodes.value[0].nodes[0]]) {
+		const before = group.name;
+		app.commit('updateGroupName', { nodeId: group.id, name: 'Renamed' });
+		assert.equal(group.name, 'Renamed');
+		app.undo();
+		assert.equal(group.name, before);
+		app.redo();
+		assert.equal(group.name, 'Renamed');
+	}
+});
+
 test('asset byte arrays are not shared with command payloads', () => {
 	for (const type of ['addAsset', 'replaceAsset']) {
 		const app = new AppContext();

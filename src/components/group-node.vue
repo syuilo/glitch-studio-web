@@ -1,55 +1,54 @@
 <template>
-<div class="group-node-component">
-	<div ref="allInPortEl" class="allInPort">・</div>
-	<header class="drag-handle" @dblclick="expanded = !expanded">Group: {{ node.name }}</header>
-	<div class="indicator" :class="{ active: node.isEnabled, processing: subStore.processingFxId === node.id }"></div>
-	<div class="buttons">
-		<GsButton class="expand" @click="expanded = !expanded"><i class="ti" :class="expanded ? 'ti-chevron-up' : 'ti-chevron-down'"></i></GsButton>
-		<GsButton class="showSettings" @click="showSettings = !showSettings"><i class="ti ti-settings"></i></GsButton>
-		<GsButton class="remove" :title="i18n.ts.RemoveEffect" @click="remove()"><i class="ti ti-x"></i></GsButton>
+<div :class="$style.root">
+	<div ref="allInPortEl" :class="$style.allInPort">・</div>
+	<header class="drag-handle" :class="$style.header" @dblclick="expanded = !expanded">Group: {{ node.name }}</header>
+	<div :class="[$style.indicator, { [$style.active]: node.isEnabled, [$style.processing]: subStore.processingFxId === node.id }]"></div>
+	<div :class="$style.buttons">
+		<GsButton :class="$style.headerButton" @click="expanded = !expanded"><i class="ti" :class="expanded ? 'ti-chevron-up' : 'ti-chevron-down'"></i></GsButton>
+		<GsButton :class="$style.headerButton" @click="showSettings = !showSettings"><i class="ti ti-settings"></i></GsButton>
+		<GsButton :class="$style.headerButton" :title="i18n.ts.RemoveEffect" @click="remove()"><i class="ti ti-x"></i></GsButton>
 	</div>
 
-	<div v-if="showSettings" v-show="expanded" style="margin: 4px; padding: 4px;" class="_gaps_s">
+	<div v-if="showSettings" v-show="expanded" :class="$style.settings" class="_gaps_s">
 		<button @click="exportPreset">Export as preset</button>
 		<input type="text" :value="node.name" @change="changeName($event.target.value)"/>
 		<button @click="addMacro">Add macro</button>
-		<XMacroEditor v-for="macro in node.macros" :key="macro.id" class="_gs-container" style="padding: 8px;" :macro="macro" :group="node"/>
+		<GsMacroEditor v-for="macro in node.macros" :key="macro.id" :class="$style.macroEditor" :macro="macro" :group="node"/>
 	</div>
 
-	<div v-show="expanded" class="params">
-		<div v-for="macro in Object.values(node.macros)" :key="macro.id">
-			<label :class="{ expression: isExpression(macro) }" @dblclick="toggleMacroValueType(macro.id)">{{ macro.label }}</label>
-			<div v-if="isExpression(macro)">
-				<input type="text" class="expression" :value="macro.value.value" @change="updateMacroAsExpression(macro.id, $event.target.value)"/>
+	<div v-show="expanded" :class="$style.params">
+		<div v-for="macro in Object.values(node.macros)" :key="macro.id" :class="$style.param">
+			<label :class="[$style.paramLabel, { [$style.expression]: isExpression(macro) }]" @dblclick="toggleMacroValueType(macro.id)">{{ macro.label }}</label>
+			<div v-if="isExpression(macro)" :class="$style.paramBody">
+				<input type="text" :class="$style.expression" :value="macro.value.value" @change="updateMacroAsExpression(macro.id, $event.target.value)"/>
 			</div>
-			<GsEffectParamControl v-else :type="macro.type" :node="node" :group="group" :options="macro.typeOptions" :value="macro.value.value" @input="updateMacroAsLiteral(macro.id, $event)" @changeContinuous="updateMacroAsLiteral(macro.id, $event)"/>
+			<GsEffectParamControl v-else :class="$style.paramBody" :type="macro.type" :node="node" :group="group" :options="macro.typeOptions" :value="macro.value.value" @input="updateMacroAsLiteral(macro.id, $event)" @changeContinuous="updateMacroAsLiteral(macro.id, $event)"/>
 		</div>
 	</div>
 
-	<div v-show="expanded" class="nodes">
+	<div v-show="expanded" :class="$style.nodes">
 		<GsNodes :group="node"/>
 	</div>
 
-	<div class="footer">
-		<div ref="outPortEl" class="port">・</div>
-		<code>{{ node.id }}</code>
+	<div :class="$style.footer">
+		<div ref="outPortEl" :class="$style.port">・</div>
+		<code :class="$style.nodeId">{{ node.id }}</code>
 	</div>
 </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted, shallowRef } from 'vue';
-import * as msgpack from '@msgpack/msgpack';
+import { ref, onMounted, shallowRef } from 'vue';
 import GsNodes from './GsNodes.vue';
 import GsEffectParamControl from './GsEffectParamControl.vue';
-import XMacroEditor from './macro-editor.vue';
+import GsMacroEditor from './GsMacroEditor.vue';
 import GsButton from './common/GsButton.vue';
 import { subStore } from '@/sub-store';
 import { i18n } from '@/i18n';
 import { Asset, Macro } from '@/types';
 import { genId } from '@/utility/id.ts';
 import { version } from '@/version';
-import { wireMap } from '@/app';
+import { appContext, wireMap } from '@/app';
 import * as api from '@/api.js';
 import { GsGroupNode } from '@/engine/renderer.ts';
 
@@ -74,9 +73,9 @@ this.$root.$on('expandAllFx', () => {
 */
 
 function addMacro() {
-	store.addMacro({
+	appContext.commit('addMacro', {
 		id: genId(),
-		group: props.node,
+		groupId: props.node.id,
 	});
 }
 
@@ -85,43 +84,37 @@ function isExpression(macro: Macro) {
 }
 
 function changeName(name: string) {
-	store.updateGroupName({
+	appContext.commit('updateGroupName', {
 		nodeId: props.node.id,
 		name,
 	});
 }
 
 function updateMacroAsLiteral(id: string, value: any) {
-	store.updateMacroAsLiteral({
+	appContext.commit('updateMacroAsLiteral', {
 		macroId: id,
 		value: value,
-		group: props.node,
+		groupId: props.node.id,
 	});
 }
 
 function updateMacroAsExpression(id: string, value: string) {
-	store.updateMacroAsExpression({
+	appContext.commit('updateMacroAsExpression', {
 		macroId: id,
 		value: value,
-		group: props.node,
+		groupId: props.node.id,
 	});
 }
 
 function toggleMacroValueType(id: string) {
-	store.toggleMacroValueType({
+	appContext.commit('toggleMacroValueType', {
 		macroId: id,
-		group: props.node,
+		groupId: props.node.id,
 	});
 }
 
 function remove() {
-	store.removeNode({
-		nodeId: props.node.id,
-	});
-}
-
-function toggleEnable() {
-	store.toggleEnable({
+	appContext.commit('removeNode', {
 		nodeId: props.node.id,
 	});
 }
@@ -132,7 +125,7 @@ function collectAssets(): Asset[] {
 		if (node.type === 'group') {
 			// TODO
 		} else if (node.fx === 'image') {
-			const asset = store.assets.find(asset => asset.id === node.params.image.value);
+			const asset = appContext.state.assets.value.find(asset => asset.id === node.params.image.value);
 			if (asset) {
 				assets.push(asset);
 			}
@@ -167,8 +160,8 @@ onMounted(() => {
 });
 </script>
 
-<style scoped lang="scss">
-.group-node-component {
+<style module lang="scss">
+.root {
 	position: relative;
 	background: #222;
 	border: solid 1px rgba(255, 255, 255, 0.1);
@@ -176,149 +169,144 @@ onMounted(() => {
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
 	overflow: clip;
 	contain: content;
+}
 
-	> .allInPort {
-		position: absolute;
-		top: 0;
-		left: 0;
+.allInPort {
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+.header {
+	padding: 0 88px 0 20px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-size: 14px;
+	font-weight: bold;
+	background: linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(255, 255, 255, 0.025));
+	border-bottom: solid 1px rgba(0, 0, 0, 0.5);
+	cursor: move;
+	line-height: 32px;
+	text-shadow: 0 -1px #000;
+}
+
+.indicator {
+	position: absolute;
+	top: 9px;
+	left: 8px;
+	width: 4px;
+	height: 12px;
+	border-top: solid 1px transparent;
+	border-bottom: solid 1px #383838;
+	background: #111;
+	box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3) inset;
+	border-radius: 2px;
+
+	&.active {
+		background: #ace620;
+		background-clip: content-box;
 	}
 
-	> header {
-		padding: 0 88px 0 20px;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		font-size: 14px;
-		font-weight: bold;
-		background: linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(255, 255, 255, 0.025));
+	&.processing {
+		background: #e87900;
+		background-clip: content-box;
+	}
+}
+
+.buttons {
+	position: absolute;
+	top: 4px;
+	right: 4px;
+	text-align: right;
+}
+
+.headerButton {
+	display: inline-block;
+	width: 23px;
+	height: 23px;
+	font-size: 12px;
+	padding-left: 0;
+	padding-right: 0;
+
+	&:not(:first-child) {
+		margin-left: 6px;
+	}
+}
+
+.settings {
+	margin: 4px;
+	padding: 4px;
+}
+
+.macroEditor {
+	padding: 8px;
+}
+
+.params {
+	background: rgba(0, 0, 0, 0.3);
+	padding: 0 16px;
+}
+
+.param {
+	display: flex;
+	padding: 8px 0;
+
+	&:not(:first-child) {
+		border-top: solid 1px rgba(255, 255, 255, 0.05);
+	}
+
+	&:not(:last-child) {
 		border-bottom: solid 1px rgba(0, 0, 0, 0.5);
-		cursor: move;
-		line-height: 32px;
-		text-shadow: 0 -1px #000;
-
-		&.disabled {
-			pointer-events: none;
-		}
 	}
+}
 
-	> .indicator {
-		position: absolute;
-		top: 9px;
-		left: 8px;
-		width: 4px;
-		height: 12px;
-		border-top: solid 1px transparent;
-		border-bottom: solid 1px #383838;
-		background: #111;
-		box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3) inset;
-		border-radius: 2px;
+.paramLabel {
+	width: 30%;
+	box-sizing: border-box;
+	padding-top: 4px;
+	padding-right: 8px;
+	flex-shrink: 0;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	font-size: 14px;
+	color: rgba(255, 255, 255, 0.9);
+	cursor: pointer;
 
-		&.active {
-			background: #ace620;
-			background-clip: content-box;
-		}
-
-		&.processing {
-			background: #e87900;
-			background-clip: content-box;
-		}
+	&.expression {
+		color: #9edc29;
 	}
+}
 
-	> .buttons {
-		position: absolute;
-		top: 4px;
-		right: 4px;
-		text-align: right;
+.paramBody {
+	width: 70%;
+	flex-shrink: 1;
+}
 
-		&.disabled {
-			opacity: 0.7;
-			pointer-events: none;
-		}
+.nodes {
+	border: solid 1px rgba(255, 255, 255, 0.1);
+	background: rgba(0, 0, 0, 0.3);
+	box-shadow: 0 2px 2px rgba(0, 0, 0, 0.7) inset;
+	border-radius: 6px;
+	margin: 8px;
+	padding: 8px;
+}
 
-		> button {
-			display: inline-block;
-			width: 23px;
-			height: 23px;
-			font-size: 12px;
-			padding-left: 0;
-			padding-right: 0;
+.footer {
+	display: flex;
+	line-height: 24px;
+	background-size: auto auto;
+	background-color: #2d2d2d;
+	background-image: repeating-linear-gradient(45deg, transparent, transparent 6px, #222222 6px, #222222 12px );
+}
 
-			&:not(:first-child) {
-				margin-left: 6px;
-			}
-		}
-	}
+.port {
+	width: 24px;
+	text-align: center;
+}
 
-	> .params {
-		background: rgba(0, 0, 0, 0.3);
-		padding: 0 16px;
-
-		&.disabled {
-			opacity: 0.7;
-			pointer-events: none;
-		}
-
-		> div {
-			display: flex;
-			padding: 8px 0;
-
-			&:not(:first-child) {
-				border-top: solid 1px rgba(255, 255, 255, 0.05);
-			}
-
-			&:not(:last-child) {
-				border-bottom: solid 1px rgba(0, 0, 0, 0.5);
-			}
-
-			> label {
-				width: 30%;
-				box-sizing: border-box;
-				padding-top: 4px;
-				padding-right: 8px;
-				flex-shrink: 0;
-				white-space: nowrap;
-				text-overflow: ellipsis;
-				overflow: hidden;
-				font-size: 14px;
-				color: rgba(255, 255, 255, 0.9);
-				cursor: pointer;
-
-				&.expression {
-					color: #9edc29;
-				}
-			}
-
-			> div {
-				width: 70%;
-				flex-shrink: 1;
-			}
-		}
-	}
-
-	> .nodes {
-		border: solid 1px rgba(255, 255, 255, 0.1);
-		background: rgba(0, 0, 0, 0.3);
-		box-shadow: 0 2px 2px rgba(0, 0, 0, 0.7) inset;
-		border-radius: 6px;
-		margin: 8px;
-		padding: 8px;
-	}
-
-	> .footer {
-		display: flex;
-		line-height: 24px;
-		background-size: auto auto;
-		background-color: #2d2d2d;
-		background-image: repeating-linear-gradient(45deg, transparent, transparent 6px, #222222 6px, #222222 12px );
-
-		> .port {
-			width: 24px;
-			text-align: center;
-		}
-
-		> code {
-			opacity: 0.5;
-		}
-	}
+.nodeId {
+	opacity: 0.5;
 }
 </style>

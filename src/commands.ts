@@ -36,6 +36,24 @@ const stateUtility = {
 	},
 };
 
+const updateGroupNameCommandDef = defineCommand<{ nodeId: GsGroupNode['id']; name: string }>({
+	label: 'Rename group',
+	create: (payload) => {
+		let before: string;
+		return {
+			execute(state) {
+				const group = stateUtility.findNode(state, payload.nodeId) as GsGroupNode;
+				before = group.name;
+				group.name = payload.name;
+			},
+			undo(state) {
+				const group = stateUtility.findNode(state, payload.nodeId) as GsGroupNode;
+				group.name = before;
+			},
+		};
+	},
+});
+
 const addFxNodeCommandDef = defineCommand<{ id: string; fx: string; params?: Record<string, any>; groupId?: string }>({
 	label: 'Add fx node',
 	create: (payload) => {
@@ -528,6 +546,7 @@ export const COMMAND_DEFS = {
 	addFxNode: addFxNodeCommandDef,
 	removeNode: removeNodeCommandDef,
 	addGroupNode: addGroupNodeCommandDef,
+	updateGroupName: updateGroupNameCommandDef,
 	addAsset: addAssetCommandDef,
 	removeAsset: removeAssetCommandDef,
 	renameAsset: renameAssetCommandDef,

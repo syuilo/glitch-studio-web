@@ -19,7 +19,7 @@
 			<div :class="[$style.headerCell, $style.headerSpacer]"></div>
 		</header>
 		<div>
-			<XMacroEditor v-for="macro in appContext.state.macros.value" :key="macro.id" :macro="macro"/>
+			<GsMacroEditor v-for="macro in appContext.state.macros.value" :key="macro.id" :macro="macro"/>
 		</div>
 	</div>
 </div>
@@ -27,7 +27,7 @@
 
 <script lang="ts" setup>
 import GsEffectParamControl from './GsEffectParamControl.vue';
-import XMacroEditor from './macro-editor.vue';
+import GsMacroEditor from './GsMacroEditor.vue';
 import { appContext } from '@/app.ts';
 import { i18n } from '@/i18n';
 import { Macro } from '@/types';
