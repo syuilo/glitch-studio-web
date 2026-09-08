@@ -1,178 +1,145 @@
 <template>
-<div class="macros-componet">
-	<div class="macros">
-		<div v-for="macro in store.macros" :key="macro.id">
-			<label :class="{ expression: macro.value.type === 'expression' }" @dblclick="toggleMacroValueType(macro)">{{ macro.label }}</label>
-			<div v-if="macro.value.type === 'expression'">
-				<input type="text" class="expression" :value="macro.value.value" @change="updateMacroAsExpression(macro, $event.target.value)"/>
+<div :class="$style.root">
+	<div :class="$style.macros">
+		<div v-for="macro in appContext.state.macros.value" :key="macro.id" :class="$style.macro">
+			<label :class="[$style.macroLabel, { [$style.expression]: macro.value.type === 'expression' }]" @dblclick="toggleMacroValueType(macro)">{{ macro.label }}</label>
+			<div v-if="macro.value.type === 'expression'" :class="$style.macroControl">
+				<input type="text" :class="$style.expression" :value="macro.value.value" @change="updateMacroAsExpression(macro, $event.target.value)"/>
 			</div>
-			<GsEffectParamControl v-else :type="macro.type" :value="macro.value.value" :options="macro.typeOptions" @input="updateMacroAsLiteral(macro, $event)" @changeContinuous="updateMacroAsLiteral(macro, $event)"/>
+			<GsEffectParamControl v-else :class="$style.macroControl" :type="macro.type" :value="macro.value.value" :options="macro.typeOptions" @input="updateMacroAsLiteral(macro, $event)" @changeContinuous="updateMacroAsLiteral(macro, $event)"/>
 		</div>
-		<p v-if="store.macros.length === 0" class="_gs-no-contents">{{ i18n.ts.NoMacros }}</p>
+		<p v-if="appContext.state.macros.value.length === 0" class="_gs-no-contents">{{ i18n.ts.NoMacros }}</p>
 	</div>
-	<div class="macros-editor">
+	<div :class="$style.editor">
 		<button @click="addMacro()">{{ i18n.ts.AddMacro }}</button>
-		<header>
-			<div>{{ i18n.ts._Macro.Label }}</div>
-			<div>{{ i18n.ts._Macro.Name }}</div>
-			<div>{{ i18n.ts._Macro.Type }}</div>
-			<div class="padding"></div>
+		<header :class="$style.editorHeader">
+			<div :class="$style.headerCell">{{ i18n.ts._Macro.Label }}</div>
+			<div :class="$style.headerCell">{{ i18n.ts._Macro.Name }}</div>
+			<div :class="$style.headerCell">{{ i18n.ts._Macro.Type }}</div>
+			<div :class="[$style.headerCell, $style.headerSpacer]"></div>
 		</header>
-		<div class="list">
-			<XMacroEditor v-for="macro in store.macros" :key="macro.id" :macro="macro"/>
+		<div>
+			<XMacroEditor v-for="macro in appContext.state.macros.value" :key="macro.id" :macro="macro"/>
 		</div>
 	</div>
 </div>
 </template>
 
 <script lang="ts" setup>
-import {} from 'vue';
 import GsEffectParamControl from './GsEffectParamControl.vue';
 import XMacroEditor from './macro-editor.vue';
+import { appContext } from '@/app.ts';
 import { i18n } from '@/i18n';
 import { Macro } from '@/types';
 import { genId } from '@/utility/id.ts';
 
 function addMacro() {
-	store.addMacro({
+	appContext.commit('addMacro', {
 		id: genId(),
 	});
 }
 
 function updateMacroAsLiteral(macro: Macro, value: any) {
-	store.updateMacroAsLiteral({
+	appContext.commit('updateMacroAsLiteral', {
 		macroId: macro.id,
 		value: value,
 	});
 }
 
 function updateMacroAsExpression(macro: Macro, value: string) {
-	store.updateMacroAsExpression({
+	appContext.commit('updateMacroAsExpression', {
 		macroId: macro.id,
 		value: value,
 	});
 }
 
 function toggleMacroValueType(macro: Macro) {
-	store.toggleMacroValueType({
+	appContext.commit('toggleMacroValueType', {
 		macroId: macro.id,
 	});
-}
-
-function updateMacroLabel(macro: Macro, value: string) {
-	store.updateMacroLabel({
-		macroId: macro.id,
-		value: value,
-	});
-}
-
-function updateMacroName(macro: Macro, value: string) {
-	store.updateMacroName({
-		macroId: macro.id,
-		value: value,
-	});
-}
-
-function updateMacroType(macro: Macro, value: string) {
-	store.updateMacroType({
-		macroId: macro.id,
-		value: value,
-	});
-}
-
-function updateMacroTypeOption(macro: Macro, key: string, value: any) {
-	store.updateMacroTypeOption({
-		macroId: macro.id,
-		key: key,
-		value: value,
-	});
-}
-
-function remove(macroId: string) {
-	store.removeMacro(macroId);
 }
 </script>
 
-<style scoped lang="scss">
-.macros-componet {
+<style module lang="scss">
+.root {
 	display: flex;
 	flex-direction: column;
 	box-sizing: border-box;
 	height: 100%;
 	padding: 8px;
+}
 
-	> .macros {
-		flex: 1;
-		padding: 0 16px;
-		margin-bottom: 8px;
-		overflow: auto;
+.macros {
+	flex: 1;
+	padding: 0 16px;
+	margin-bottom: 8px;
+	overflow: auto;
+}
 
-		> div {
-			display: flex;
-			padding: 8px 0;
+.macro {
+	display: flex;
+	padding: 8px 0;
 
-			&:not(:first-child) {
-				border-top: solid 1px rgba(255, 255, 255, 0.05);
-			}
-
-			&:not(:last-child) {
-				border-bottom: solid 1px rgba(0, 0, 0, 0.5);
-			}
-
-			> label {
-				width: 30%;
-				box-sizing: border-box;
-				padding-top: 4px;
-				padding-right: 4px;
-				flex-shrink: 0;
-				white-space: nowrap;
-				text-overflow: ellipsis;
-				overflow: hidden;
-				font-size: 14px;
-				color: rgba(255, 255, 255, 0.9);
-				cursor: pointer;
-
-				&.expression {
-					color: #9edc29;
-				}
-			}
-
-			> div {
-				width: 70%;
-				flex-shrink: 1;
-			}
-		}
+	&:not(:first-child) {
+		border-top: solid 1px rgba(255, 255, 255, 0.05);
 	}
 
-	> .macros-editor {
-		flex: 1;
-		padding: 8px;
-		overflow: auto;
-
-		> header {
-			display: flex;
-			font-size: 12px;
-			margin: 12px 0 0 0;
-			opacity: 0.8;
-
-			> * {
-				width: 100%;
-				margin: 0 2px;
-				padding: 0 2px;
-
-				&:first-child {
-					margin-left: 0;
-				}
-
-				&:last-child {
-					margin-right: 0;
-				}
-			}
-
-			> .padding {
-				width: 64px;
-			}
-		}
+	&:not(:last-child) {
+		border-bottom: solid 1px rgba(0, 0, 0, 0.5);
 	}
+}
+
+.macroLabel {
+	width: 30%;
+	box-sizing: border-box;
+	padding-top: 4px;
+	padding-right: 4px;
+	flex-shrink: 0;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	font-size: 14px;
+	color: rgba(255, 255, 255, 0.9);
+	cursor: pointer;
+
+	&.expression {
+		color: #9edc29;
+	}
+}
+
+.macroControl {
+	width: 70%;
+	flex-shrink: 1;
+}
+
+.editor {
+	flex: 1;
+	padding: 8px;
+	overflow: auto;
+}
+
+.editorHeader {
+	display: flex;
+	font-size: 12px;
+	margin: 12px 0 0 0;
+	opacity: 0.8;
+}
+
+.headerCell {
+	width: 100%;
+	margin: 0 2px;
+	padding: 0 2px;
+
+	&:first-child {
+		margin-left: 0;
+	}
+
+	&:last-child {
+		margin-right: 0;
+	}
+}
+
+.headerSpacer {
+	width: 64px;
 }
 </style>
