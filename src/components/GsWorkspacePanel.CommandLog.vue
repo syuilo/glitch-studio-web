@@ -6,7 +6,7 @@
 
 	<div :class="$style.root">
 		<div v-for="value in appContext.undoStack.value">
-			<div>{{ value.type }}</div>
+			<div>{{ COMMAND_DEFS[value.type].label }}</div>
 		</div>
 	</div>
 </GsWorkspacePanel>
@@ -17,7 +17,7 @@ import { watch, useTemplateRef, ref, onMounted } from 'vue';
 import GsWorkspacePanel from './GsWorkspacePanel.vue';
 import { WorkspacePanel } from '@/types/workspace.ts';
 import { i18n } from '@/i18n';
-import { appContext } from '@/app.ts';
+import { appContext, COMMAND_DEFS } from '@/app.ts';
 
 const props = defineProps<{
 	panel: WorkspacePanel;
