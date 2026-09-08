@@ -6,6 +6,7 @@ import { Macro, Asset, FxParamDefs } from '@/types';
 import { GsAutomation } from './engine/types';
 import { WorkspaceDivider } from './types/workspace.ts';
 import { GsFxNode, GsGroupNode, GsNode } from './engine/renderer.ts';
+import { AiSON } from '@syuilo/aiscript';
 
 export const useStore = defineStore('main', () => {
 	const id = ref<string | null>(null);
@@ -187,16 +188,19 @@ export const useStore = defineStore('main', () => {
 	}
 
 	function changeParamValueType(payload) {
-		const node = findNode(payload.nodeId)!;
+		const node = findNode(payload.nodeId)! as GsFxNode;
+		const currentValue = node.params[payload.param];
+		const defaultValue = fxs[node.fx].getDefaultParams()[payload.param];
+		const emptyValue = genEmptyValue(fxs[node.fx].paramDefs[payload.param]);
 		if (payload.type === 'expression') {
 			node.params[payload.param] = {
 				type: 'expression',
-				value: ''
+				value: currentValue.type === 'literal' ? AiSON.stringify(currentValue.value) : defaultValue.type === 'literal' ? AiSON.stringify(defaultValue.value) : AiSON.stringify(emptyValue)
 			};
 		} else if (payload.type === 'literal') {
 			node.params[payload.param] = {
 				type: 'literal',
-				value: genEmptyValue(fxs[node.fx].paramDefs[payload.param])
+				value: defaultValue // TODO: currentValueがexpressionだった場合評価した値を入れる
 			};
 		} else if (payload.type === 'automation') {
 			node.params[payload.param] = {
