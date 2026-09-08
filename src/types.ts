@@ -1,3 +1,15 @@
+import { Ref } from 'vue';
+import { GsNode } from './engine/renderer.ts';
+import { GsAutomation } from './engine/types.ts';
+
+export type AppState = {
+	resolution: Ref<{ width: number; height: number }>;
+	assets: Ref<Asset[]>;
+	nodes: Ref<GsNode[]>;
+	macros: Ref<Macro[]>;
+	automations: Ref<GsAutomation[]>;
+};
+
 type FxParamDataType = 'number' | 'range' | 'range2' | 'enum' | 'bool' | 'blendMode' | 'signal' | 'xy' | 'wh' | 'color' | 'vector' | 'seed' | 'time' | 'image' | 'video' | 'node' | 'nodes';
 
 export type FxParamValue = {

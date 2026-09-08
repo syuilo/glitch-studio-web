@@ -17,7 +17,8 @@ import { watch, useTemplateRef, ref, onMounted } from 'vue';
 import GsWorkspacePanel from './GsWorkspacePanel.vue';
 import { WorkspacePanel } from '@/types/workspace.ts';
 import { i18n } from '@/i18n';
-import { appContext, COMMAND_DEFS } from '@/app.ts';
+import { appContext } from '@/app.ts';
+import { COMMAND_DEFS } from '@/commands.ts';
 
 const props = defineProps<{
 	panel: WorkspacePanel;
