@@ -7,7 +7,10 @@
     "dev": "vite",
     "test": "node --test --test-concurrency=1 test/*.test.mjs",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck": "vue-tsc --noEmit",
+    "eslint": "eslint --quiet \"src/**/*.{ts,vue}\"",
+    "lint": "npm run typecheck && npm run eslint"
   },
   "dependencies": {
     "@msgpack/msgpack": "3.1.3",
@@ -35,6 +38,11 @@
     "webgpu-utils": "2.1.1"
   },
   "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@misskey-dev/eslint-plugin": "2.1.0",
+    "eslint": "9.39.5",
+    "@typescript-eslint/eslint-plugin": "8.67.0",
+    "@typescript-eslint/parser": "8.67.0",
     "@types/sanitize-html": "2.16.1",
     "@types/semver": "7.5.8",
     "@types/textarea-caret": "3.0.4",
@@ -42,7 +50,7 @@
     "@vitejs/plugin-vue": "6.0.8",
     "@webgpu/types": "0.1.72",
     "sass": "1.83.4",
-    "typescript": "7.0.2",
+    "typescript": "npm:@typescript/typescript6@6.0.2",
     "vite": "8.2.2",
     "vue-tsc": "3.3.11"
   }
