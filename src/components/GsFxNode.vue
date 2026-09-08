@@ -15,7 +15,7 @@
 			<div :class="$style.paramBody">
 				<GsInput v-if="isExpression(param)" type="text" :modelValue="getParam(param)" @update:modelValue="updateParamAsExpression(param, $event)"/>
 				<GsButton v-else-if="isAutomation(param)" @click="selectAutomation(param, $event)">{{ node.params[param].value ? store.automations.find(a => a.id === node.params[param].value).name : '(none)' }}</GsButton>
-				<XControl
+				<GsEffectParamControl
 					v-else
 					:type="paramDefs[param].type"
 					:group="group"
@@ -41,7 +41,7 @@
 
 <script lang="ts" setup>
 import { ref, computed, shallowRef, onMounted } from 'vue';
-import XControl from './GsEffectParamControl.vue';
+import GsEffectParamControl from './GsEffectParamControl.vue';
 import GsButton from './common/GsButton.vue';
 import GsInput from './common/GsInput.vue';
 import { fxs } from '@/engine/fxs';

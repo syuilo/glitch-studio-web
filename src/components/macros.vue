@@ -6,7 +6,7 @@
 			<div v-if="macro.value.type === 'expression'">
 				<input type="text" class="expression" :value="macro.value.value" @change="updateMacroAsExpression(macro, $event.target.value)"/>
 			</div>
-			<XControl v-else :type="macro.type" :value="macro.value.value" :options="macro.typeOptions" @input="updateMacroAsLiteral(macro, $event)" @changeContinuous="updateMacroAsLiteral(macro, $event)"/>
+			<GsEffectParamControl v-else :type="macro.type" :value="macro.value.value" :options="macro.typeOptions" @input="updateMacroAsLiteral(macro, $event)" @changeContinuous="updateMacroAsLiteral(macro, $event)"/>
 		</div>
 		<p v-if="store.macros.length === 0" class="_gs-no-contents">{{ i18n.ts.NoMacros }}</p>
 	</div>
@@ -19,7 +19,7 @@
 			<div class="padding"></div>
 		</header>
 		<div class="list">
-			<XMacroEditor v-for="macro in store.macros" :macro="macro" :key="macro.id"/>
+			<XMacroEditor v-for="macro in store.macros" :key="macro.id" :macro="macro"/>
 		</div>
 	</div>
 </div>
@@ -27,32 +27,29 @@
 
 <script lang="ts" setup>
 import {} from 'vue';
-import XControl from './GsEffectParamControl.vue';
+import GsEffectParamControl from './GsEffectParamControl.vue';
 import XMacroEditor from './macro-editor.vue';
-import { useStore } from '@/store';
 import { i18n } from '@/i18n';
 import { Macro } from '@/types';
 import { genId } from '@/utility/id.ts';
 
-const store = useStore();
-
 function addMacro() {
 	store.addMacro({
-		id: genId()
+		id: genId(),
 	});
 }
 
 function updateMacroAsLiteral(macro: Macro, value: any) {
 	store.updateMacroAsLiteral({
 		macroId: macro.id,
-		value: value
+		value: value,
 	});
 }
 
 function updateMacroAsExpression(macro: Macro, value: string) {
 	store.updateMacroAsExpression({
 		macroId: macro.id,
-		value: value
+		value: value,
 	});
 }
 
@@ -65,21 +62,21 @@ function toggleMacroValueType(macro: Macro) {
 function updateMacroLabel(macro: Macro, value: string) {
 	store.updateMacroLabel({
 		macroId: macro.id,
-		value: value
+		value: value,
 	});
 }
 
 function updateMacroName(macro: Macro, value: string) {
 	store.updateMacroName({
 		macroId: macro.id,
-		value: value
+		value: value,
 	});
 }
 
 function updateMacroType(macro: Macro, value: string) {
 	store.updateMacroType({
 		macroId: macro.id,
-		value: value
+		value: value,
 	});
 }
 
@@ -87,7 +84,7 @@ function updateMacroTypeOption(macro: Macro, key: string, value: any) {
 	store.updateMacroTypeOption({
 		macroId: macro.id,
 		key: key,
-		value: value
+		value: value,
 	});
 }
 

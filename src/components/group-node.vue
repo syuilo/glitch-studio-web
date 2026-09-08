@@ -22,7 +22,7 @@
 			<div v-if="isExpression(macro)">
 				<input type="text" class="expression" :value="macro.value.value" @change="updateMacroAsExpression(macro.id, $event.target.value)"/>
 			</div>
-			<XControl v-else :type="macro.type" :node="node" :group="group" :options="macro.typeOptions" :value="macro.value.value" @input="updateMacroAsLiteral(macro.id, $event)" @changeContinuous="updateMacroAsLiteral(macro.id, $event)"/>
+			<GsEffectParamControl v-else :type="macro.type" :node="node" :group="group" :options="macro.typeOptions" :value="macro.value.value" @input="updateMacroAsLiteral(macro.id, $event)" @changeContinuous="updateMacroAsLiteral(macro.id, $event)"/>
 		</div>
 	</div>
 
@@ -41,7 +41,7 @@
 import { ref, computed, onMounted, shallowRef } from 'vue';
 import * as msgpack from '@msgpack/msgpack';
 import GsNodes from './GsNodes.vue';
-import XControl from './GsEffectParamControl.vue';
+import GsEffectParamControl from './GsEffectParamControl.vue';
 import XMacroEditor from './macro-editor.vue';
 import GsButton from './common/GsButton.vue';
 import { subStore } from '@/sub-store';
