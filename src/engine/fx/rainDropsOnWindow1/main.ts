@@ -3,8 +3,8 @@ import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
 import code from './shader.wgsl?raw';
 
 export default defineEffect({
-	name: 'rainThroughTheWindow',
-	displayName: 'Rain Through The Window',
+	name: 'rainDropsOnWindow1',
+	displayName: 'Rain Drops On Window (Type 1)',
 	category: 'effect',
 	paramDefs: {
 		input: { type: 'node', label: 'Input', primary: true },
