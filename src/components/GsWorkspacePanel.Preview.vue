@@ -9,7 +9,7 @@
 			<div :class="$style.zoom">ZOOM: {{ Math.round(zoom * 100) }}%</div>
 		</div>
 		<div :class="$style.container" @click="onViewClick()" @mousemove="onMousemove">
-			<canvas ref="canvas" :class="$style.canvas"/>
+			<canvas ref="canvas" :class="$style.canvas"></canvas>
 		</div>
 	</div>
 </GsWorkspacePanel>
@@ -19,18 +19,15 @@
 import { watch, useTemplateRef, ref, onMounted } from 'vue';
 import GsWorkspacePanel from './GsWorkspacePanel.vue';
 import { WorkspacePanel } from '@/types/workspace.ts';
-import { useStore } from '@/store.ts';
 import { i18n } from '@/i18n';
 import { genId } from '@/utility/id.ts';
 import * as api from '@/api.js';
-import { engine, rendererEnv, resolutionFactor } from '@/app.ts';
+import { appContext, engine, rendererEnv, resolutionFactor } from '@/app.ts';
 
 const props = defineProps<{
 	panel: WorkspacePanel;
 	isStacked?: boolean;
 }>();
-
-const store = useStore();
 
 const canvas = useTemplateRef('canvas');
 const ZOOM_STEP = 1.25;
@@ -40,14 +37,14 @@ watch(resolutionFactor, (newFactor, oldFactor) => {
 	zoom.value *= (oldFactor ?? 1) / newFactor;
 }, { immediate: true });
 
-watch(() => [canvas.value, store.renderWidth, store.renderHeight, resolutionFactor.value], () => {
+watch(() => [canvas.value, appContext.state.resolution, resolutionFactor.value], () => {
 	if (canvas.value != null) {
 		engine.setCanvas({
 			canvas: canvas.value,
 			resolution: {
-				width: store.renderWidth * resolutionFactor.value,
-				height: store.renderHeight * resolutionFactor.value,
-			}
+				width: appContext.state.resolution.value.width * resolutionFactor.value,
+				height: appContext.state.resolution.value.height * resolutionFactor.value,
+			},
 		});
 	} else {
 		engine.unsetCanvas();
@@ -55,12 +52,12 @@ watch(() => [canvas.value, store.renderWidth, store.renderHeight, resolutionFact
 }, { immediate: true });
 
 async function onViewClick() {
-	if (store.nodes.length === 0) {
+	if (appContext.state.nodes.value.length === 0) {
 		const result = await api.openImageOrVideoFile({});
 		if (result == null) return;
 
 		const assetId = genId();
-		store.addAsset({
+		appContext.commit('addAsset', {
 			id: assetId,
 			name: result.name,
 			width: result.width,
@@ -72,20 +69,20 @@ async function onViewClick() {
 		});
 
 		if (result.type.startsWith('image/')) {
-			store.addFxNode({
+			appContext.commit('addFxNode', {
 				fx: 'image',
 				id: genId(),
 				params: {
-					image: { type: 'literal', value: assetId }
-				}
+					image: { type: 'literal', value: assetId },
+				},
 			});
 		} else if (result.type.startsWith('video/')) {
-			store.addFxNode({
+			appContext.commit('addFxNode', {
 				fx: 'video',
 				id: genId(),
 				params: {
-					video: { type: 'literal', value: assetId }
-				}
+					video: { type: 'literal', value: assetId },
+				},
 			});
 		}
 	}

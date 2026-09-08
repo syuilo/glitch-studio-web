@@ -16,8 +16,7 @@ export type RawProject = {
 	nodes: GsNode[];
 	macros: Macro[];
 	automations: GsAutomation[];
-	renderWidth: number;
-	renderHeight: number;
+	resolution: { width: number; height: number; };
 	assets: Omit<Asset, 'data'>[];
 };
 

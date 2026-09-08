@@ -2,25 +2,23 @@
 <div :class="$style.root">
 	<div :class="$style.header">{{ asset.name }}</div>
 	<div :class="$style.buttons">
-		<GsButton :class="$style.button" @click="replace()" :v-tooltip="i18n.ts.ReplaceAsset"><i class="ti ti-refresh"></i></GsButton>
-		<GsButton :class="$style.button" @click="rename()" :v-tooltip="i18n.ts.RenameAsset"><i class="ti ti-cursor-text"></i></GsButton>
-		<GsButton :class="$style.button" @click="remove()" :v-tooltip="i18n.ts.RemoveAsset"><i class="ti ti-trash"></i></GsButton>
+		<GsButton :class="$style.button" :vTooltip="i18n.ts.ReplaceAsset" @click="replace()"><i class="ti ti-refresh"></i></GsButton>
+		<GsButton :class="$style.button" :vTooltip="i18n.ts.RenameAsset" @click="rename()"><i class="ti ti-cursor-text"></i></GsButton>
+		<GsButton :class="$style.button" :vTooltip="i18n.ts.RemoveAsset" @click="remove()"><i class="ti ti-trash"></i></GsButton>
 	</div>
 	<div :class="$style.body">
-		<canvas :class="$style.canvas" :width="asset.width" :height="asset.height" ref="canvas"/>
+		<canvas ref="canvas" :class="$style.canvas" :width="asset.width" :height="asset.height"></canvas>
 	</div>
 </div>
 </template>
 
 <script lang="ts" setup>
 import { shallowRef, onMounted, nextTick } from 'vue';
-import { useStore } from '@/store';
+import GsButton from './common/GsButton.vue';
 import { i18n } from '@/i18n';
 import { Asset } from '@/types';
 import * as api from '@/api.js';
-import GsButton from './common/GsButton.vue';
-
-const store = useStore();
+import { appContext } from '@/app.ts';
 
 const props = defineProps<{
 	asset: Asset;
@@ -29,7 +27,7 @@ const props = defineProps<{
 const canvas = shallowRef<HTMLCanvasElement>();
 
 function remove() {
-	store.removeAsset({
+	appContext.commit('removeAsset', {
 		assetId: props.asset.id,
 	});
 }
@@ -37,15 +35,15 @@ function remove() {
 async function rename() {
 	const { canceled, result } = await inputDialog({ default: props.asset.name });
 	if (canceled) return;
-	store.renameAsset({
+	appContext.commit('renameAsset', {
 		assetId: props.asset.id,
-		name: result
+		name: result,
 	});
 }
 
 async function replace() {
 	const result = await api.openImageFile({});
-	store.replaceAsset({
+	appContext.commit('replaceAsset', {
 		assetId: props.asset.id,
 		width: result.img.width,
 		height: result.img.height,

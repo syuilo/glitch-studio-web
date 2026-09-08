@@ -4,11 +4,11 @@
 		<GsButton @click="addAsset()">{{ i18n.ts.AddAsset }}...</GsButton>
 	</div>
 
-	<div :class="$style.assets" v-if="store.assets.length === 0">
+	<div v-if="appContext.state.assets.value.length === 0" :class="$style.assets">
 		<p class="_gs-no-contents">{{ i18n.ts.NoAssets }}</p>
 	</div>
-	<div :class="$style.assets" v-else>
-		<XAsset v-for="asset in store.assets" :asset="asset" :key="asset.id"/>
+	<div v-else :class="$style.assets">
+		<XAsset v-for="asset in appContext.state.assets.value" :key="asset.id" :asset="asset"/>
 	</div>
 </div>
 </template>
@@ -16,17 +16,15 @@
 <script lang="ts" setup>
 import {} from 'vue';
 import XAsset from './asset.vue';
-import { useStore } from '@/store.js';
+import GsButton from './common/GsButton.vue';
 import { i18n } from '@/i18n.js';
 import { genId } from '@/utility/id.js';
 import * as api from '@/api.js';
-import GsButton from './common/GsButton.vue';
-
-const store = useStore();
+import { appContext } from '@/app.ts';
 
 async function addAsset() {
 	const result = await api.openImageFile({});
-	store.addAsset({
+	appContext.commit('addAsset', {
 		id: genId(),
 		name: result.name,
 		width: result.img.width,

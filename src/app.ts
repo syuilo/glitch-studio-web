@@ -1,15 +1,661 @@
 import { Ref, ref, markRaw, Component, reactive, watch } from 'vue';
-import { useStore } from './store';
+import { AiSON } from '@syuilo/aiscript';
 import { genId } from './utility/id.ts';
 import { fxs } from './engine/fxs';
-import { GsGroupNode } from './engine/renderer';
+import { GsFxNode, GsGroupNode, GsNode } from './engine/renderer';
 import { loadProjectFile, saveProjectFile, decodeAssets } from './api';
 import { RawProject } from './settings';
 import { Engine } from './engine/engine.ts';
 import { deepClone } from './utility/deep-clone.ts';
+import { Asset, Macro } from './types.ts';
+import { GsAutomation } from './engine/types.ts';
+import { WorkspaceDivider } from './types/workspace.ts';
+import { genEmptyValue } from './utility/misc.ts';
 import * as ui from '@/ui.js';
 import { version } from '@/version';
 import * as api from '@/api.js';
+
+type TODO = any;
+
+interface Command<State> {
+	execute(state: State): void;
+	undo(state: State): void;
+}
+
+class CommandManager<State> {
+	private undoStack: Command<State>[] = [];
+	private redoStack: Command<State>[] = [];
+
+	execute(command: Command<State>, state: State) {
+		command.execute(state);
+
+		this.undoStack.push(command);
+		this.redoStack = [];
+	}
+
+	undo(state: State) {
+		const command = this.undoStack.pop();
+
+		if (!command) return;
+
+		command.undo(state);
+		this.redoStack.push(command);
+	}
+
+	redo(state: State) {
+		const command = this.redoStack.pop();
+
+		if (!command) return;
+
+		command.execute(state);
+		this.undoStack.push(command);
+	}
+}
+
+type AppState = {
+	resolution: Ref<{ width: number; height: number }>;
+	assets: Ref<Asset[]>;
+	nodes: Ref<GsNode[]>;
+	macros: Ref<Macro[]>;
+	automations: Ref<GsAutomation[]>;
+};
+
+type CommandDef<Payload> = {
+	label: string;
+	create: (payload: Payload) => {
+		execute(state: AppState): void;
+		undo(state: AppState): void;
+	};
+};
+
+function defineCommand<Payload>(def: CommandDef<Payload>) {
+	return def;
+}
+
+const stateUtility = {
+	findNode: (state: AppState, nodeId: string): GsNode | undefined => {
+		const search = (nodes: GsNode[]) => {
+			for (const node of nodes) {
+				if (node.id === nodeId) {
+					return node;
+				}
+				if (node.type === 'group') {
+					const found = search(node.nodes);
+					if (found) {
+						return found;
+					}
+				}
+			}
+		};
+		return search(state.nodes.value);
+	},
+};
+
+const addFxNodeCommandDef = defineCommand<{ id: string; fx: string; params?: Record<string, any>; groupId?: string }>({
+	label: 'Add fx node',
+	create: (payload) => {
+		return {
+			execute(state) {
+				const paramDefs = fxs[payload.fx].paramDefs as FxParamDefs;
+				const group = payload.groupId ? state.nodes.value.find(node => node.type === 'group' && node.id === payload.groupId) as GsGroupNode : undefined;
+
+				const params = {} as GsFxNode['params'];
+				const defaultParams = fxs[payload.fx].getDefaultParams();
+
+				for (const [k, v] of Object.entries(paramDefs)) {
+					if (defaultParams[k] != null) {
+						params[k] = defaultParams[k];
+					} else if (v.type === 'seed') {
+						params[k] = { type: 'literal', value: Math.floor(Math.random() * 16384) };
+					} else if (v.type === 'time') {
+						params[k] = { type: 'expression', value: 'TIME' };
+					} else if (v.type === 'node' && v.primary) {
+						if ((group ? group.nodes : state.nodes.value).length > 0) {
+							params[k] = { type: 'literal', value: (group ? group.nodes : state.nodes.value).at(-1).id };
+						} else {
+							params[k] = { type: 'literal', value: null };
+						}
+					}
+				}
+
+				if (group) {
+					group.nodes.push({
+						id: payload.id,
+						isEnabled: true,
+						type: 'fx',
+						fx: payload.fx,
+						params: {
+							...params,
+							...(payload.params ?? {}),
+						},
+						x: 0,
+						y: 0,
+					});
+				} else {
+					state.nodes.value.push({
+						id: payload.id,
+						isEnabled: true,
+						type: 'fx',
+						fx: payload.fx,
+						params: {
+							...params,
+							...(payload.params ?? {}),
+						},
+						x: 0,
+						y: 0,
+					});
+				}
+			},
+
+			undo(state) {
+				const group = payload.groupId ? state.nodes.value.find(node => node.type === 'group' && node.id === payload.groupId) as GsGroupNode : undefined;
+				if (group) {
+					group.nodes = group.nodes.filter(node => node.id !== payload.id);
+				} else {
+					state.nodes.value = state.nodes.value.filter(node => node.id !== payload.id);
+				}
+			},
+		};
+	},
+});
+
+const removeFxNodeCommandDef = defineCommand<{ nodeId: string }>({
+	label: 'Remove fx node',
+	create: (payload) => {
+		return {
+			execute(state) {
+				const treat = (src: GsNode) => {
+					if (src.type === 'group') {
+						for (const node of src.nodes) {
+							if (node.id === payload.nodeId) {
+								src.nodes = src.nodes.filter(node => node.id !== payload.nodeId);
+								return true;
+							}
+							if (treat(node)) return true;
+						}
+					}
+				};
+				if (state.nodes.value.some(node => node.id === payload.nodeId)) {
+					state.nodes.value = state.nodes.value.filter(node => node.id !== payload.nodeId);
+				} else {
+					for (const node of state.nodes.value) {
+						treat(node);
+					}
+				}
+			},
+			undo(state) {
+				// TODO
+			},
+		};
+	},
+});
+
+const addGroupNodeCommandDef = defineCommand<{ id: string; groupId?: GsGroupNode['id'] }>({
+	label: 'Add group node',
+	create: (payload) => {
+		return {
+			execute(state) {
+				if (payload.groupId) {
+					const group = state.nodes.value.find(node => node.id === payload.groupId) as GsGroupNode;
+					group.nodes.push({
+						id: payload.id,
+						isEnabled: true,
+						type: 'group',
+						nodes: [],
+						macros: [],
+					});
+				} else {
+					state.nodes.value.push({
+						id: payload.id,
+						isEnabled: true,
+						type: 'group',
+						nodes: [],
+						macros: [],
+					});
+				}
+			},
+			undo(state) {
+				state.nodes.value = state.nodes.value.filter(node => node.id !== payload.id);
+			},
+		};
+	},
+});
+
+const addAssetCommandDef = defineCommand<{ id: string; name: string; width: number; height: number; data: any; fileDataType: string; fileData: any; hash: string }>({
+	label: 'Add asset',
+	create: (payload) => {
+		return {
+			execute(state) {
+				state.assets.value.push({
+					id: payload.id,
+					name: payload.name,
+					width: payload.width,
+					height: payload.height,
+					data: payload.data,
+					fileDataType: payload.fileDataType,
+					fileData: payload.fileData,
+					hash: payload.hash,
+				});
+			},
+			undo(state) {
+				state.assets.value = state.assets.value.filter(asset => asset.id !== payload.id);
+			},
+		};
+	},
+});
+
+const removeAssetCommandDef = defineCommand<{ assetId: string }>({
+	label: 'Remove asset',
+	create: (payload) => {
+		return {
+			execute(state) {
+				state.assets.value = state.assets.value.filter(asset => asset.id !== payload.assetId);
+
+				// そのAssetを参照しているパラメータをnullにする
+				for (const node of state.nodes.value) {
+					const imageParams = Object.entries(fxs[node.fx].paramDefs).filter(([k, v]) => v.type === 'image').map(([k, v]) => k);
+					for (const p of imageParams) {
+						if (node.params[p].type === 'literal' && node.params[p].value === payload.assetId) {
+							node.params[p].value = null;
+						}
+					}
+				}
+
+				// そのAssetを参照しているマクロをnullにする
+				for (const macro of state.macros.value.filter(m => m.type === 'image' && m.value.type === 'literal')) {
+					macro.value = null;
+				}
+			},
+			undo(state) {
+				// TODO
+			},
+		};
+	},
+});
+
+const renameAssetCommandDef = defineCommand<{ assetId: string; name: string }>({
+	label: 'Rename asset',
+	create: (payload) => {
+		return {
+			execute(state) {
+				const asset = state.assets.value.find(asset => asset.id === payload.assetId)!;
+				asset.name = payload.name;
+			},
+			undo(state) {
+				// TODO
+			},
+		};
+	},
+});
+
+const replaceAssetCommandDef = defineCommand<{ assetId: string; width: number; height: number; data: any; fileDataType: string; fileData: any; hash: string }>({
+	label: 'Replace asset',
+	create: (payload) => {
+		return {
+			execute(state) {
+				const asset = state.assets.value.find(asset => asset.id === payload.assetId)!;
+				asset.width = payload.width;
+				asset.height = payload.height;
+				asset.data = payload.data;
+				asset.fileDataType = payload.fileDataType;
+				asset.fileData = payload.fileData;
+				asset.hash = payload.hash;
+			},
+			undo(state) {
+				// TODO
+			},
+		};
+	},
+});
+
+const addMacroCommandDef = defineCommand<{ groupId?: GsGroupNode['id']; id: string; }>({
+	label: 'Add macro',
+	create: (payload) => {
+		return {
+			execute(state) {
+				const group = state.nodes.value.find(node => node.id === payload.groupId) as GsGroupNode;
+				(group ? group.macros : state.macros.value).push({
+					id: payload.id,
+					type: 'number',
+					typeOptions: {},
+					label: 'Macro',
+					name: 'macro',
+					value: {
+						type: 'literal',
+						value: 0,
+					},
+				});
+			},
+			undo(state) {
+				state.macros.value = state.macros.value.filter(macro => macro.id !== payload.id);
+			},
+		};
+	},
+});
+
+const removeMacroCommandDef = defineCommand<{ groupId?: GsGroupNode['id']; macroId: string }>({
+	label: 'Remove macro',
+	create: (payload) => {
+		return {
+			execute(state) {
+				const group = state.nodes.value.find(node => node.id === payload.groupId) as GsGroupNode;
+				if (group) {
+					group.macros = group.macros.filter(macro => macro.id !== payload.macroId);
+				} else {
+					state.macros.value = state.macros.value.filter(macro => macro.id !== payload.macroId);
+				}
+			},
+			undo(state) {
+				// TODO
+			},
+		};
+	},
+});
+
+const toggleMacroValueTypeCommandDef = defineCommand<{ groupId?: GsGroupNode['id']; macroId: string }>({
+	label: 'Toggle macro value type',
+	create: (payload) => {
+		return {
+			execute(state) {
+				const group = state.nodes.value.find(node => node.id === payload.groupId) as GsGroupNode;
+				const macro = (group ? group.macros : state.macros.value).find(macro => macro.id === payload.macroId)!;
+				const isLiteral = macro.value.type === 'literal';
+				if (isLiteral) {
+					macro.value = {
+						type: 'expression',
+						value: '',
+					};
+				} else {
+					macro.value = {
+						type: 'literal',
+						value: genEmptyValue(macro),
+					};
+				}
+			},
+			undo(state) {
+				// TODO
+			},
+		};
+	},
+});
+
+const updateMacroAsLiteralCommandDef = defineCommand<{ groupId?: GsGroupNode['id']; macroId: string; value: any }>({
+	label: 'Update macro as literal',
+	create: (payload) => {
+		return {
+			execute(state) {
+				const group = state.nodes.value.find(node => node.id === payload.groupId) as GsGroupNode;
+				const macro = (group ? group.macros : state.macros.value).find(macro => macro.id === payload.macroId)!;
+				macro.value = {
+					type: 'literal',
+					value: payload.value,
+				};
+			},
+			undo(state) {
+				// TODO
+			},
+		};
+	},
+});
+
+const updateMacroAsExpressionCommandDef = defineCommand<{ groupId?: GsGroupNode['id']; macroId: string; value: any }>({
+	label: 'Update macro as expression',
+	create: (payload) => {
+		return {
+			execute(state) {
+				const group = state.nodes.value.find(node => node.id === payload.groupId) as GsGroupNode;
+				const macro = (group ? group.macros : state.macros.value).find(macro => macro.id === payload.macroId)!;
+				macro.value = {
+					type: 'expression',
+					value: payload.value,
+				};
+			},
+			undo(state) {
+				// TODO
+			},
+		};
+	},
+});
+
+const updateMacroLabelCommandDef = defineCommand<{ groupId?: GsGroupNode['id']; macroId: string; value: string }>({
+	label: 'Update macro label',
+	create: (payload) => {
+		return {
+			execute(state) {
+				const group = state.nodes.value.find(node => node.id === payload.groupId) as GsGroupNode;
+				const macro = (group ? group.macros : state.macros.value).find(macro => macro.id === payload.macroId)!;
+				macro.label = payload.value;
+			},
+			undo(state) {
+				// TODO
+			},
+		};
+	},
+});
+
+const updateMacroNameCommandDef = defineCommand<{ groupId?: GsGroupNode['id']; macroId: string; value: string }>({
+	label: 'Update macro name',
+	create: (payload) => {
+		return {
+			execute(state) {
+				const group = state.nodes.value.find(node => node.id === payload.groupId) as GsGroupNode;
+				const macro = (group ? group.macros : state.macros.value).find(macro => macro.id === payload.macroId)!;
+				macro.name = payload.value;
+			},
+			undo(state) {
+				// TODO
+			},
+		};
+	},
+});
+
+const updateMacroTypeCommandDef = defineCommand<{ groupId?: GsGroupNode['id']; macroId: string; value: string }>({
+	label: 'Update macro type',
+	create: (payload) => {
+		return {
+			execute(state) {
+				const group = state.nodes.value.find(node => node.id === payload.groupId) as GsGroupNode;
+				const macro = (group ? group.macros : state.macros.value).find(macro => macro.id === payload.macroId)!;
+				macro.type = payload.value;
+				macro.value = {
+					type: 'literal',
+					value: genEmptyValue(macro),
+				};
+			},
+			undo(state) {
+				// TODO
+			},
+		};
+	},
+});
+
+const updateMacroTypeOptionCommandDef = defineCommand<{ groupId?: GsGroupNode['id']; macroId: string; key: string; value: any }>({
+	label: 'Update macro type option',
+	create: (payload) => {
+		return {
+			execute(state) {
+				const group = state.nodes.value.find(node => node.id === payload.groupId) as GsGroupNode;
+				const macro = (group ? group.macros : state.macros.value).find(macro => macro.id === payload.macroId)!;
+				macro.typeOptions[payload.key] = payload.value;
+			},
+			undo(state) {
+				// TODO
+			},
+		};
+	},
+});
+
+const changeParamValueTypeCommandDef = defineCommand<{ nodeId: GsNode['id']; param: string; type: 'literal' | 'expression' | 'automation' }>({
+	label: 'Change param value type',
+	create: (payload) => {
+		return {
+			execute(state) {
+				const node = stateUtility.findNode(state, payload.nodeId)! as GsFxNode;
+				const currentValue = node.params[payload.param];
+				const defaultValue = fxs[node.fx].getDefaultParams()[payload.param];
+				const emptyValue = genEmptyValue(fxs[node.fx].paramDefs[payload.param]);
+				if (payload.type === 'expression') {
+					node.params[payload.param] = {
+						type: 'expression',
+						value: currentValue.type === 'literal' ? AiSON.stringify(currentValue.value) : defaultValue.type === 'literal' ? AiSON.stringify(defaultValue.value) : AiSON.stringify(emptyValue),
+					};
+				} else if (payload.type === 'literal') {
+					node.params[payload.param] = {
+						type: 'literal',
+						value: defaultValue, // TODO: currentValueがexpressionだった場合評価した値を入れる
+					};
+				} else if (payload.type === 'automation') {
+					node.params[payload.param] = {
+						type: 'automation',
+						value: null,
+					};
+				}
+			},
+			undo(state) {
+				// TODO
+			},
+		};
+	},
+});
+
+const updateParamAsLiteralCommandDef = defineCommand<{ nodeId: GsNode['id']; param: string; value: any }>({
+	label: 'Update param as literal',
+	create: (payload) => {
+		return {
+			execute(state) {
+				const node = stateUtility.findNode(state, payload.nodeId) as GsFxNode;
+				node.params[payload.param] = {
+					type: 'literal',
+					value: payload.value,
+				};
+			},
+			undo(state) {
+				// TODO
+			},
+		};
+	},
+});
+
+const updateParamAsExpressionCommandDef = defineCommand<{ nodeId: GsNode['id']; param: string; value: any }>({
+	label: 'Update param as expression',
+	create: (payload) => {
+		return {
+			execute(state) {
+				const node = stateUtility.findNode(state, payload.nodeId) as GsFxNode;
+				node.params[payload.param] = {
+					type: 'expression',
+					value: payload.value,
+				};
+			},
+			undo(state) {
+				// TODO
+			},
+		};
+	},
+});
+
+const updateParamAsAutomationCommandDef = defineCommand<{ nodeId: GsNode['id']; param: string; value: any }>({
+	label: 'Update param as automation',
+	create: (payload) => {
+		return {
+			execute(state) {
+				const node = stateUtility.findNode(state, payload.nodeId) as GsFxNode;
+				node.params[payload.param] = {
+					type: 'automation',
+					value: payload.value,
+				};
+			},
+			undo(state) {
+				// TODO
+			},
+		};
+	},
+});
+
+const COMMAND_DEFS = {
+	addFxNode: addFxNodeCommandDef,
+	removeFxNode: removeFxNodeCommandDef,
+	addGroupNode: addGroupNodeCommandDef,
+	addAsset: addAssetCommandDef,
+	removeAsset: removeAssetCommandDef,
+	renameAsset: renameAssetCommandDef,
+	replaceAsset: replaceAssetCommandDef,
+	addMacro: addMacroCommandDef,
+	removeMacro: removeMacroCommandDef,
+	updateMacroLabel: updateMacroLabelCommandDef,
+	updateMacroName: updateMacroNameCommandDef,
+	updateMacroType: updateMacroTypeCommandDef,
+	updateMacroTypeOption: updateMacroTypeOptionCommandDef,
+	changeParamValueType: changeParamValueTypeCommandDef,
+	updateParamAsLiteral: updateParamAsLiteralCommandDef,
+	updateParamAsExpression: updateParamAsExpressionCommandDef,
+	updateParamAsAutomation: updateParamAsAutomationCommandDef,
+};
+
+class AppContext {
+	state: AppState;
+	commandManager: CommandManager<AppState>;
+
+	// とりあえずundo/redo対象にする必要なさそうだからstate外で管理
+	public workspaceDefinition = ref<WorkspaceDivider>({
+		id: 'root',
+		direction: 'horizontal',
+		children: [{
+			id: '938e3eedc00d4287885b6894ee3ea8c3',
+			ratio: 0.55,
+			type: 'preview',
+		}, {
+			id: '441518aeb37940b2af7fb0027fd530a9',
+			ratio: 0.25,
+			type: 'nodesEditor',
+		}, {
+			id: '8aec4dd7bf82460eba420680fda4f652',
+			ratio: 0.2,
+			type: null,
+			direction: 'vertical',
+			children: [{
+				id: '0f34c5f4c9cb449683c7f1281851b759',
+				ratio: 0.2,
+				type: 'histogram',
+			}, {
+				id: 'b3d6059aaa554ae79441286cd2beb685',
+				ratio: 0.4,
+				type: 'waveform',
+			}, {
+				id: '47edf72197d94d28b6b2811bfecc97e5',
+				ratio: 0.4,
+				type: 'stats',
+			}],
+		}],
+	});
+
+	constructor() {
+		this.state = {
+			resolution: ref<{ width: number; height: number }>({ width: 2048, height: 2048 }),
+			assets: ref<Asset[]>([]), // TODO: バイナリをリアクティブでwrapするのをやめる
+			nodes: ref<GsNode[]>([]),
+			macros: ref<Macro[]>([]),
+			automations: ref<GsAutomation[]>([]),
+		};
+		this.commandManager = new CommandManager<AppState>();
+	}
+
+	public commit<T extends keyof typeof COMMAND_DEFS>(type: T, payload: Parameters<typeof COMMAND_DEFS[T]['create']>[0]) {
+		const commandDef = COMMAND_DEFS[type] as CommandDef<any>;
+		const command = commandDef.create(payload);
+		this.commandManager.execute(command, this.state);
+	}
+
+	public undo() {
+		this.commandManager.undo(this.state);
+	}
+
+	public redo() {
+		this.commandManager.redo(this.state);
+	}
+}
+
+export const appContext = new AppContext();
 
 export const wireMap = reactive<{
 	in: Record<string, any>;
@@ -22,22 +668,22 @@ export const wireMap = reactive<{
 });
 
 export function showAddNodeMenu(ev: MouseEvent, group?: GsGroupNode) {
-	const store = useStore();
-
 	ui.popupMenu([{
 		text: 'Group',
 		action: () => {
-			store.addGroupNode({
+			appContext.commit('addGroupNode', {
+				groupId: group?.id,
 				id: genId(),
-			}, group);
+			});
 		},
 	}, ...Object.entries(fxs).filter(([_, v]) => v.category === '').map(x => ({
 		text: x[1].displayName,
 		action: () => {
-			store.addFxNode({
+			appContext.commit('addFxNode', {
+				groupId: group?.id,
 				fx: x[1].name,
 				id: genId(),
-			}, group);
+			});
 		},
 	})), {
 		type: 'label',
@@ -45,10 +691,11 @@ export function showAddNodeMenu(ev: MouseEvent, group?: GsGroupNode) {
 	}, ...Object.entries(fxs).filter(([_, v]) => v.category === 'glitch').map(x => ({
 		text: x[1].displayName,
 		action: () => {
-			store.addFxNode({
+			appContext.commit('addFxNode', {
+				groupId: group?.id,
 				fx: x[1].name,
 				id: genId(),
-			}, group);
+			});
 		},
 	})), {
 		type: 'label',
@@ -56,10 +703,11 @@ export function showAddNodeMenu(ev: MouseEvent, group?: GsGroupNode) {
 	}, ...Object.entries(fxs).filter(([_, v]) => v.category === 'effect').map(x => ({
 		text: x[1].displayName,
 		action: () => {
-			store.addFxNode({
+			appContext.commit('addFxNode', {
+				groupId: group?.id,
 				fx: x[1].name,
 				id: genId(),
-			}, group);
+			});
 		},
 	})), {
 		type: 'label',
@@ -67,10 +715,11 @@ export function showAddNodeMenu(ev: MouseEvent, group?: GsGroupNode) {
 	}, ...Object.entries(fxs).filter(([_, v]) => v.category === 'draw').map(x => ({
 		text: x[1].displayName,
 		action: () => {
-			store.addFxNode({
+			appContext.commit('addFxNode', {
+				groupId: group?.id,
 				fx: x[1].name,
 				id: genId(),
-			}, group);
+			});
 		},
 	})), {
 		type: 'label',
@@ -78,10 +727,11 @@ export function showAddNodeMenu(ev: MouseEvent, group?: GsGroupNode) {
 	}, ...Object.entries(fxs).filter(([_, v]) => v.category === 'color').map(x => ({
 		text: x[1].displayName,
 		action: () => {
-			store.addFxNode({
+			appContext.commit('addFxNode', {
+				groupId: group?.id,
 				fx: x[1].name,
 				id: genId(),
-			}, group);
+			});
 		},
 	})), {
 		type: 'label',
@@ -89,27 +739,13 @@ export function showAddNodeMenu(ev: MouseEvent, group?: GsGroupNode) {
 	}, ...Object.entries(fxs).filter(([_, v]) => v.category === 'utility').map(x => ({
 		text: x[1].displayName,
 		action: () => {
-			store.addFxNode({
+			appContext.commit('addFxNode', {
+				groupId: group?.id,
 				fx: x[1].name,
 				id: genId(),
-			}, group);
+			});
 		},
 	}))], ev.currentTarget ?? ev.target);
-}
-
-function addFx(fx: string) {
-	const store = useStore();
-	if (fx == '') return;
-	if (fx == '_group') {
-		store.addGroupNode({
-			id: genId(),
-		}, props.group);
-	} else {
-		store.addFxNode({
-			fx: fx,
-			id: genId(),
-		}, props.group);
-	}
 }
 
 export const frameMax = ref(59);
@@ -130,42 +766,37 @@ watch(fpsLimit, () => {
 	engine.startRenderLoop();
 });
 
-let store: ReturnType<typeof useStore>;
-
 export async function appReady(project: RawProject) {
-	document.title = `Glitch Studio (${project.name})`;
+	window.document.title = `Glitch Studio (${project.name})`;
 
-	store = useStore();
+	appContext.projectId = project.id;
+	appContext.projectName = project.name;
+	appContext.projectAuthor = project.author;
+	appContext.state.resolution.value = project.resolution;
+	appContext.state.assets.value = await decodeAssets(project.assets);
+	appContext.state.nodes.value = project.nodes;
+	appContext.state.macros.value = project.macros;
+	appContext.state.automations.value = project.automations;
 
-	store.id = project.id;
-	store.name = project.name;
-	store.author = project.author;
-	store.nodes = project.nodes;
-	store.macros = project.macros;
-	store.automations = project.automations;
-	store.renderWidth = project.renderWidth;
-	store.renderHeight = project.renderHeight;
-	store.assets = await decodeAssets(project.assets);
+	watch(appContext.state.nodes, () => {
+		engine.updateNodes(deepClone(appContext.state.nodes.value));
 
-	watch(() => store.nodes, () => {
-		engine.updateNodes(deepClone(store.nodes));
-
-		// TODO: グループ考慮
-		if (store.nodes.some(n => n.type === 'fx' && n.fx === 'webcamera')) {
-			glitchRenderer.setupWebcam();
-		}
+		//// TODO: グループ考慮
+		//if (store.nodes.some(n => n.type === 'fx' && n.fx === 'webcamera')) {
+		//	glitchRenderer.setupWebcam();
+		//}
 	}, { deep: true, immediate: true });
 
-	watch(() => store.macros, () => {
-		engine.updateMacros(deepClone(store.macros));
+	watch(appContext.state.macros, () => {
+		engine.updateMacros(deepClone(appContext.state.macros.value));
 	}, { deep: true, immediate: true });
 
-	watch(() => store.automations, () => {
-		engine.updateAutomations(deepClone(store.automations));
+	watch(appContext.state.automations, () => {
+		engine.updateAutomations(deepClone(appContext.state.automations.value));
 	}, { deep: true, immediate: true });
 
-	watch(() => store.assets, () => {
-		engine.updateAssets(deepClone(store.assets));
+	watch(appContext.state.assets, () => {
+		engine.updateAssets(deepClone(appContext.state.assets.value));
 	}, { deep: true, immediate: true });
 
 	engine.startRenderLoop();
@@ -212,8 +843,7 @@ export async function newProject() {
 		assets: [],
 		macros: [],
 		automations: [],
-		renderWidth: 2048,
-		renderHeight: 2048,
+		resolution: { width: 2048, height: 2048 },
 	});
 }
 
@@ -232,11 +862,10 @@ export async function newProjectFromImageOrVideo() {
 		assets: [],
 		macros: [],
 		automations: [],
-		renderWidth: result.width,
-		renderHeight: result.height,
+		resolution: { width: result.width, height: result.height },
 	});
 
-	store.addAsset({
+	appContext.commit('addAsset', {
 		id: assetId,
 		name: result.name,
 		width: result.width,
@@ -248,7 +877,7 @@ export async function newProjectFromImageOrVideo() {
 	});
 
 	if (result.type.startsWith('image/')) {
-		store.addFxNode({
+		appContext.commit('addFxNode', {
 			fx: 'image',
 			id: genId(),
 			params: {
@@ -256,7 +885,7 @@ export async function newProjectFromImageOrVideo() {
 			},
 		});
 	} else if (result.type.startsWith('video/')) {
-		store.addFxNode({
+		appContext.commit('addFxNode', {
 			fx: 'video',
 			id: genId(),
 			params: {

@@ -19,10 +19,10 @@
 		<GsButton @click="showAbout">about</GsButton>
 	</div>
 	<div :class="$style.body">
-		<GsWorkspaceDivider style="flex: 1" :divider="store.workspaceDefinition" />
+		<GsWorkspaceDivider style="flex: 1" :divider="appContext.workspaceDefinition.value"/>
 	</div>
 	<div :class="$style.footer">
-		<div @click="openResolutionMenu">{{ store.renderWidth }} x {{ store.renderHeight }} px ({{ resolutionFactor }}x) | {{ Math.round(engine.fpsDisplay.value) }}fps</div>
+		<div @click="openResolutionMenu">{{ appContext.state.resolution.value.width }} x {{ appContext.state.resolution.value.height }} px ({{ resolutionFactor }}x) | {{ Math.round(engine.fpsDisplay.value) }}fps</div>
 		<div :class="$style.footerStats">
 			<div :class="$style.footerStatsItem">{{ (engine.gpuAverageDisplayFast.value / 1000).toFixed(1) }}ms</div>
 			<div :class="$style.footerStatsItem">{{ (engine.gpuAverageDisplayMedium.value / 1000).toFixed(1) }}ms</div>
@@ -34,26 +34,19 @@
 
 <script lang="ts" setup>
 import { Ref, nextTick, onMounted, ref, shallowRef, useTemplateRef, watch } from 'vue';
+import { frame, frameMax, appReady, rendererEnv, saveProject, engine, openProject, resolutionFactor, fpsLimit, appContext } from './app';
 import GsAboutDialog from '@/components/GsAboutDialog.vue';
 import GsDashboardDialog from '@/components/GsDashboardDialog.vue';
 import GsWorkspaceDivider from '@/components/GsWorkspaceDivider.vue';
-import { useStore } from '@/store';
 import { i18n } from '@/i18n';
-import { frame, frameMax, appReady, rendererEnv, saveProject, engine, openProject, resolutionFactor, fpsLimit } from './app';
 import * as api from '@/api.js';
 import GsButton from '@/components/common/GsButton.vue';
-import { version } from './version';
 import * as ui from '@/ui.js';
 
-const store = useStore();
-
-const progress = ref(0);
 const presetName = '';
-const showSavePresetDialog = ref(false);
-const showExportPresetDialog = ref(false);
 
 async function saveImage() {
-	
+
 }
 
 async function saveAnimation() {
@@ -76,9 +69,8 @@ async function saveAnimation() {
 }
 
 async function saveAnimationGif() {
-	
-}
 
+}
 
 async function importPreset() {
 	const result = await api.openPresetFile({});
@@ -87,7 +79,7 @@ async function importPreset() {
 	const assets = await api.decodeAssets(result.preset.assets);
 
 	for (const asset of assets) {
-		store.addAsset(asset);
+		appContext.commit('addAsset', asset);
 	}
 
 	for (const node of result.preset.nodes) {

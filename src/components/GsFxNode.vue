@@ -4,16 +4,16 @@
 	<div :class="$style.header" class="drag-handle" @dblclick="expanded = !expanded">{{ name }}</div>
 	<div :class="[$style.indicator, { active: node.isEnabled }]"></div>
 	<div :class="$style.headerButtons">
-		<GsButton :class="[$style.headerButton]" inline small icon-only @click="expanded = !expanded"><i class="ti" :class="expanded ? 'ti-chevron-up' : 'ti-chevron-down'"></i></GsButton>
-		<GsButton :class="[$style.headerButton]" inline small icon-only :primary="node.isEnabled" @click="toggleEnable()" :title="node.isEnabled ? i18n.ts.ClickToDisable : i18n.ts.ClickToEnable"><i class="ti" :class="node.isEnabled ? 'ti-eye' : 'ti-eye-off'"></i></GsButton>
-		<GsButton :class="[$style.headerButton]" inline small icon-only @click="remove()" :title="i18n.ts.RemoveEffect"><i class="ti ti-x"></i></GsButton>
+		<GsButton :class="[$style.headerButton]" inline small iconOnly @click="expanded = !expanded"><i class="ti" :class="expanded ? 'ti-chevron-up' : 'ti-chevron-down'"></i></GsButton>
+		<GsButton :class="[$style.headerButton]" inline small iconOnly :primary="node.isEnabled" :title="node.isEnabled ? i18n.ts.ClickToDisable : i18n.ts.ClickToEnable" @click="toggleEnable()"><i class="ti" :class="node.isEnabled ? 'ti-eye' : 'ti-eye-off'"></i></GsButton>
+		<GsButton :class="[$style.headerButton]" inline small iconOnly :title="i18n.ts.RemoveEffect" @click="remove()"><i class="ti ti-x"></i></GsButton>
 	</div>
 
-	<div :class="$style.params" v-show="expanded">
-		<div :class="$style.param" v-for="param in Object.keys(paramDefs).filter(k => subStore.showAllParams ? true : !k.startsWith('_'))" :key="param" v-show="paramDefs[param].visibility == null || paramDefs[param].visibility(node.params)">
+	<div v-show="expanded" :class="$style.params">
+		<div v-for="param in Object.keys(paramDefs).filter(k => subStore.showAllParams ? true : !k.startsWith('_'))" v-show="paramDefs[param].visibility == null || paramDefs[param].visibility(node.params)" :key="param" :class="$style.param">
 			<label :class="[$style.paramLabel, { [$style.expression]: isExpression(param) }]" @click="changeValueType(param, $event)">{{ paramDefs[param].label }}</label>
-			<div :class="$style.paramBody"> 
-				<GsInput v-if="isExpression(param)" type="text" :model-value="getParam(param)" @update:model-value="updateParamAsExpression(param, $event)"/>
+			<div :class="$style.paramBody">
+				<GsInput v-if="isExpression(param)" type="text" :modelValue="getParam(param)" @update:modelValue="updateParamAsExpression(param, $event)"/>
 				<GsButton v-else-if="isAutomation(param)" @click="selectAutomation(param, $event)">{{ node.params[param].value ? store.automations.find(a => a.id === node.params[param].value).name : '(none)' }}</GsButton>
 				<XControl v-else :type="paramDefs[param].type" :group="group" :node="node" :name="param" :options="paramDefs[param]" :value="getParam(param)" @input="updateParamAsLiteral(param, $event)"/>
 			</div>
@@ -30,18 +30,15 @@
 <script lang="ts" setup>
 import { ref, computed, shallowRef, onMounted } from 'vue';
 import XControl from './GsEffectParamControl.vue';
-import { fxs } from '@/engine/fxs';
-import { subStore } from '@/sub-store';
-import { useStore } from '@/store';
-import { i18n } from '@/i18n';
 import GsButton from './common/GsButton.vue';
 import GsInput from './common/GsInput.vue';
-import { wireMap } from '@/app';
+import { fxs } from '@/engine/fxs';
+import { subStore } from '@/sub-store';
+import { i18n } from '@/i18n';
+import { appContext, wireMap } from '@/app';
 import { GsAutomation } from '@/engine/types';
 import * as ui from '@/ui';
 import { GsFxNode } from '@/engine/renderer.ts';
-
-const store = useStore();
 
 const props = defineProps<{
 	node: GsFxNode,
@@ -82,16 +79,16 @@ async function selectAutomation(param: string, ev: MouseEvent) {
 			text: '(none)',
 			action: () => {
 				res(null);
-			}
-		}, ...(store.automations.map(a => ({
+			},
+		}, ...(appContext.state.automations.value.map(a => ({
 			text: a.name,
 			action: () => {
 				res(a);
-			}
+			},
 		})))], ev.currentTarget ?? ev.target);
 	});
 
-	store.updateParamAsAutomation({
+	appContext.commit('updateParamAsAutomation', {
 		nodeId: props.node.id,
 		param: param,
 		value: a?.id ?? null,
@@ -104,21 +101,21 @@ async function changeValueType(param: string, ev: MouseEvent) {
 			text: 'Literal',
 			action: () => {
 				res('literal');
-			}
+			},
 		}, {
 			text: 'Automation',
 			action: () => {
 				res('automation');
-			}
+			},
 		}, {
 			text: 'Expression',
 			action: () => {
 				res('expression');
-			}
+			},
 		}], ev.currentTarget ?? ev.target);
 	});
 
-	store.changeParamValueType({
+	appContext.commit('changeParamValueType', {
 		nodeId: props.node.id,
 		param: param,
 		type: type,
@@ -126,31 +123,29 @@ async function changeValueType(param: string, ev: MouseEvent) {
 }
 
 function updateParamAsLiteral(param: string, value: any) {
-	store.updateParamAsLiteral({
+	appContext.commit('updateParamAsLiteral', {
 		nodeId: props.node.id,
 		param: param,
-		value: value
+		value: value,
 	});
 }
 
 function updateParamAsExpression(param: string, value: string) {
-	store.updateParamAsExpression({
+	appContext.commit('updateParamAsExpression', {
 		nodeId: props.node.id,
 		param: param,
-		value: value
+		value: value,
 	});
 }
 
 function remove() {
-	store.removeNode({
+	appContext.commit('removeNode', {
 		nodeId: props.node.id,
 	});
 }
 
 function toggleEnable() {
-	store.toggleEnable({
-		nodeId: props.node.id,
-	});
+
 }
 
 onMounted(() => {

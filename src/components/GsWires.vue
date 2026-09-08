@@ -1,20 +1,16 @@
 <template>
-<div :class="$style.root" ref="rootEl">
+<div ref="rootEl" :class="$style.root">
 	<svg v-for="wire in wires" version="1.1" :viewBox="`0 0 ${width} ${height}`" :class="$style.wire">
-		<line :x1="wire.from[0]" :y1="wire.from[1]" :x2="wire.to[0]" :y2="wire.to[1]" style="stroke: currentColor; stroke-width: 3;" />
+		<line :x1="wire.from[0]" :y1="wire.from[1]" :x2="wire.to[0]" :y2="wire.to[1]" style="stroke: currentColor; stroke-width: 3;"/>
 	</svg>
 </div>
 </template>
 
 <script lang="ts" setup>
-import { wireMap } from '@/app';
+import { onMounted, ref, shallowRef, watch } from 'vue';
+import { appContext, wireMap } from '@/app';
 import { fxs } from '@/engine/fxs';
 import { GsNode } from '@/engine/renderer.ts';
-import { useStore } from '@/store';
-import { version } from '@/version';
-import { onMounted, ref, shallowRef, watch } from 'vue';
-
-const store = useStore();
 
 const props = defineProps<{
 }>();
@@ -82,7 +78,7 @@ function draw() {
 			}
 		}
 
-		scan(store.nodes);
+		scan(appContext.state.nodes.value);
 	} catch (e) {
 		console.error(e);
 	}
@@ -93,7 +89,7 @@ watch(wireMap, () => {
 }, { deep: true, immediate: true });
 
 onMounted(() => {
-	setInterval(() => {
+	window.setInterval(() => {
 		draw();
 	}, 10);
 });
