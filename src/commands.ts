@@ -103,8 +103,8 @@ const addFxNodeCommandDef = defineCommand<{ id: string; fx: string; params?: Rec
 	},
 });
 
-const removeFxNodeCommandDef = defineCommand<{ nodeId: string }>({
-	label: 'Remove fx node',
+const removeNodeCommandDef = defineCommand<{ nodeId: string }>({
+	label: 'Remove node',
 	create: (payload) => {
 		return {
 			execute(state) {
@@ -521,7 +521,7 @@ const updateParamAsAutomationCommandDef = defineCommand<{ nodeId: GsNode['id']; 
 
 export const COMMAND_DEFS = {
 	addFxNode: addFxNodeCommandDef,
-	removeFxNode: removeFxNodeCommandDef,
+	removeNode: removeNodeCommandDef,
 	addGroupNode: addGroupNodeCommandDef,
 	addAsset: addAssetCommandDef,
 	removeAsset: removeAssetCommandDef,
