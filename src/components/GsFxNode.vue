@@ -293,7 +293,7 @@ onMounted(() => {
 	cursor: pointer;
 
 	&.expression {
-		color: #9edc29;
+		color: var(--THEME-expression);
 	}
 }
 
