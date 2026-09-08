@@ -8,11 +8,13 @@
 			:max="options.max"
 			:title="`${options.min} ~ ${options.max}`"
 			:continuousUpdate="true"
-			@update:modelValue="v => changeValue(parseFloat(v, 10))"
+			@beginChanging="onBeginChanging"
+			@update:modelValue="changeContinuous"
+			@changeFinished="onFinishChanging"
 		/>
 	</div>
 	<div v-if="type === 'range2'">
-		<XSlider2 :modelValue="value" :step="options.step ?? 1" :min="options.min" :max="options.max" :title="`${options.min} ~ ${options.max}`" @update:modelValue="v => changeValue(v)"/>
+		<XSlider2 :modelValue="value" :step="options.step ?? 1" :min="options.min" :max="options.max" :title="`${options.min} ~ ${options.max}`" @beginChanging="onBeginChanging" @update:modelValue="changeContinuous" @changeFinished="onFinishChanging"/>
 	</div>
 	<div v-else-if="type === 'number'">
 		<GsInput small type="number" :modelValue="value" :min="options.min" :max="options.max" @update:modelValue="changeValue(parseFloat($event, 10))"/>

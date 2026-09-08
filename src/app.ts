@@ -73,7 +73,7 @@ const addFxNodeCommandDef = defineCommand<{ id: string; fx: string; params?: Rec
 				const group = payload.groupId ? state.nodes.value.find(node => node.type === 'group' && node.id === payload.groupId) as GsGroupNode : undefined;
 
 				const params = {} as GsFxNode['params'];
-				const defaultParams = fxs[payload.fx].getDefaultParams();
+				const defaultParams = deepClone(fxs[payload.fx].getDefaultParams());
 
 				for (const [k, v] of Object.entries(paramDefs)) {
 					if (defaultParams[k] != null) {
@@ -99,7 +99,7 @@ const addFxNodeCommandDef = defineCommand<{ id: string; fx: string; params?: Rec
 						fx: payload.fx,
 						params: {
 							...params,
-							...(payload.params ?? {}),
+							...deepClone(payload.params ?? {}),
 						},
 						x: 0,
 						y: 0,
@@ -112,7 +112,7 @@ const addFxNodeCommandDef = defineCommand<{ id: string; fx: string; params?: Rec
 						fx: payload.fx,
 						params: {
 							...params,
-							...(payload.params ?? {}),
+							...deepClone(payload.params ?? {}),
 						},
 						x: 0,
 						y: 0,
@@ -204,9 +204,9 @@ const addAssetCommandDef = defineCommand<{ id: string; name: string; width: numb
 					name: payload.name,
 					width: payload.width,
 					height: payload.height,
-					data: payload.data,
+					data: deepClone(payload.data),
 					fileDataType: payload.fileDataType,
-					fileData: payload.fileData,
+					fileData: deepClone(payload.fileData),
 					hash: payload.hash,
 				});
 			},
@@ -269,9 +269,9 @@ const replaceAssetCommandDef = defineCommand<{ assetId: string; width: number; h
 				const asset = state.assets.value.find(asset => asset.id === payload.assetId)!;
 				asset.width = payload.width;
 				asset.height = payload.height;
-				asset.data = payload.data;
+				asset.data = deepClone(payload.data);
 				asset.fileDataType = payload.fileDataType;
-				asset.fileData = payload.fileData;
+				asset.fileData = deepClone(payload.fileData);
 				asset.hash = payload.hash;
 			},
 			undo(state) {
@@ -361,7 +361,7 @@ const updateMacroAsLiteralCommandDef = defineCommand<{ groupId?: GsGroupNode['id
 				const macro = (group ? group.macros : state.macros.value).find(macro => macro.id === payload.macroId)!;
 				macro.value = {
 					type: 'literal',
-					value: payload.value,
+					value: deepClone(payload.value),
 				};
 			},
 			undo(state) {
@@ -449,7 +449,7 @@ const updateMacroTypeOptionCommandDef = defineCommand<{ groupId?: GsGroupNode['i
 			execute(state) {
 				const group = state.nodes.value.find(node => node.id === payload.groupId) as GsGroupNode;
 				const macro = (group ? group.macros : state.macros.value).find(macro => macro.id === payload.macroId)!;
-				macro.typeOptions[payload.key] = payload.value;
+				macro.typeOptions[payload.key] = deepClone(payload.value);
 			},
 			undo(state) {
 				// TODO
@@ -465,7 +465,7 @@ const changeParamValueTypeCommandDef = defineCommand<{ nodeId: GsNode['id']; par
 			execute(state) {
 				const node = stateUtility.findNode(state, payload.nodeId)! as GsFxNode;
 				const currentValue = node.params[payload.param];
-				const defaultValue = fxs[node.fx].getDefaultParams()[payload.param];
+				const defaultValue = deepClone(fxs[node.fx].getDefaultParams()[payload.param]);
 				const emptyValue = genEmptyValue(fxs[node.fx].paramDefs[payload.param]);
 				if (payload.type === 'expression') {
 					node.params[payload.param] = {

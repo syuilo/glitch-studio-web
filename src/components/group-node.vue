@@ -22,7 +22,7 @@
 			<div v-if="isExpression(macro)">
 				<input type="text" class="expression" :value="macro.value.value" @change="updateMacroAsExpression(macro.id, $event.target.value)"/>
 			</div>
-			<XControl v-else :type="macro.type" :node="node" :group="group" :options="macro.typeOptions" :value="macro.value.value" @input="updateMacroAsLiteral(macro.id, $event)"/>
+			<XControl v-else :type="macro.type" :node="node" :group="group" :options="macro.typeOptions" :value="macro.value.value" @input="updateMacroAsLiteral(macro.id, $event)" @changeContinuous="updateMacroAsLiteral(macro.id, $event)"/>
 		</div>
 	</div>
 

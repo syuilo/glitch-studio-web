@@ -59,6 +59,8 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
 	(ev: 'update:modelValue', value: number): void;
+	(ev: 'beginChanging'): void;
+	(ev: 'changeFinished'): void;
 	(ev: 'dragEnded', value: number): void;
 	(ev: 'thumbDoubleClicked'): void;
 }>();
@@ -145,8 +147,10 @@ const steps = computed(() => {
 
 const tooltipForDragShowing = ref(false);
 const tooltipForHoverShowing = ref(false);
+let finishDrag: (() => void) | null = null;
 
 onBeforeUnmount(() => {
+	finishDrag?.();
 	// 何らかの問題で表示されっぱなしでもコンポーネントを離れたら消えるように
 	tooltipForDragShowing.value = false;
 	tooltipForHoverShowing.value = false;
@@ -176,8 +180,10 @@ let lastClickTime: number | null = null;
 
 function onMousedown(ev: MouseEvent | TouchEvent) {
 	if (props.disabled) return; // Prevent interaction if disabled
+	if (finishDrag != null) return;
 
 	ev.preventDefault();
+	emit('beginChanging');
 
 	tooltipForDragShowing.value = true;
 
@@ -213,24 +219,32 @@ function onMousedown(ev: MouseEvent | TouchEvent) {
 	let beforeValue = finalValue.value;
 
 	const onMouseup = () => {
+		if (finishDrag == null) return;
+		finishDrag = null;
 		window.document.head.removeChild(style);
 		tooltipForDragShowing.value = false;
 		window.removeEventListener('mousemove', onDrag);
 		window.removeEventListener('touchmove', onDrag);
 		window.removeEventListener('mouseup', onMouseup);
 		window.removeEventListener('touchend', onMouseup);
+		window.removeEventListener('touchcancel', onMouseup);
+		window.removeEventListener('blur', onMouseup);
 
 		// 値が変わってたら通知
 		if (beforeValue !== finalValue.value) {
-			emit('update:modelValue', finalValue.value);
+			if (!props.continuousUpdate) emit('update:modelValue', finalValue.value);
 			emit('dragEnded', finalValue.value);
 		}
+		emit('changeFinished');
 	};
 
+	finishDrag = onMouseup;
 	window.addEventListener('mousemove', onDrag);
 	window.addEventListener('touchmove', onDrag);
 	window.addEventListener('mouseup', onMouseup, { once: true });
 	window.addEventListener('touchend', onMouseup, { once: true });
+	window.addEventListener('touchcancel', onMouseup, { once: true });
+	window.addEventListener('blur', onMouseup, { once: true });
 
 	if (lastClickTime == null) {
 		lastClickTime = Date.now();

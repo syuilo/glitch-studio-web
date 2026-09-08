@@ -6,7 +6,7 @@
 			<div v-if="macro.value.type === 'expression'">
 				<input type="text" class="expression" :value="macro.value.value" @change="updateMacroAsExpression(macro, $event.target.value)"/>
 			</div>
-			<XControl v-else :type="macro.type" :value="macro.value.value" :options="macro.typeOptions" @input="updateMacroAsLiteral(macro, $event)"/>
+			<XControl v-else :type="macro.type" :value="macro.value.value" :options="macro.typeOptions" @input="updateMacroAsLiteral(macro, $event)" @changeContinuous="updateMacroAsLiteral(macro, $event)"/>
 		</div>
 		<p v-if="store.macros.length === 0" class="_gs-no-contents">{{ i18n.ts.NoMacros }}</p>
 	</div>

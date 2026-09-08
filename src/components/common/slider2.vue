@@ -19,6 +19,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
 	(ev: 'update:modelValue', value: number[]): void;
+	(ev: 'beginChanging'): void;
+	(ev: 'changeFinished'): void;
 }>();
 
 const rootEl = shallowRef<HTMLDivElement>();
@@ -60,14 +62,17 @@ function render() {
 }
 
 function onMousedown(ab: string) {
+	if (aDragging.value || bDragging.value) return;
+	emit('beginChanging');
 	if (ab === 'a') aDragging.value = true;
 	if (ab === 'b') bDragging.value = true;
 }
 
 function onMouseup() {
-	//if (aDragging.value || bDragging.value) emit('change', v.value);
+	if (!aDragging.value && !bDragging.value) return;
 	aDragging.value = false;
 	bDragging.value = false;
+	emit('changeFinished');
 }
 
 function onMousemove(e: MouseEvent) {
@@ -96,12 +101,15 @@ onMounted(() => {
 
 	document.addEventListener('mousemove', onMousemove);
 	document.addEventListener('mouseup', onMouseup);
+	window.addEventListener('blur', onMouseup);
 });
 
 onBeforeUnmount(() => {
+	onMouseup();
 	resizeObserver.disconnect();
 	document.removeEventListener('mousemove', onMousemove);
 	document.removeEventListener('mouseup', onMouseup);
+	window.removeEventListener('blur', onMouseup);
 });
 </script>
 
