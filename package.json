@@ -49,9 +49,12 @@
     "@types/throttle-debounce": "5.0.2",
     "@vitejs/plugin-vue": "6.0.8",
     "@webgpu/types": "0.1.72",
+		"eslint-plugin-import": "2.32.0",
+		"eslint-plugin-vue": "10.10.0",
     "sass": "1.83.4",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "vite": "8.2.2",
+		"vue-eslint-parser": "10.4.1",
     "vue-tsc": "3.3.11"
   }
 }
