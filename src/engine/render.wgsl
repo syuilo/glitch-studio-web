@@ -1,8 +1,4 @@
 
-fn premultiplyAlpha(color: vec4f) -> vec4f {
-	return vec4f(color.rgb * color.a, color.a);
-}
-
 // テクスチャ座標(0~1、+Yが下)に変換
 fn convertTexCoords(uv: vec2f) -> vec2f {
 	return vec2f(uv.x, -uv.y) * 0.5 + vec2f(0.5);
@@ -32,5 +28,6 @@ fn fs(fragData: FragmentIn) -> @location(0) vec4f {
 	);
 
 	let color = textureLoad(sourceTexture, coord, 0);
-	return premultiplyAlpha(color);
+	// Node outputs already contain premultiplied RGB.
+	return color;
 }

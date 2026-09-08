@@ -78,7 +78,6 @@ export class Renderer {
 	private defaultVertexShaderModule: GPUShaderModule;
 	private fallbackTexture: GPUTexture;
 	private enableStats = true;
-	private hasAlpha = false;
 	private nodes: GsNode[] = [];
 	private assets: Asset[] = [];
 	private macros: Macro[] = [];
@@ -130,7 +129,7 @@ export class Renderer {
 		this.gpuContext.configure({
 			device: this.gpuDevice,
 			format: navigator.gpu.getPreferredCanvasFormat(),
-			alphaMode: this.hasAlpha ? 'premultiplied' : 'opaque',
+			alphaMode: 'premultiplied',
 			colorSpace: 'display-p3',
 			usage: GPUTextureUsage.RENDER_ATTACHMENT,
 		});
