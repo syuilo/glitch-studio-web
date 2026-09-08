@@ -255,7 +255,7 @@ const renameAssetCommandDef = defineCommand<{ assetId: string; name: string }>({
 	},
 });
 
-const replaceAssetCommandDef = defineCommand<{ assetId: string; width: number; height: number; data: any; fileDataType: string; fileData: any; hash: string }>({
+const replaceAssetCommandDef = defineCommand<Asset & { assetId: string }>({
 	label: 'Replace asset',
 	create: (payload) => {
 		return {
@@ -265,7 +265,7 @@ const replaceAssetCommandDef = defineCommand<{ assetId: string; width: number; h
 				asset.height = payload.height;
 				asset.data = deepClone(payload.data);
 				asset.fileDataType = payload.fileDataType;
-				asset.fileData = deepClone(payload.fileData);
+				asset.fileData = payload.fileData; // blobはimmutableなので多分deepCloneの必要なし
 				asset.hash = payload.hash;
 			},
 			undo(state) {

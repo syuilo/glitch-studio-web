@@ -230,7 +230,7 @@ export class Renderer {
 			const defaults = {} as GsFxNode['params'];
 
 			for (const [k, v] of Object.entries(paramDefs)) {
-				defaults[k] = v.default;
+				if (v.default != null) defaults[k] = v.default;
 			}
 
 			const mergedParams = { ...defaults, ...params } as GsFxNode['params'];
@@ -355,7 +355,7 @@ export class Renderer {
 
 		const params = this.evaledNodeParams.get(node.id)!;
 
-		for (const [k, _] of Object.entries(effect.paramDefs).filter(([k, v]) => v.type === 'node')) {
+		for (const [k, _] of Object.entries(effect.paramDefs).filter(([, v]) => v.type === 'node')) {
 			const v = params[k];
 			if (v == null) {
 				continue;
@@ -536,7 +536,7 @@ export class Renderer {
 		}
 
 		for (const asset of this.assets) {
-			if (asset.fileDataType.startsWith('image/')) {
+			if (asset.fileDataType.startsWith('image/') && asset.data != null) {
 				const tex = createTextureFromSource(this.gpuDevice, {
 					data: asset.data,
 					width: asset.width,

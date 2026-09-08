@@ -21,7 +21,7 @@ export default defineEffect({
 		});
 		return out;
 	},
-	init: ({ wgpu, resolution, params, fallbackTexture }) => {
+	init: ({ wgpu, params, fallbackTexture }) => {
 		const shaderModule = wgpu.device.createShaderModule({
 			code: code,
 		});

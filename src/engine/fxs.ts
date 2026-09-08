@@ -1,3 +1,4 @@
+import type { FxParamDefs } from '../types.ts';
 import { Effect } from './fx-utils.ts';
 
 import test from './fx/test/main.ts';
@@ -42,7 +43,7 @@ const _fxs = {
 	rainDropsOnWindow2,
 	liquidMetal,
 	water,
-} as Record<string, Effect<any>>;
+} as Record<string, Omit<Effect<any>, 'paramDefs'> & { paramDefs: FxParamDefs }>;
 
 const fxs = {} as typeof _fxs;
 Object.keys(_fxs).sort().forEach(key => {

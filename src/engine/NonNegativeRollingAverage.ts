@@ -5,7 +5,7 @@
 // end time. See: https://gpuweb.github.io/gpuweb/#timestamp
 export class NonNegativeRollingAverage {
 	#total = 0;
-	#samples = [];
+	#samples: number[] = [];
 	#cursor = 0;
 	#numSamples;
 
@@ -13,7 +13,7 @@ export class NonNegativeRollingAverage {
 		this.#numSamples = numSamples;
 	}
 
-	addSample(v) {
+	addSample(v: number) {
 		if (!Number.isNaN(v) && Number.isFinite(v) && v >= 0) {
 			this.#total += v - (this.#samples[this.#cursor] || 0);
 			this.#samples[this.#cursor] = v;

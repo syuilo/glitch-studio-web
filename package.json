@@ -42,6 +42,7 @@
     "@typescript-eslint/eslint-plugin": "8.67.0",
     "@typescript-eslint/parser": "8.67.0",
     "@types/sanitize-html": "2.16.1",
+    "@types/seedrandom": "^3.0.8",
     "@types/semver": "7.5.8",
     "@types/textarea-caret": "3.0.4",
     "@types/throttle-debounce": "5.0.2",

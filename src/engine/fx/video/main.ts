@@ -39,7 +39,7 @@ export default defineEffect({
 		});
 		return out;
 	},
-	init: ({ wgpu, resolution, params }) => {
+	init: ({ wgpu, resolution, params, fallbackTexture }) => {
 		const shaderModule = wgpu.device.createShaderModule({
 			code: code,
 		});
@@ -78,9 +78,9 @@ export default defineEffect({
 			addressModeW: 'mirror-repeat',
 		});
 
-		const tex = createTextureFromSource(wgpu.device, params.video, {
+		const tex = params.video ? createTextureFromSource(wgpu.device, params.video, {
 			mips: false,
-		});
+		}) : fallbackTexture;
 
 		const bindGroup = wgpu.device.createBindGroup({
 			layout: pipeline.getBindGroupLayout(0),
@@ -94,7 +94,7 @@ export default defineEffect({
 		return {
 			render: (ctx) => {
 				const videoEl = params.video;
-				if (isVideoFrameAvailable(videoEl)) {
+				if (videoEl && isVideoFrameAvailable(videoEl)) {
 					// TODO: 動画のフレームが更新された場合のみcopyExternalImageToTextureするようにする
 					wgpu.device.queue.copyExternalImageToTexture(
 						{ source: videoEl },

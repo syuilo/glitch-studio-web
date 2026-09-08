@@ -1,5 +1,4 @@
 import en from '../locales/en.json';
-import ja from '../locales/ja.json';
 
 export class I18n<T extends Record<string, any>> {
 	public ts: T;
@@ -29,4 +28,4 @@ export class I18n<T extends Record<string, any>> {
 	}
 }
 
-export const i18n = new I18n<{}>(en);
+export const i18n = new I18n(en);

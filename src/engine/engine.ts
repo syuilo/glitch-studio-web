@@ -161,7 +161,7 @@ export class Engine {
 			if (node.type === 'fx' && node.fx === 'video' && !this.videoElements.has(node.id)) {
 				const asset = this.assets.find(asset => asset.id === node.params.video.value)!;
 				const video = window.document.createElement('video');
-				video.src = URL.createObjectURL(new Blob([asset.fileData], { type: asset.fileDataType }));
+				video.src = URL.createObjectURL(asset.fileData);
 				video.loop = true;
 				this.videoElements.set(node.id, video);
 				await playVideoAfterFirstFrameIsReady(video);

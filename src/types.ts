@@ -37,7 +37,7 @@ export type Asset = {
 	name: string;
 	width: number;
 	height: number;
-	data: Uint8Array;
+	data: Uint8Array | null;
 	fileDataType: string;
 	fileData: Blob;
 	hash?: string;

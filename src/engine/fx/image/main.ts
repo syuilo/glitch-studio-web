@@ -38,7 +38,7 @@ export default defineEffect({
 		});
 		return out;
 	},
-	init: ({ wgpu, resolution, params }) => {
+	init: ({ wgpu, resolution, params, fallbackTexture }) => {
 		const shaderModule = wgpu.device.createShaderModule({
 			code: code,
 		});
@@ -82,7 +82,7 @@ export default defineEffect({
 			entries: [
 				{ binding: 1, resource: { buffer: uniformBuffer } },
 				{ binding: 2, resource: sampler },
-				{ binding: 3, resource: params.image.createView() },
+				{ binding: 3, resource: (params.image ?? fallbackTexture).createView() },
 			],
 		});
 
@@ -90,7 +90,7 @@ export default defineEffect({
 			render: (ctx) => {
 				uniformValues.set({
 					aspectRatio: resolution.width / resolution.height,
-					sourceAspectRatio: ctx.params.image.width / ctx.params.image.height,
+					sourceAspectRatio: (ctx.params.image ?? fallbackTexture).width / (ctx.params.image ?? fallbackTexture).height,
 					mode: ctx.params.sizeMode,
 				});
 				wgpu.device.queue.writeBuffer(uniformBuffer, 0, uniformValues.arrayBuffer);

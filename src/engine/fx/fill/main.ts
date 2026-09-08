@@ -20,7 +20,7 @@ export default defineEffect({
 		});
 		return out;
 	},
-	init: ({ wgpu, resolution, params }) => {
+	init: ({ wgpu }) => {
 		const shaderModule = wgpu.device.createShaderModule({
 			code: code,
 		});
