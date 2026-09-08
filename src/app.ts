@@ -493,16 +493,19 @@ const changeParamValueTypeCommandDef = defineCommand<{ nodeId: GsNode['id']; par
 const updateParamAsLiteralCommandDef = defineCommand<{ nodeId: GsNode['id']; param: string; value: any }>({
 	label: 'Update param as literal',
 	create: (payload) => {
+		let before: any;
 		return {
 			execute(state) {
 				const node = stateUtility.findNode(state, payload.nodeId) as GsFxNode;
+				before = node.params[payload.param];
 				node.params[payload.param] = {
 					type: 'literal',
 					value: payload.value,
 				};
 			},
 			undo(state) {
-				// TODO
+				const node = stateUtility.findNode(state, payload.nodeId) as GsFxNode;
+				node.params[payload.param] = before;
 			},
 		};
 	},
@@ -695,6 +698,8 @@ class AppContext {
 }
 
 export const appContext = new AppContext();
+
+(window as any).appContext = appContext; // debug
 
 export const wireMap = reactive<{
 	in: Record<string, any>;
