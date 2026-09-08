@@ -640,6 +640,7 @@ class AppContext {
 		console.log('Committed command:', type, deepClone(payload));
 	}
 
+	// 例えばスライダーのようなコントロールをドラッグして操作する場合、連続的に変化する値をstateにリアルタイム反映はしたいが、操作履歴としてはひとつにまとめたいので、その時に使用する
 	public beginContinuousNodeLiteralParamUpdation(payload: { nodeId: string; param: string; }) {
 		const node = stateUtility.findNode(this.state, payload.nodeId) as GsFxNode;
 		const before = deepClone(node.params[payload.param].value);
