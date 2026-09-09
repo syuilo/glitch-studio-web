@@ -36,20 +36,40 @@ class AppContext {
 		id: 'root',
 		ratio: 1,
 		type: null,
-		direction: 'horizontal',
+		direction: 'vertical',
 		children: [{
-			id: '938e3eedc00d4287885b6894ee3ea8c3',
-			ratio: 0.55,
-			type: 'preview',
-		}, {
-			id: '441518aeb37940b2af7fb0027fd530a9',
-			ratio: 0.25,
-			type: 'nodesEditor',
-		}, {
-			id: '8aec4dd7bf82460eba420680fda4f652',
-			ratio: 0.2,
+			id: 'c138f76ec1d84ba5b83b0cc3766a1266',
+			ratio: 0.7,
 			type: null,
-			direction: 'vertical',
+			direction: 'horizontal',
+			children: [{
+				id: '8aec4dd7bf82460eba420680fda4f652',
+				ratio: 0.25,
+				type: null,
+				direction: 'vertical',
+				children: [{
+					id: 'f9634bc90f4543f3947feeb5e080b61e',
+					ratio: 0.5,
+					type: 'empty',
+				}, {
+					id: 'fc50f9f2b3f34cf89282d04f4ef8b8da',
+					ratio: 0.5,
+					type: 'empty',
+				}],
+			}, {
+				id: '938e3eedc00d4287885b6894ee3ea8c3',
+				ratio: 0.5,
+				type: 'preview',
+			}, {
+				id: '441518aeb37940b2af7fb0027fd530a9',
+				ratio: 0.25,
+				type: 'nodesEditor',
+			}],
+		}, {
+			id: 'ba8f8efaa9a54a109340b2f3e329cda2',
+			ratio: 0.3,
+			type: null,
+			direction: 'horizontal',
 			children: [{
 				id: '0f34c5f4c9cb449683c7f1281851b759',
 				ratio: 0.25,

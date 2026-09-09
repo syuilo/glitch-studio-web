@@ -7,7 +7,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref, shallowRef, watch } from 'vue';
+import { onMounted, ref, shallowRef, useTemplateRef, watch } from 'vue';
 import { appContext, wireMap } from '@/app';
 import { fxs } from '@/engine/fxs';
 import { GsNode } from '@/engine/renderer.ts';
@@ -15,7 +15,7 @@ import { GsNode } from '@/engine/renderer.ts';
 const props = defineProps<{
 }>();
 
-const rootEl = shallowRef<HTMLElement>();
+const rootEl = useTemplateRef('rootEl');
 const width = ref(0);
 const height = ref(0);
 
