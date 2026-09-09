@@ -1,9 +1,8 @@
 import { AiSON } from '@syuilo/aiscript';
-import { fxs } from './engine/fxs.ts';
-import { GsFxNode, GsGroupNode, GsNode } from '../../renderer/src/renderer.js';
-import { AppState, Asset, FxParamDataType, FxParamDefs } from './types.ts';
-import { deepClone } from '../../shared/src/utility/deep-clone.js';
-import { genEmptyValue } from './utility/drag.js';
+import { deepClone } from '@glitch/shared/utility/deep-clone.ts';
+import { genEmptyValue } from '@glitch/shared/utility/misc.ts';
+import type { AppState } from './types.ts';
+import type { Asset, FxParamDataType, FxParamDefs, GsFxNode, GsGroupNode, GsNode } from '@glitch/shared/types.ts';
 
 export type CommandDef<Payload> = {
 	label: string;

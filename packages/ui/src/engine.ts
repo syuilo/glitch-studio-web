@@ -4,6 +4,7 @@ import { deepEqual } from '@glitch/shared/utility/deep-equal.ts';
 import { deepClone } from '@glitch/shared/utility/deep-clone.ts';
 import { isVideoFrameAvailable, playVideoAfterFirstFrameIsReady } from './utility/video.ts';
 import type { Asset, GsAutomation, GsFxNode, GsNode, Macro } from '@glitch/shared/types.ts';
+import type { Renderer } from '@glitch/renderer/renderer.ts';
 import * as ui from '@/ui.ts';
 
 function getFxNodes(nodes: GsNode[]): GsFxNode[] {
