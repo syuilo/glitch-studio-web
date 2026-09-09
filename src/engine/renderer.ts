@@ -332,7 +332,7 @@ export class Renderer {
 		return key;
 	}
 
-	private async renderNode(node: GsNode, commandEncoder: GPUCommandEncoder, visited: GsNode['id'][]): Promise<void> {
+	private renderNode(node: GsNode, commandEncoder: GPUCommandEncoder, visited: GsNode['id'][]): GsFxNode['id'] | void {
 		if (visited.includes(node.id)) {
 			throw new Error('circular dependency detected');
 		}
@@ -413,6 +413,8 @@ export class Renderer {
 				return this.enableStats ? this.timingHelper.beginRenderPass(commandEncoder, _descriptor) : commandEncoder.beginRenderPass(_descriptor);
 			},
 		});
+
+		return node.id;
 	}
 
 	public render(renderNodeId: string, args: {
@@ -432,10 +434,11 @@ export class Renderer {
 
 		const commandEncoder = this.gpuDevice.createCommandEncoder();
 
-		this.renderNode(node, commandEncoder, []);
+		const renderedNodeId = this.renderNode(node, commandEncoder, []);
+		if (renderedNodeId == null) return;
 
 		//#region nodeのoutをcanvasに描画
-		const out = this.effectOuts.get(node.id);
+		const out = this.effectOuts.get(renderedNodeId);
 		if (out == null) return;
 		if (this.finalRenderBindGroup == null || this.finalRenderInputTexture !== out) {
 			this.finalRenderInputTexture = out;
