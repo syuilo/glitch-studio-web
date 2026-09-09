@@ -71,6 +71,10 @@ export function getFxNodes(nodes: GsNode[]): GsFxNode[] {
 	return nodes.flatMap(node => node.type === 'group' ? getFxNodes(node.nodes) : [node]);
 }
 
+function getActualOutputNodeId(node: GsNode): string | undefined {
+	return node.type === 'group' ? node.nodes.at(-1)?.id : node.id;
+}
+
 export class Renderer {
 	private gpuContext: GPUCanvasContext;
 	private gpuDevice: GPUDevice;
@@ -434,11 +438,12 @@ export class Renderer {
 
 		const commandEncoder = this.gpuDevice.createCommandEncoder();
 
-		const renderedNodeId = this.renderNode(node, commandEncoder, []);
-		if (renderedNodeId == null) return;
+		this.renderNode(node, commandEncoder, []);
 
 		//#region nodeのoutをcanvasに描画
-		const out = this.effectOuts.get(renderedNodeId);
+		const actualOutputNodeId = getActualOutputNodeId(node);
+		if (actualOutputNodeId == null) return;
+		const out = this.effectOuts.get(actualOutputNodeId);
 		if (out == null) return;
 		if (this.finalRenderBindGroup == null || this.finalRenderInputTexture !== out) {
 			this.finalRenderInputTexture = out;

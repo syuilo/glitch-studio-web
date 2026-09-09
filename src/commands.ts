@@ -120,6 +120,47 @@ const addFxNodeCommandDef = defineCommand<{ id: string; fx: string; params?: Rec
 	},
 });
 
+const moveNodeCommandDef = defineCommand<{ nodeId: string; groupId: string | null; index: number }>({
+	label: 'Move node',
+	create: (payload) => {
+		let before: { groupId: string | null; index: number };
+		const getNodes = (state: AppState, groupId: string | null): GsNode[] => {
+			if (groupId === null) return state.nodes.value;
+			const group = stateUtility.findNode(state, groupId);
+			if (group?.type !== 'group') throw new Error('Group not found');
+			return group.nodes;
+		};
+		const findLocation = (nodes: GsNode[], groupId: string | null = null): typeof before | undefined => {
+			for (const [index, node] of nodes.entries()) {
+				if (node.id === payload.nodeId) return { groupId, index };
+				if (node.type === 'group') {
+					const found = findLocation(node.nodes, node.id);
+					if (found) return found;
+				}
+			}
+		};
+		return {
+			execute(state) {
+				const location = findLocation(state.nodes.value);
+				if (!location) throw new Error('Node not found');
+				before = location;
+				const source = getNodes(state, before.groupId);
+				const destination = getNodes(state, payload.groupId);
+				const [node] = source.splice(before.index, 1);
+				destination.splice(payload.index, 0, node);
+			},
+			undo(state) {
+				const source = getNodes(state, payload.groupId);
+				const destination = getNodes(state, before.groupId);
+				const index = source.findIndex(node => node.id === payload.nodeId);
+				if (index === -1) throw new Error('Node not found');
+				const [node] = source.splice(index, 1);
+				destination.splice(before.index, 0, node);
+			},
+		};
+	},
+});
+
 const removeNodeCommandDef = defineCommand<{ nodeId: string }>({
 	label: 'Remove node',
 	create: (payload) => {
@@ -544,6 +585,7 @@ const updateParamAsAutomationCommandDef = defineCommand<{ nodeId: GsNode['id']; 
 
 export const COMMAND_DEFS = {
 	addFxNode: addFxNodeCommandDef,
+	moveNode: moveNodeCommandDef,
 	removeNode: removeNodeCommandDef,
 	addGroupNode: addGroupNodeCommandDef,
 	updateGroupName: updateGroupNameCommandDef,
