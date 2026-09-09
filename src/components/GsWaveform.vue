@@ -50,7 +50,6 @@ onBeforeUnmount(() => {
 	align-items: baseline;
 	justify-content: space-between;
 	padding: 2px 4px 10px;
-	font-size: 12px;
 }
 
 .scope {

@@ -180,7 +180,7 @@ onMounted(() => {
 	height: 32px;
 	box-sizing: border-box;
 	line-height: 32px;
-	font-size: 12px;
+	font-size: 90%;
 	padding: 0 12px;
 	background: var(--THEME-workspacePanelBody);
 }

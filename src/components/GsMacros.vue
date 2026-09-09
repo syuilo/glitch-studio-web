@@ -122,8 +122,6 @@ function toggleMacroValueType(macro: Macro) {
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	overflow: hidden;
-	font-size: 14px;
-	color: rgba(255, 255, 255, 0.9);
 	cursor: pointer;
 
 	&.expression {
@@ -144,7 +142,7 @@ function toggleMacroValueType(macro: Macro) {
 
 .editorHeader {
 	display: flex;
-	font-size: 12px;
+	font-size: 90%;
 	margin: 12px 0 0 0;
 	opacity: 0.8;
 }

@@ -250,7 +250,7 @@ onMounted(() => {
 	display: inline-block;
 	width: 23px;
 	height: 23px;
-	font-size: 12px;
+	font-size: 90%;
 	padding-left: 0;
 	padding-right: 0;
 

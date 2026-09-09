@@ -226,7 +226,7 @@ onMounted(() => {
 	display: inline-block;
 	width: 23px;
 	height: 23px;
-	font-size: 12px;
+	font-size: 90%;
 	padding-left: 0;
 	padding-right: 0;
 
@@ -266,7 +266,7 @@ onMounted(() => {
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	overflow: hidden;
-	font-size: 14px;
+	font-size: 95%;
 	color: rgba(255, 255, 255, 0.9);
 	cursor: pointer;
 

@@ -174,7 +174,7 @@ onBeforeUnmount(() => {
 	text {
 		fill: rgba(255, 255, 255, 0.45);
 		font-family: inherit;
-		font-size: 11px;
+		font-size: 80%;
 	}
 }
 </style>

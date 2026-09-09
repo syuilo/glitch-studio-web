@@ -132,8 +132,6 @@ function remove(macroId: string) {
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	overflow: hidden;
-	font-size: 14px;
-	color: rgba(255, 255, 255, 0.9);
 	cursor: pointer;
 }
 
