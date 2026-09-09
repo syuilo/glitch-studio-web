@@ -158,16 +158,17 @@
 	<div v-else-if="type === 'video'">
 		<GsSelect
 			small
-			:modelValue="value"
+			:modelValue="value == null ? null : value.type === 'webcam' ? 'webcam' : value.type === 'asset' ? `asset:${value.id}` : null"
 			:items="[
 				{ label: i18n.ts.None, value: null },
+				{ label: 'Web Camera', value: 'webcam' },
 				...(appContext.state.assets.value.length > 0 ? [{
 					type: 'group' as const,
 					label: 'Assets',
-					items: appContext.state.assets.value.filter(asset => asset.fileDataType.startsWith('video/')).map(asset => ({ label: asset.name, value: asset.id })),
+					items: appContext.state.assets.value.filter(asset => asset.fileDataType.startsWith('video/')).map(asset => ({ label: asset.name, value: `asset:${asset.id}` })),
 				}] : []),
 			]"
-			@update:modelValue="v => changeValue(v)"
+			@update:modelValue="v => changeValue(v === 'webcam' ? { type: 'webcam' } : v && v.startsWith('asset:') ? { type: 'asset', id: v.split(':')[1] } : null)"
 		/>
 		<GsVideoControls v-if="node && value" :video="engine.getVideoElement(node.id)" :class="$style.player"/>
 	</div>

@@ -386,7 +386,7 @@ export async function newProjectFromImageOrVideo() {
 			fx: 'video',
 			id: genId(),
 			params: {
-				video: { type: 'literal', value: assetId },
+				video: { type: 'literal', value: { type: 'asset', id: assetId } },
 			},
 		});
 	}
