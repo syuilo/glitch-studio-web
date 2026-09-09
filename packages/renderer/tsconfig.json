@@ -18,7 +18,8 @@
 		"typeRoots": [
 			"./@types",
 			"./node_modules/@types"
-		]
+		],
+		"types": ["@webgpu/types"]
 	},
 	"include": [
 		"@types/**/*.ts",

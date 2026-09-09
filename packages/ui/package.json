@@ -46,7 +46,6 @@
 		"@types/textarea-caret": "3.0.4",
 		"@types/throttle-debounce": "5.0.2",
 		"@vitejs/plugin-vue": "6.0.8",
-		"@webgpu/types": "0.1.72",
 		"eslint-plugin-import": "2.32.0",
 		"eslint-plugin-vue": "10.10.0",
 		"sass": "1.83.4",

@@ -9,18 +9,19 @@
 		"lint": "pnpm typecheck && pnpm eslint"
 	},
 	"exports": {
-		"./client": "./src/client.ts"
+		"./client.ts": "./src/client.ts"
 	},
 	"devDependencies": {
 		"@types/seedrandom": "3.0.8",
 		"@typescript-eslint/eslint-plugin": "8.59.2",
 		"@typescript-eslint/parser": "8.59.2",
+		"@webgpu/types": "0.1.72",
 		"vitest": "4.1.10"
 	},
 	"dependencies": {
 		"@glitch/shared": "workspace:*",
-		"seedrandom": "3.0.5",
 		"@syuilo/aiscript": "1.2.1",
+		"seedrandom": "3.0.5",
 		"webgpu-utils": "2.1.1"
 	}
 }

@@ -1,16 +1,16 @@
 import { createTextureFromSource, makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
 import * as AiScript from '@syuilo/aiscript';
-import { deepClone } from '@glitch/shared/deep-clone.js';
-import { evalAutomationValue, genEmptyValue } from '@glitch/shared/utility/misc.js';
+import { deepClone } from '@glitch/shared/utility/deep-clone.ts';
+import { evalAutomationValue, genEmptyValue } from '@glitch/shared/utility/misc.ts';
 import defaultVertexShaderCode from './vertex.wgsl?raw';
-import TimingHelper from './TimingHelper.js';
-import { fxs } from './fxs.js';
+import TimingHelper from './TimingHelper.ts';
+import { fxs } from './fxs.ts';
 import finalRenderShaderCode from './render.wgsl?raw';
-import { NonNegativeRollingAverage } from './NonNegativeRollingAverage.js';
-import { GpuHistogram } from './GpuHistogram.js';
-import { GpuWaveform } from './GpuWaveform.js';
+import { NonNegativeRollingAverage } from './NonNegativeRollingAverage.ts';
+import { GpuHistogram } from './GpuHistogram.ts';
+import { GpuWaveform } from './GpuWaveform.ts';
 import type { Asset, FxParamValue, Macro, GsAutomation } from '@glitch/shared/types.ts';
-import type { EffectInstance } from './fx-utils.js';
+import type { EffectInstance } from './fx-utils.ts';
 
 const aisParser = new AiScript.Parser();
 
