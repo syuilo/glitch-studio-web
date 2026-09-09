@@ -55,7 +55,7 @@ import { genId } from '@/utility/id.ts';
 
 const props = defineProps<{
 	node: GsFxNode,
-	group: GsGroupNode,
+	group: GsGroupNode | null,
 }>();
 
 const name = ref<string>(fxs[props.node.fx].displayName);

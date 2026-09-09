@@ -197,7 +197,7 @@ const props = defineProps<{
 	value: any;
 	options?: any;
 	node?: GsNode;
-	group?: GsGroupNode;
+	group?: GsGroupNode | null;
 	name?: string;
 }>();
 

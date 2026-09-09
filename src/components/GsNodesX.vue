@@ -16,7 +16,7 @@ import { i18n } from '@/i18n';
 import { GsGroupNode, GsNode } from '@/engine/renderer.ts';
 
 const props = defineProps<{
-	group?: GsGroupNode;
+	group: GsGroupNode | null;
 }>();
 
 const nodes = computed({

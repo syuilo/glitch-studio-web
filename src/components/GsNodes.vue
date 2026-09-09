@@ -18,7 +18,7 @@ import { appContext } from '@/app.ts';
 const Sortable = defineAsyncComponent(() => import('vuedraggable').then(x => x.default));
 
 const props = defineProps<{
-	group?: GsGroupNode;
+	group: GsGroupNode | null;
 }>();
 
 const nodes = computed({

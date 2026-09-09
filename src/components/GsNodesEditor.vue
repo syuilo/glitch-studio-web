@@ -4,7 +4,7 @@
 		<GsButton full @click="showAddNodeMenu">Add node</GsButton>
 		<div :class="$style.nodesContainer">
 			<div :class="$style.nodes">
-				<GsNodes/>
+				<GsNodes :group="null"/>
 				<!--<GsNodesX/>-->
 				<GsWires/>
 			</div>
