@@ -179,7 +179,7 @@ onMounted(() => {
 }
 
 .footerStats {
-	margin-left: 16px;
+	margin-left: auto;
 	display: flex;
 	gap: 8px;
 }
