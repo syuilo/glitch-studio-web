@@ -1,4 +1,3 @@
-
 export const basicParamDefs = {
 	_wh: {
 		label: 'WH',

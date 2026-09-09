@@ -9,7 +9,7 @@ import finalRenderShaderCode from './render.wgsl?raw';
 import { NonNegativeRollingAverage } from './NonNegativeRollingAverage.ts';
 import { GpuHistogram } from './GpuHistogram.ts';
 import { GpuWaveform } from './GpuWaveform.ts';
-import type { Asset, FxParamValue, Macro, GsAutomation } from '@glitch/shared/types.ts';
+import type { Asset, FxParamValue, Macro, GsAutomation, GsFxNode, GsNode, GsGroupNode } from '@glitch/shared/types.ts';
 import type { EffectInstance } from './fx-utils.ts';
 
 const aisParser = new AiScript.Parser();
@@ -40,31 +40,6 @@ function serializeAsset(asset: Asset | undefined) {
 		hash: asset.hash,
 	};
 }
-
-export type GsFxNode = {
-	id: string;
-	type: 'fx';
-	fx: string;
-	isEnabled: boolean;
-	params: Record<string, FxParamValue>;
-
-	// 2D平面上でノードを配置できるようになった時のため
-	pos?: { x: number; y: number };
-};
-
-export type GsGroupNode = {
-	id: string;
-	type: 'group';
-	isEnabled: boolean;
-	name: string;
-	nodes: GsNode[];
-	macros: Macro[];
-
-	// 2D平面上でノードを配置できるようになった時のため
-	pos?: { x: number; y: number };
-};
-
-export type GsNode = GsFxNode | GsGroupNode;
 
 function getFxNodes(nodes: GsNode[]): GsFxNode[] {
 	return nodes.flatMap(node => node.type === 'group' ? getFxNodes(node.nodes) : [node]);

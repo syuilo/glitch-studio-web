@@ -74,3 +74,28 @@ export type GsAutomation = {
 	name: string;
 	keyframes: GsKeyframe[];
 };
+
+export type GsFxNode = {
+	id: string;
+	type: 'fx';
+	fx: string;
+	isEnabled: boolean;
+	params: Record<string, FxParamValue>;
+
+	// 2D平面上でノードを配置できるようになった時のため
+	pos?: { x: number; y: number };
+};
+
+export type GsGroupNode = {
+	id: string;
+	type: 'group';
+	isEnabled: boolean;
+	name: string;
+	nodes: GsNode[];
+	macros: Macro[];
+
+	// 2D平面上でノードを配置できるようになった時のため
+	pos?: { x: number; y: number };
+};
+
+export type GsNode = GsFxNode | GsGroupNode;

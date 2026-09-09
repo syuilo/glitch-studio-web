@@ -2,6 +2,8 @@ import { ref, shallowReactive } from 'vue';
 import { createRendererWorker } from '@glitch/renderer/client.ts';
 import { deepEqual } from '@glitch/shared/utility/deep-equal.ts';
 import { deepClone } from '@glitch/shared/utility/deep-clone.ts';
+import { isVideoFrameAvailable, playVideoAfterFirstFrameIsReady } from './utility/video.ts';
+import type { Asset, GsAutomation, GsFxNode, GsNode, Macro } from '@glitch/shared/types.ts';
 import * as ui from '@/ui.ts';
 
 function getFxNodes(nodes: GsNode[]): GsFxNode[] {
