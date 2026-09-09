@@ -18,7 +18,6 @@ import { encode } from '@msgpack/msgpack';
 import { genId } from '@glitch/shared/utility/id.ts';
 import GsModal from './common/GsModal.vue';
 import { SettingsStore } from '@/settings.ts';
-import { version } from '@/version.ts';
 import * as api from '@/api.ts';
 
 const modal = useTemplateRef('modal');
@@ -32,7 +31,7 @@ const name = ref('');
 async function save() {
 	const data = encode({
 		id: genId(),
-		gsVersion: version,
+		gsVersion: _VERSION_,
 		name: name.value,
 		nodes: store.nodes,
 		macros: store.macros,

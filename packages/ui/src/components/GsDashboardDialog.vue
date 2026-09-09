@@ -3,7 +3,7 @@
 	<div :class="$style.root" class="_gaps_s">
 		<div>
 			<div><b>Glitch Studio</b></div>
-			<div>{{ version }}</div>
+			<div>{{ _VERSION_ }}</div>
 		</div>
 		<div>
 			<GsButton inline @click="_newProject">New project</GsButton>
@@ -22,7 +22,6 @@
 import { useTemplateRef } from 'vue';
 import GsButton from './common/GsButton.vue';
 import GsModal from './common/GsModal.vue';
-import { version } from '@/version.ts';
 import { newProject, newProjectFromImageOrVideo, openProject } from '@/app.ts';
 
 const modal = useTemplateRef('modal');

@@ -2,7 +2,6 @@ import { encode, decode } from '@msgpack/msgpack';
 import { GsNode } from './glitch';
 import { GsAutomation } from './engine/types';
 import { Macro, Asset } from '@/types';
-import { version } from '@/version.ts';
 
 //export const userDataPath = electron.remote.app.getPath('userData');
 //const filePath = path.join(userDataPath, 'settings');
@@ -48,7 +47,7 @@ export type Settings = {
 };
 
 const defaultSettings: Settings = {
-	version: version,
+	version: _VERSION_,
 	presets: [],
 	showHistogram: false,
 	locale: 'en',
@@ -72,7 +71,7 @@ export class SettingsStore {
 	}
 
 	public save() {
-		this.settings.version = version;
+		this.settings.version = _VERSION_;
 		const data: any = this.settings;
 		data.presets = this.settings.presets.map(preset => ({
 			id: preset.id,

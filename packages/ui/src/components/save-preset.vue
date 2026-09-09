@@ -2,7 +2,7 @@
 <XDialog>
 	<div class="save-preset-componet">
 		<div>
-			<input type="text" v-model="name"/>
+			<input v-model="name" type="text"/>
 		</div>
 		<footer>
 			<button @click="cancel()">Cancel</button>
@@ -14,9 +14,8 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue';
-import { SettingsStore } from '@/settings.ts';
-import { version } from '@/version.ts';
 import XDialog from './dialog.vue';
+import { SettingsStore } from '@/settings.ts';
 import { subStore } from '@/sub-store.ts';
 import { useStore } from '@/store';
 import { genId } from '@/utility/id.ts';
@@ -32,7 +31,7 @@ const name = ref('');
 function save() {
 	subStore.settingsStore.settings.presets.push({
 		id: genId(),
-		gsVersion: version,
+		gsVersion: _VERSION_,
 		name: name.value,
 		author: '',
 		nodes: store.nodes,

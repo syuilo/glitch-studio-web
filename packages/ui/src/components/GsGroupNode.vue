@@ -48,7 +48,6 @@ import GsButton from './common/GsButton.vue';
 import type { Asset, GsGroupNode } from '@glitch/shared/types.ts';
 import { subStore } from '@/sub-store.ts';
 import { i18n } from '@/i18n.ts';
-import { version } from '@/version.ts';
 import { appContext, showAddNodeMenu, wireMap } from '@/app.ts';
 import * as api from '@/api.ts';
 
@@ -141,7 +140,7 @@ function collectAssets(): Asset[] {
 async function exportPreset() {
 	await api.exportPresetFile({
 		id: genId(),
-		gsVersion: version,
+		gsVersion: _VERSION_,
 		name: props.node.name ?? 'untitled',
 		author: 'TODO',
 		macros: props.node.macros,

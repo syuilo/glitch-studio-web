@@ -11,7 +11,6 @@ import type { WorkspaceDivider } from './types/workspace.ts';
 import type { Asset, GsNode, Macro, GsAutomation, GsGroupNode } from '@glitch/shared/types.ts';
 import type { RawProject } from './settings.ts';
 import * as ui from '@/ui.ts';
-import { version } from '@/version.ts';
 import * as api from '@/api.ts';
 
 type CommandLog = {
@@ -314,7 +313,7 @@ export async function appReady(project: RawProject) {
 export function saveProject() {
 	//saveProjectFile({
 	//	id: store.id,
-	//	gsVersion: version,
+	//	gsVersion: _VERSION_,
 	//	name: store.name,
 	//	author: store.author,
 	//	macros: store.macros,
@@ -345,7 +344,7 @@ export async function openProject() {
 export async function newProject() {
 	await appReady({
 		id: genId(),
-		gsVersion: version,
+		gsVersion: _VERSION_,
 		name: 'untitled',
 		author: 'TODO',
 		nodes: [],
@@ -364,7 +363,7 @@ export async function newProjectFromImageOrVideo() {
 
 	await appReady({
 		id: genId(),
-		gsVersion: version,
+		gsVersion: _VERSION_,
 		name: result.name,
 		author: 'TODO',
 		nodes: [],
