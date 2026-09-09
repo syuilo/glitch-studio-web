@@ -63,7 +63,6 @@ function restorePreview() {
 	pip.document.removeEventListener('fullscreenchange', updateFullscreen);
 	// Restore synchronously, before the child document or Vue subtree is destroyed.
 	if (home.value && preview.value) home.value.append(preview.value);
-	engine.setRenderWindow(window);
 	previewWindow.value = null;
 	fullscreen.value = false;
 }
@@ -105,7 +104,6 @@ async function openPreview(mode: 'pip' | 'window') {
 			pip.document.head.append(style.cloneNode(true));
 		}
 		pip.document.body.append(preview.value!);
-		engine.setRenderWindow(pip);
 	} catch (error) {
 		restorePreview();
 		pip?.close();
@@ -136,7 +134,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-	if (canvasContainer.value != null) {
+	if (canvasContainer.value != null && engine.canvas.parentNode === canvasContainer.value) {
 		canvasContainer.value.removeChild(engine.canvas);
 	}
 });

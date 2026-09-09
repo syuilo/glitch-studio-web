@@ -10,9 +10,10 @@ function preview(request) {
 	const compiled = ts.transpileModule(script, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
 	const cleanup = [];
 	const errors = [];
-	const clocks = [];
+	const canvas = { parentNode: null };
 	const listeners = new Map();
 	const home = { append: el => { el.parentNode = home; } };
+	const container = { appendChild: el => { el.parentNode = container; }, removeChild: el => { if (el.parentNode !== container) throw new Error('Not a child'); el.parentNode = null; } };
 	const element = { parentNode: home, getBoundingClientRect: () => ({ width: 640, height: 360 }) };
 	const pip = {
 		closed: false, focus() {},
@@ -25,31 +26,49 @@ function preview(request) {
 	let requests = 0;
 	const window = { open: () => pip, addEventListener() {}, removeEventListener() {}, document, documentPictureInPicture: { requestWindow: () => { requests++; return request ? request(pip) : Promise.resolve(pip); } } };
 	const env = {
-		ref, shallowRef, resolutionFactor: ref(1), watch() {}, useTemplateRef: name => shallowRef(name === 'preview' ? element : home),
-		onBeforeUnmount: fn => cleanup.push(fn),
-		window, document, engine: { setRenderWindow: win => clocks.push(win) },
+		ref, shallowRef, resolutionFactor: ref(1), watch() {}, useTemplateRef: name => shallowRef(name === 'preview' ? element : name === 'canvasContainer' ? container : home),
+		onBeforeUnmount: fn => cleanup.push(fn), onMounted: fn => fn(),
+		window, document, engine: { canvas },
 		ui: { alert: options => errors.push(options), contextMenu() {} },
 	};
 	const api = new Function(...Object.keys(env), compiled + '\nreturn { openPreview, closePreview, previewWindow, toggleFullscreen, fullscreen };')(...Object.values(env));
-	return { ...api, element, home, pip, window, errors, clocks, requests: () => requests, unmount: () => cleanup.forEach(fn => fn()) };
+	return { ...api, element, home, pip, window, errors, canvas, container, requests: () => requests, unmount: () => cleanup.forEach(fn => fn()) };
 }
 
 test('PiP moves the existing preview and restores it on native close and repeated opening', async () => {
 	const p = preview();
+	assert.equal(p.canvas.parentNode, p.container);
 	await p.openPreview('pip');
+	assert.equal(p.canvas.parentNode, p.container);
 	assert.equal(p.element.parentNode, p.pip.document.body);
-	assert.equal(p.clocks.at(-1), p.pip);
 	await p.openPreview('pip');
 	assert.equal(p.requests(), 1);
 	p.pip.close();
 	assert.equal(p.element.parentNode, p.home);
 	assert.equal(p.previewWindow.value, null);
-	assert.equal(p.clocks.at(-1), p.window);
 	p.pip.closed = false;
 	await p.openPreview('pip');
 	p.closePreview();
 	assert.equal(p.element.parentNode, p.home);
 	assert.equal(p.pip.closed, true);
+	assert.equal(p.canvas.parentNode, p.container);
+});
+
+test('unmount releases the engine canvas without destroying it', async () => {
+	const p = preview();
+	await p.openPreview('window');
+	p.unmount();
+	assert.equal(p.canvas.parentNode, null);
+	p.container.appendChild(p.canvas);
+	assert.equal(p.canvas.parentNode, p.container);
+});
+
+test('unmount does not detach the shared canvas from a newer preview', () => {
+	const p = preview();
+	const other = {};
+	p.canvas.parentNode = other;
+	p.unmount();
+	assert.equal(p.canvas.parentNode, other);
 });
 
 test('PiP failure leaves the preview at home and permits retry', async () => {
@@ -71,7 +90,6 @@ test('ordinary window supports fullscreen and returns the same preview on close'
 	assert.equal(p.pip.document.fullscreenElement, null);
 	p.pip.close();
 	assert.equal(p.element.parentNode, p.home);
-	assert.equal(p.clocks.at(-1), p.window);
 });
 
 test('blocked popup leaves the preview in place and allows a retry', async () => {
@@ -116,31 +134,4 @@ test('partial PiP setup failure restores the preview and closes the window', asy
 	assert.equal(p.pip.closed, true);
 	assert.equal(p.previewWindow.value, null);
 	assert.equal(p.errors.length, 1);
-});
-
-test('render loop switches clocks without duplicating frames and preserves the clock on restart', () => {
-	const source = readFileSync(new URL('../src/engine/engine.ts', import.meta.url), 'utf8').replace(/^import .*;\r?\n/gm, '').replace('export class Engine', 'class Engine');
-	const compiled = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
-	const clock = () => {
-		let id = 0;
-		const callbacks = new Map();
-		return { callbacks, requestAnimationFrame(fn) { callbacks.set(++id, fn); return id; }, cancelAnimationFrame(id) { callbacks.delete(id); } };
-	};
-	const main = clock();
-	const pip = clock();
-	const Engine = new Function('ref', 'shallowReactive', 'window', compiled + '\nreturn Engine;')(ref, value => value, main);
-	const engine = new Engine();
-	engine.startRenderLoop();
-	assert.equal(main.callbacks.size, 1);
-	engine.setRenderWindow(pip);
-	assert.equal(main.callbacks.size, 0);
-	assert.equal(pip.callbacks.size, 1);
-	engine.startRenderLoop();
-	assert.equal(pip.callbacks.size, 1);
-	engine.setRenderWindow(main);
-	assert.equal(pip.callbacks.size, 0);
-	assert.equal(main.callbacks.size, 1);
-	engine.stopRenderLoop();
-	engine.setRenderWindow(pip);
-	assert.equal(pip.callbacks.size, 0, 'switching windows must not start a stopped loop');
 });
