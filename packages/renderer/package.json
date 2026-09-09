@@ -19,6 +19,7 @@
 	},
 	"dependencies": {
 		"seedrandom": "3.0.5",
-		"@syuilo/aiscript": "1.2.1"
+		"@syuilo/aiscript": "1.2.1",
+		"webgpu-utils": "2.1.1"
 	}
 }

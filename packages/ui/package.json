@@ -32,8 +32,7 @@
 		"uuid": "11.0.5",
 		"vue": "3.5.42",
 		"vue-component-type-helpers": "3.3.11",
-		"vuedraggable": "next",
-		"webgpu-utils": "2.1.1"
+		"vuedraggable": "next"
 	},
 	"devDependencies": {
 		"@eslint/js": "9.39.5",

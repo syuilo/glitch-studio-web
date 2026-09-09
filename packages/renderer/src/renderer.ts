@@ -1,17 +1,16 @@
 import { createTextureFromSource, makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
 import * as AiScript from '@syuilo/aiscript';
-import { EffectInstance } from './fx-utils.js';
+import { deepClone } from '@@/utility/deep-clone.ts';
+import { evalAutomationValue, genEmptyValue } from '@@/utility/misc.ts';
 import defaultVertexShaderCode from './vertex.wgsl?raw';
 import TimingHelper from './TimingHelper.js';
 import { fxs } from './fxs.js';
 import finalRenderShaderCode from './render.wgsl?raw';
 import { NonNegativeRollingAverage } from './NonNegativeRollingAverage.js';
-import { GsAutomation } from '../../ui/src/engine/types.js';
 import { GpuHistogram } from './GpuHistogram.js';
 import { GpuWaveform } from './GpuWaveform.js';
-import { Asset, FxParamValue, Macro } from '@/types.ts';
-import { evalAutomationValue, genEmptyValue } from '@/utility/misc.ts';
-import { deepClone } from '@/utility/deep-clone.ts';
+import type { Asset, FxParamValue, Macro, GsAutomation } from '@@/types.ts';
+import type { EffectInstance } from './fx-utils.js';
 
 const aisParser = new AiScript.Parser();
 

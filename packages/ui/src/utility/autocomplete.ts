@@ -1,8 +1,3 @@
-/*
- * SPDX-FileCopyrightText: syuilo and misskey-project
- * SPDX-License-Identifier: AGPL-3.0-only
- */
-
 import { nextTick, ref, defineAsyncComponent } from 'vue';
 import getCaretCoordinates from 'textarea-caret';
 import type { Ref } from 'vue';

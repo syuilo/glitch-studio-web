@@ -165,6 +165,9 @@ importers:
       seedrandom:
         specifier: 3.0.5
         version: 3.0.5
+      webgpu-utils:
+        specifier: 2.1.1
+        version: 2.1.1
     devDependencies:
       '@types/seedrandom':
         specifier: 3.0.8
@@ -250,9 +253,6 @@ importers:
       vuedraggable:
         specifier: next
         version: 4.1.0(vue@3.5.42(@typescript/typescript6@6.0.2))
-      webgpu-utils:
-        specifier: 2.1.1
-        version: 2.1.1
     devDependencies:
       '@eslint/js':
         specifier: 9.39.5

@@ -51,5 +51,5 @@
 		"./test/**/*.ts",
 		"./test/**/*.vue",
 		"./@types/**/*.ts"
-	]
+, "../shared/src/utility/bezier.ts", "../shared/src/utility/deep-clone.ts", "../shared/src/utility/deep-equal.ts", "../shared/src/utility/id.ts"	]
 }
