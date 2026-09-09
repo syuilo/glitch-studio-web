@@ -55,7 +55,7 @@ import { GsGroupNode } from '@/engine/renderer.ts';
 
 const props = defineProps<{
 	node: GsGroupNode,
-	group: GsGroupNode,
+	group?: GsGroupNode,
 }>();
 
 const expanded = ref(true);
