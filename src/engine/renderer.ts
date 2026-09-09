@@ -431,8 +431,10 @@ export class Renderer {
 		this.renderNode(node, commandEncoder, []);
 
 		//#region nodeのoutをcanvasに描画
-		if (this.finalRenderBindGroup == null || this.finalRenderInputTexture !== this.effectOuts.get(node.id)) {
-			this.finalRenderInputTexture = this.effectOuts.get(node.id)!;
+		const out = this.effectOuts.get(node.id);
+		if (out == null) return;
+		if (this.finalRenderBindGroup == null || this.finalRenderInputTexture !== out) {
+			this.finalRenderInputTexture = out;
 			this.finalRenderBindGroup = this.gpuDevice.createBindGroup({
 				layout: this.finalRenderPipeline.getBindGroupLayout(0),
 				entries: [
@@ -483,7 +485,7 @@ export class Renderer {
 		const addedNodes = newNodes.filter(n => !this.nodes.some(existing => existing.id === n.id));
 		const removedNodes = this.nodes.filter(n => !newNodes.some(existing => existing.id === n.id));
 
-		for (const node of addedNodes) {
+		const registerNodeOuts = (node: GsNode) => {
 			if (node.type === 'fx') {
 				const effect = fxs[node.fx];
 				const out = effect.getOut({
@@ -491,10 +493,18 @@ export class Renderer {
 					resolution: { width: this.resolution.width, height: this.resolution.height },
 				});
 				this.effectOuts.set(node.id, out);
+			} else if (node.type === 'group') {
+				for (const child of node.nodes) {
+					registerNodeOuts(child);
+				}
 			}
+		};
+
+		for (const node of addedNodes) {
+			registerNodeOuts(node);
 		}
 
-		for (const node of removedNodes) {
+		const unregisterNodeOutAndInstances = (node: GsNode) => {
 			if (node.type === 'fx') {
 				const out = this.effectOuts.get(node.id);
 				if (out) {
@@ -506,7 +516,15 @@ export class Renderer {
 					instance.dispose();
 					this.effectInstances.delete(node.id);
 				}
+			} else if (node.type === 'group') {
+				for (const child of node.nodes) {
+					unregisterNodeOutAndInstances(child);
+				}
 			}
+		};
+
+		for (const node of removedNodes) {
+			unregisterNodeOutAndInstances(node);
 		}
 
 		this.nodes = deepClone(newNodes);

@@ -27,6 +27,7 @@
 	</div>
 
 	<div v-show="expanded" :class="$style.nodes">
+		<GsButton @click="add"><i class="ti ti-plus"></i></GsButton>
 		<GsNodes :group="node"/>
 	</div>
 
@@ -48,7 +49,7 @@ import { i18n } from '@/i18n';
 import { Asset, Macro } from '@/types';
 import { genId } from '@/utility/id.ts';
 import { version } from '@/version';
-import { appContext, wireMap } from '@/app';
+import { appContext, showAddNodeMenu, wireMap } from '@/app';
 import * as api from '@/api.js';
 import { GsGroupNode } from '@/engine/renderer.ts';
 
@@ -61,6 +62,10 @@ const expanded = ref(true);
 const showSettings = ref(false);
 const outPortEl = shallowRef<HTMLElement>();
 const allInPortEl = shallowRef<HTMLElement>();
+
+function add(ev) {
+	showAddNodeMenu(ev, props.node);
+}
 
 /*
 this.$root.$on('expandAllFx', () => {
