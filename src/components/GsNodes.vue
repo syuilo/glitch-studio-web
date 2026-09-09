@@ -26,7 +26,6 @@ const nodes = computed({
 		return props.group ? props.group.nodes : appContext.state.nodes.value;
 	},
 	set(val): void {
-		//store.setNodes({ nodes: val }, props.group);
 	},
 });
 </script>
