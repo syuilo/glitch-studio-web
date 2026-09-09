@@ -70,21 +70,24 @@ type NodeOptionSchema = {
 
 export type EffectOptionsSchema = Record<string, NumberOptionSchema | BooleanOptionSchema | ColorOptionSchema | VectorOptionSchema | SignalOptionSchema | BlendModeOptionSchema | SeedOptionSchema | EnumOptionSchema | RangeOptionSchema | ImageOptionSchema | VideoOptionSchema | NodeOptionSchema>;
 
-export type GetEffectOptionsSchemaValues<T extends EffectOptionsSchema> = {
-	[K in keyof T]:
-	T[K] extends NumberOptionSchema ? number :
-	T[K] extends BooleanOptionSchema ? boolean :
-	T[K] extends ColorOptionSchema ? Readonly<[number, number, number]> :
-	T[K] extends VectorOptionSchema ? Readonly<[number, number]> :
-	T[K] extends SignalOptionSchema ? Readonly<[boolean, boolean, boolean]> :
-	T[K] extends BlendModeOptionSchema ? string :
-	T[K] extends SeedOptionSchema ? number :
-	T[K] extends EnumOptionSchema ? T[K]['options'][number]['value'] :
-	T[K] extends RangeOptionSchema ? number :
-	T[K] extends ImageOptionSchema ? GPUTexture | null :
-	T[K] extends VideoOptionSchema ? VideoFrame | null :
-	T[K] extends NodeOptionSchema ? GPUTexture | null :
+// A type parameter distributes the conditional over unions of option schemas.
+type EffectOptionValue<T extends EffectOptionsSchema[string]> =
+	T extends NumberOptionSchema ? number :
+	T extends BooleanOptionSchema ? boolean :
+	T extends ColorOptionSchema ? Readonly<[number, number, number]> :
+	T extends VectorOptionSchema ? Readonly<[number, number]> :
+	T extends SignalOptionSchema ? Readonly<[boolean, boolean, boolean]> :
+	T extends BlendModeOptionSchema ? string :
+	T extends SeedOptionSchema ? number :
+	T extends EnumOptionSchema ? T['options'][number]['value'] :
+	T extends RangeOptionSchema ? number :
+	T extends ImageOptionSchema ? GPUTexture | null :
+	T extends VideoOptionSchema ? VideoFrame | null :
+	T extends NodeOptionSchema ? GPUTexture | null :
 	never;
+
+export type GetEffectOptionsSchemaValues<T extends EffectOptionsSchema> = {
+	[K in keyof T]: EffectOptionValue<T[K]>;
 };
 
 type EffectOptionsSchemaDefaultValue<T extends EffectOptionsSchema, K extends keyof T> =
