@@ -10,11 +10,11 @@
 	</div>
 
 	<div v-show="expanded" :class="$style.params">
-		<div v-for="param in Object.keys(paramDefs).filter(k => subStore.showAllParams ? true : !k.startsWith('_'))" v-show="paramDefs[param].visibility == null || paramDefs[param].visibility(node.params)" :key="param" :class="$style.param">
+		<div v-for="param in Object.keys(paramDefs)" v-show="paramDefs[param].visibility == null || paramDefs[param].visibility(node.params)" :key="param" :class="$style.param">
 			<label :class="[$style.paramLabel, { [$style.expression]: isExpression(param) }]" @click="changeValueType(param, $event)">{{ paramDefs[param].label }}</label>
 			<div :class="$style.paramBody">
 				<GsInput v-if="isExpression(param)" type="text" :modelValue="getParam(param)" @update:modelValue="updateParamAsExpression(param, $event)"/>
-				<GsButton v-else-if="isAutomation(param)" @click="selectAutomation(param, $event)">{{ node.params[param].value ? store.automations.find(a => a.id === node.params[param].value).name : '(none)' }}</GsButton>
+				<GsButton v-else-if="isAutomation(param)" @click="selectAutomation(param, $event)">{{ node.params[param].value ? appContext.state.automations.value.find(a => a.id === node.params[param].value).name : '(none)' }}</GsButton>
 				<GsEffectParamControl
 					v-else
 					:type="paramDefs[param].type"
@@ -47,7 +47,6 @@ import GsEffectParamControl from './GsEffectParamControl.vue';
 import GsButton from './common/GsButton.vue';
 import GsInput from './common/GsInput.vue';
 import type { GsAutomation, GsFxNode, GsGroupNode } from '@glitch/shared/types.ts';
-import { subStore } from '@/sub-store.ts';
 import { i18n } from '@/i18n.ts';
 import { appContext, wireMap } from '@/app.ts';
 import * as ui from '@/ui.ts';

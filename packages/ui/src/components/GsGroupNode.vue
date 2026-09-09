@@ -2,7 +2,7 @@
 <div :class="$style.root">
 	<div ref="allInPortEl" :class="$style.allInPort">・</div>
 	<header class="drag-handle" :class="$style.header" @dblclick="expanded = !expanded">Group: {{ node.name }}</header>
-	<div :class="[$style.indicator, { [$style.active]: node.isEnabled, [$style.processing]: subStore.processingFxId === node.id }]"></div>
+	<div :class="[$style.indicator, { [$style.active]: node.isEnabled }]"></div>
 	<div :class="$style.buttons">
 		<GsButton :class="$style.headerButton" @click="expanded = !expanded"><i class="ti" :class="expanded ? 'ti-chevron-up' : 'ti-chevron-down'"></i></GsButton>
 		<GsButton :class="$style.headerButton" @click="showSettings = !showSettings"><i class="ti ti-settings"></i></GsButton>
@@ -46,7 +46,6 @@ import GsEffectParamControl from './GsEffectParamControl.vue';
 import GsMacroEditor from './GsMacroEditor.vue';
 import GsButton from './common/GsButton.vue';
 import type { Asset, GsGroupNode } from '@glitch/shared/types.ts';
-import { subStore } from '@/sub-store.ts';
 import { i18n } from '@/i18n.ts';
 import { appContext, showAddNodeMenu, wireMap } from '@/app.ts';
 import * as api from '@/api.ts';

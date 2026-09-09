@@ -52,6 +52,7 @@ const defaultSettings: Settings = {
 	locale: 'en',
 };
 
+/*
 export class SettingsStore {
 	public settings: Settings;
 
@@ -87,3 +88,4 @@ export class SettingsStore {
 }
 
 export const settingsStore = new SettingsStore();
+*/
