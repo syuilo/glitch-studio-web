@@ -9,14 +9,7 @@
 
 <div :class="$style.root">
 	<div :class="$style.header">
-		<GsButton @click="saveProject">Save project</GsButton>
-		<GsButton @click="openProject">Load project</GsButton>
-
-		<GsButton @click="importPreset">Import Preset</GsButton>
-		<GsButton @click="saveImage">save</GsButton>
-		<!--<button @click="saveAnimationGif">save animation (GIF)</button>-->
-		<GsButton @click="saveAnimation">save animation (連番)</GsButton>
-		<GsButton @click="showAbout">about</GsButton>
+		<button class="_button" @click="showAbout">about</button>
 	</div>
 	<div :class="$style.body">
 		<GsWorkspaceDivider style="flex: 1" :divider="appContext.workspaceDefinition.value"/>
