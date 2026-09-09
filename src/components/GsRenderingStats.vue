@@ -4,7 +4,7 @@
 		<div v-for="item in series" :key="item.key" :class="$style.legendItem">
 			<span style="width: 8px; height: 2px;" :style="{ backgroundColor: item.color }"></span>
 			<span style="opacity: 0.7;">{{ item.label }}</span>
-			<b>{{ formatMs(current[item.key]) }}</b>
+			<span>{{ formatMs(current[item.key]) }}</span>
 		</div>
 	</div>
 	<div ref="chartEl" :class="$style.chart">
