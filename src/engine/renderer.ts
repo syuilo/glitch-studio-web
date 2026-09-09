@@ -294,10 +294,7 @@ export class Renderer {
 
 			// TODO: macro
 		} else {
-			// 動画ノードはキャッシュさせない
-			if (fxs[node.fx].name === 'webcamera') {
-				return null;
-			} else if (fxs[node.fx].name === 'video') {
+			if (fxs[node.fx].disableCache) {
 				return null;
 			}
 

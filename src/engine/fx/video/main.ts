@@ -7,6 +7,7 @@ export default defineEffect({
 	name: 'video',
 	displayName: 'Video',
 	category: '',
+	disableCache: true,
 	paramDefs: {
 		video: {
 			label: 'Video',

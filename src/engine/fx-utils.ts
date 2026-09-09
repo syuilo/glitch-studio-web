@@ -122,6 +122,7 @@ export type Effect<OpSc extends EffectOptionsSchema = EffectOptionsSchema> = {
 	name: string;
 	displayName: string;
 	category: string;
+	disableCache?: boolean;
 	paramDefs: OpSc;
 	getDefaultParams: () => EffectOptionsSchemaDefaultValues<OpSc>;
 	getOut: (args: {
