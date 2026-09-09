@@ -56,7 +56,7 @@
 						style="stroke: #00f3ff; stroke-width: 1;"
 					/>
 				</svg>
-			
+
 				<div v-for="keyframe of selectedAutomation.keyframes"
 					:class="[$style.keyframe, { [$style.selectedKeyframe]: selectedKeyframes.includes(keyframe) }]"
 					:style="{ left: frameToDomX(keyframe.frame) + 'px', top: valueToDomY(keyframe.value) + 'px' }"
@@ -118,7 +118,7 @@
 import { computed, onMounted, ref, shallowRef, watch } from 'vue';
 import GsButton from './common/GsButton.vue';
 import { playing, frame, frameMax } from '@/app';
-import { dragListen, evalAutomationValue, insertIntermediateNumbers, niceScale, rndstr, nearlyEqual } from '@/utility/misc.ts';
+import { dragListen, evalAutomationValue, insertIntermediateNumbers, niceScale, rndstr, nearlyEqual } from '@/utility/drag.js';
 import { GsAutomation, GsKeyframe } from '@/engine/types';
 import { useStore } from '@/store';
 import { genId } from '@/utility/id.ts';
@@ -382,7 +382,7 @@ function onTlWheel(ev: WheelEvent) {
 function onXTicksWheel(ev: WheelEvent) {
 	ev.preventDefault();
 	ev.stopPropagation();
-	
+
 	tlRangeX.value *= 1 + (ev.deltaY / 1000);
 
 	const rect = tlEl.value.getBoundingClientRect();
@@ -393,7 +393,7 @@ function onXTicksWheel(ev: WheelEvent) {
 function onYTicksWheel(ev: WheelEvent) {
 	ev.preventDefault();
 	ev.stopPropagation();
-	
+
 	tlRangeY.value *= 1 + (ev.deltaY / 1000);
 
 	const rect = tlEl.value.getBoundingClientRect();
@@ -421,7 +421,7 @@ function onTlDblclick(ev: MouseEvent) {
 			break;
 		}
 	}
-	
+
 	const keyframe = addKeyframe(frame, value);
 
 	selectedKeyframes.value = [keyframe];

@@ -3,7 +3,7 @@ import { fxs } from './engine/fxs.ts';
 import { GsFxNode, GsGroupNode, GsNode } from '../../renderer/src/renderer.js';
 import { AppState, Asset, FxParamDataType, FxParamDefs } from './types.ts';
 import { deepClone } from '../../shared/src/utility/deep-clone.js';
-import { genEmptyValue } from './utility/misc.ts';
+import { genEmptyValue } from './utility/drag.js';
 
 export type CommandDef<Payload> = {
 	label: string;

@@ -19,7 +19,7 @@
 		"verbatimModuleSyntax": true,
 		"paths": {
 			"@/*": ["./*"],
-			"@@/*": ["../shared/*"]
+			"@@/*": ["../shared/src/*"]
 		},
 		"typeRoots": [
 			"./@types",

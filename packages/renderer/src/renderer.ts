@@ -1,7 +1,7 @@
 import { createTextureFromSource, makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
 import * as AiScript from '@syuilo/aiscript';
-import { deepClone } from '@@/utility/deep-clone.ts';
-import { evalAutomationValue, genEmptyValue } from '@@/utility/misc.ts';
+import { deepClone } from '@@/utility/deep-clone.js';
+import { evalAutomationValue, genEmptyValue } from '@@/utility/misc.js';
 import defaultVertexShaderCode from './vertex.wgsl?raw';
 import TimingHelper from './TimingHelper.js';
 import { fxs } from './fxs.js';

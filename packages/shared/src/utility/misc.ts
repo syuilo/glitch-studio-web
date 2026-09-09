@@ -40,23 +40,6 @@ export function genEmptyValue(paramDef: Omit<FxParamDef, 'default'>): any {
 	}
 }
 
-export function rndstr(s = 'abcdefghijklmnopqrstuvwxyz0123456789', n = 5): string {
-	return Array.from(Array(n)).map(()=>s[Math.floor(Math.random()*s.length)]).join('');
-}
-
-export function dragListen(move: (ev: MouseEvent) => void, end?: () => void) {
-	window.addEventListener('mousemove', move);
-	window.addEventListener('mouseleave', dragClear.bind(null, move, end));
-	window.addEventListener('mouseup', dragClear.bind(null, move, end));
-}
-
-function dragClear(move, end?) {
-	if (end) end();
-	window.removeEventListener('mousemove', move);
-	window.removeEventListener('mouseleave', dragClear);
-	window.removeEventListener('mouseup', dragClear);
-}
-
 // https://stackoverflow.com/questions/326679/choosing-an-attractive-linear-scale-for-a-graphs-y-axis
 // https://github.com/apexcharts/apexcharts.js/blob/master/src/modules/Scales.js
 // This routine creates the Y axis values for a graph.
