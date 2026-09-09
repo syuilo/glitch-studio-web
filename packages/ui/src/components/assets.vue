@@ -15,10 +15,10 @@
 
 <script lang="ts" setup>
 import {} from 'vue';
+import { genId } from '@glitch/shared/utility/id.ts';
 import XAsset from './asset.vue';
 import GsButton from './common/GsButton.vue';
 import { i18n } from '@/i18n.ts';
-import { genId } from '@/utility/id.ts';
 import * as api from '@/api.ts';
 import { appContext } from '@/app.ts';
 

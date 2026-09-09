@@ -1,7 +1,5 @@
-import { FxParamDef } from '@/types';
-import CubicBezierEasing from 'bezier-easing';
-import { GsAutomation } from '../engine/types';
-import { rawBezierEasing } from '../../../shared/src/utility/bezier';
+import { rawBezierEasing } from './bezier.ts';
+import type { FxParamDef, GsAutomation } from '../types.ts';
 
 export function genEmptyValue(paramDef: Omit<FxParamDef, 'default'>): any {
 	if (paramDef.type === 'number') {
@@ -114,7 +112,7 @@ export function evalAutomationValue(automation: GsAutomation, frame: number): nu
 		prevKeyframe.value + prevKeyframe.bezierControlPointB[1],
 		nextKeyframe.value + nextKeyframe.bezierControlPointA[1],
 		nextKeyframe.value,
-		frame
+		frame,
 	);
 }
 

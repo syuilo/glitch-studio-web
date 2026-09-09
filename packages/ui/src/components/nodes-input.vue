@@ -44,12 +44,12 @@
 <script lang="ts" setup>
 import { defineAsyncComponent, ref, shallowRef, watch } from 'vue';
 import { fxDefinitions } from '@glitch/shared/fx-definitions.ts';
+import { genId } from '@glitch/shared/utility/id.ts';
 import GsButton from './common/GsButton.vue';
 import GsSelect from './common/GsSelect.vue';
+import type { GsGroupNode, GsNode } from '@glitch/shared/types.ts';
 import { i18n } from '@/i18n.ts';
 import { wireMap } from '@/app.ts';
-import { genId } from '@/utility/id.ts';
-import { GsGroupNode, GsNode } from '@/engine/renderer.ts';
 
 const Sortable = defineAsyncComponent(() => import('vuedraggable').then(x => x.default));
 

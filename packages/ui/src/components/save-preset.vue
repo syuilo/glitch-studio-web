@@ -14,11 +14,11 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue';
+import { genId } from '@glitch/shared/utility/id.ts';
 import XDialog from './dialog.vue';
 import { SettingsStore } from '@/settings.ts';
 import { subStore } from '@/sub-store.ts';
 import { useStore } from '@/store';
-import { genId } from '@/utility/id.ts';
 
 const store = useStore();
 
