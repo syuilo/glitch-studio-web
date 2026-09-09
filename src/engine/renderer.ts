@@ -387,7 +387,7 @@ export class Renderer {
 
 		const paramsWithOuts = Object.fromEntries(Object.entries(params).map(([k, v]) =>
 			[k,
-				effect.paramDefs[k].type === 'node' ? this.effectOuts.get(params[k])! :
+				effect.paramDefs[k].type === 'node' ? this.effectOuts.get(getActualOutputNodeId(this.findNode(params[k])!)!)! :
 				effect.paramDefs[k].type === 'image' ? this.assetTextures.get(params[k])! :
 				effect.paramDefs[k].type === 'video' ? this.videoElements.get(node.id)! :
 				v]));
