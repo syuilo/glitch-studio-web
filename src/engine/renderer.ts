@@ -282,7 +282,10 @@ export class Renderer {
 				}
 			}
 
-			this.evalNodeParams(node.nodes, groupMacroValues);
+			this.evalNodeParams(node.nodes, {
+				...scope,
+				...groupMacroValues,
+			});
 		}
 	}
 
