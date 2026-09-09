@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 import type { Ref, MaybeRefOrGetter } from 'vue';
 import type { GsSelectItem, GetGsSelectValueTypesFromDef } from '@/components/common/GsSelect.vue';
-import type { OptionValue } from '@/types/option-value.js';
+import type { OptionValue } from '@/types/option-value.ts';
 
 type UnwrapReadonlyItems<T> = T extends readonly (infer U)[] ? U[] : T;
 

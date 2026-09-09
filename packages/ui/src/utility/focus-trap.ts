@@ -1,4 +1,4 @@
-import { getHTMLElementOrNull } from '@/utility/get-dom-node-or-null.js';
+import { getHTMLElementOrNull } from '@/utility/get-dom-node-or-null.ts';
 
 const focusTrapElements = new Set<HTMLElement>();
 const ignoreElements = [

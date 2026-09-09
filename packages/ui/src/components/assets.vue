@@ -17,9 +17,9 @@
 import {} from 'vue';
 import XAsset from './asset.vue';
 import GsButton from './common/GsButton.vue';
-import { i18n } from '@/i18n.js';
-import { genId } from '@/utility/id.js';
-import * as api from '@/api.js';
+import { i18n } from '@/i18n.ts';
+import { genId } from '@/utility/id.ts';
+import * as api from '@/api.ts';
 import { appContext } from '@/app.ts';
 
 async function addAsset() {

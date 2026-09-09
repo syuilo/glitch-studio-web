@@ -50,7 +50,7 @@ import { Asset, Macro } from '@/types';
 import { genId } from '@/utility/id.ts';
 import { version } from '@/version';
 import { appContext, showAddNodeMenu, wireMap } from '@/app';
-import * as api from '@/api.js';
+import * as api from '@/api.ts';
 import { GsGroupNode } from '@/engine/renderer.ts';
 
 const props = defineProps<{

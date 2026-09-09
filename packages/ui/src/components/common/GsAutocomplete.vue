@@ -10,9 +10,9 @@
 
 <script lang="ts">
 import { markRaw, ref, useTemplateRef, computed, onUpdated, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
-import { elementContains } from '@/utility/element-contains.js';
-import * as ui from '@/ui.js';
-import { i18n } from '@/i18n.js';
+import { elementContains } from '@/utility/element-contains.ts';
+import * as ui from '@/ui.ts';
+import { i18n } from '@/i18n.ts';
 
 export type CompleteInfo = {
 	variable: {

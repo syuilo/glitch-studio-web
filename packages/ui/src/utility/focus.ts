@@ -1,5 +1,5 @@
-import { getScrollPosition, getScrollContainer, getStickyBottom, getStickyTop } from '@/utility/scroll.js';
-import { getElementOrNull, getNodeOrNull } from '@/utility/get-dom-node-or-null.js';
+import { getScrollPosition, getScrollContainer, getStickyBottom, getStickyTop } from '@/utility/scroll.ts';
+import { getElementOrNull, getNodeOrNull } from '@/utility/get-dom-node-or-null.ts';
 
 type MaybeHTMLElement = EventTarget | Node | Element | HTMLElement;
 

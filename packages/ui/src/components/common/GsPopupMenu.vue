@@ -31,7 +31,7 @@
 import { ref, useTemplateRef } from 'vue';
 import GsModal from '@/components/common/GsModal.vue';
 import GsMenu from '@/components/common/GsMenu.vue';
-import type { MenuItem } from '@/types/menu.js';
+import type { MenuItem } from '@/types/menu.ts';
 
 defineProps<{
 	items: MenuItem[];

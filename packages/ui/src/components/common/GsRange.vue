@@ -38,8 +38,8 @@
 
 <script lang="ts" setup>
 import { computed, defineAsyncComponent, onMounted, onUnmounted, onBeforeUnmount, ref, useTemplateRef, watch } from 'vue';
-import { isTouchUsing } from '@/utility/touch.js';
-import * as ui from '@/ui.js';
+import { isTouchUsing } from '@/utility/touch.ts';
+import * as ui from '@/ui.ts';
 
 const props = withDefaults(defineProps<{
 	modelValue: number;

@@ -3,8 +3,8 @@
 
 import { defineAsyncComponent, ref } from 'vue';
 import type { Directive } from 'vue';
-import { isTouchUsing } from '@/utility/touch.js';
-import { popup, alert } from '@/ui.js';
+import { isTouchUsing } from '@/utility/touch.ts';
+import { popup, alert } from '@/ui.ts';
 
 const start = isTouchUsing ? 'touchstart' : 'mouseenter';
 const end = isTouchUsing ? 'touchend' : 'mouseleave';

@@ -15,10 +15,10 @@
 <script lang="ts" setup>
 import { onMounted, onBeforeUnmount, useTemplateRef, ref } from 'vue';
 import GsMenu from './GsMenu.vue';
-import type { MenuItem } from '@/types/menu.js';
-import { elementContains } from '@/utility/element-contains.js';
-import { prefer } from '@/preferences.js';
-import * as ui from '@/ui.js';
+import type { MenuItem } from '@/types/menu.ts';
+import { elementContains } from '@/utility/element-contains.ts';
+import { prefer } from '@/preferences.ts';
+import * as ui from '@/ui.ts';
 
 const props = defineProps<{
 	items: MenuItem[];

@@ -22,9 +22,9 @@
 <script lang="ts" setup>
 import { watch, useTemplateRef, ref, shallowRef, onBeforeUnmount, onMounted } from 'vue';
 import { genId } from '@/utility/id.ts';
-import * as api from '@/api.js';
+import * as api from '@/api.ts';
 import { appContext, engine, rendererEnv, resolutionFactor } from '@/app.ts';
-import * as ui from '@/ui.js';
+import * as ui from '@/ui.ts';
 import { MenuItem } from '@/types/menu.ts';
 
 const canvasContainer = useTemplateRef('canvasContainer');

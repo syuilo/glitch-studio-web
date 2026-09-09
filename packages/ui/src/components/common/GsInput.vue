@@ -49,11 +49,11 @@ type ModelValueType<T extends SupportedTypes> =
 import { onMounted, onUnmounted, nextTick, ref, useTemplateRef, watch, computed, toRefs } from 'vue';
 import { throttle, debounce } from 'throttle-debounce';
 import type { InputHTMLAttributes } from 'vue';
-import type { SuggestionType } from '@/utility/autocomplete.js';
+import type { SuggestionType } from '@/utility/autocomplete.ts';
 import GsButton from '@/components/common/GsButton.vue';
-import { i18n } from '@/i18n.js';
-import { Autocomplete } from '@/utility/autocomplete.js';
-import { genId } from '@/utility/id.js';
+import { i18n } from '@/i18n.ts';
+import { Autocomplete } from '@/utility/autocomplete.ts';
+import { genId } from '@/utility/id.ts';
 
 const props = defineProps<{
 	modelValue: ModelValueType<T> | null;

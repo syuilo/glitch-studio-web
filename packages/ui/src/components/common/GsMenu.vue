@@ -192,14 +192,14 @@
 
 <script lang="ts">
 import { computed, defineAsyncComponent, inject, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, unref, watch, shallowRef, reactive, isRef } from 'vue';
-import type { MenuItem, InnerMenuItem, MenuPending, MenuAction, MenuSwitch, MenuRadio, MenuRadioOption, MenuParent, MenuDivider } from '@/types/menu.js';
-import type { Keymap } from '@/utility/hotkey.js';
+import type { MenuItem, InnerMenuItem, MenuPending, MenuAction, MenuSwitch, MenuRadio, MenuRadioOption, MenuParent, MenuDivider } from '@/types/menu.ts';
+import type { Keymap } from '@/utility/hotkey.ts';
 import GsSwitchButton from '@/components/common/GsSwitch.button.vue';
 import GsEllipsis from '@/components/common/GsEllipsis.vue';
-import * as ui from '@/ui.js';
-import { isTouchUsing } from '@/utility/touch.js';
-import { isFocusable } from '@/utility/focus.js';
-import { getNodeOrNull } from '@/utility/get-dom-node-or-null.js';
+import * as ui from '@/ui.ts';
+import { isTouchUsing } from '@/utility/touch.ts';
+import { isFocusable } from '@/utility/focus.ts';
+import { getNodeOrNull } from '@/utility/get-dom-node-or-null.ts';
 
 const childrenCache = new WeakMap<MenuParent, MenuItem[]>();
 </script>

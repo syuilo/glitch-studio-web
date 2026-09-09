@@ -1,18 +1,18 @@
-import { Ref, ref, markRaw, Component, reactive, watch, shallowRef, triggerRef } from 'vue';
+import { ref, markRaw, reactive, watch, shallowRef, triggerRef } from 'vue';
 import { fxDefinitions } from '@glitch/shared/fx-definitions.ts';
-import { GsFxNode, GsGroupNode, GsNode } from '../../renderer/src/renderer.js';
-import { deepClone } from '../../shared/src/utility/deep-clone.js';
-import { genId } from '../../shared/src/utility/id.js';
+import { deepClone } from '../../shared/src/utility/deep-clone.ts';
+import { genId } from '../../shared/src/utility/id.ts';
 import { loadProjectFile, saveProjectFile, decodeAssets } from './api';
-import { RawProject } from './settings';
-import { Engine } from './engine.js';
-import { AppState, Asset, Macro } from './types.ts';
-import { GsAutomation } from './engine/types.ts';
-import { WorkspaceDivider } from './types/workspace.ts';
-import { COMMAND_DEFS, CommandDef } from './commands.ts';
-import * as ui from '@/ui.js';
+import { Engine } from './engine.ts';
+import { COMMAND_DEFS } from './commands.ts';
+import type { CommandDef } from './commands.ts';
+import type { AppState } from './types.ts';
+import type { WorkspaceDivider } from './types/workspace.ts';
+import type { Asset, GsNode, Macro, GsAutomation, GsGroupNode } from '@glitch/shared/types.ts';
+import type { RawProject } from './settings.ts';
+import * as ui from '@/ui.ts';
 import { version } from '@/version';
-import * as api from '@/api.js';
+import * as api from '@/api.ts';
 
 type CommandLog = {
 	type: string;

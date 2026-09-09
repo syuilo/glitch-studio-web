@@ -15,7 +15,7 @@
 <script lang="ts" setup>
 import { nextTick, onMounted, onUnmounted, provide, useTemplateRef, watch } from 'vue';
 import MkMenu from './GsMenu.vue';
-import type { MenuItem } from '@/types/menu.js';
+import type { MenuItem } from '@/types/menu.ts';
 
 const props = defineProps<{
 	items: MenuItem[];

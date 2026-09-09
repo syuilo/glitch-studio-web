@@ -28,10 +28,10 @@
 <script lang="ts" setup>
 import { onMounted, onUnmounted, nextTick, ref, watch, computed, toRefs, useTemplateRef } from 'vue';
 import { debounce } from 'throttle-debounce';
-import type { SuggestionType } from '@/utility/autocomplete.js';
+import type { SuggestionType } from '@/utility/autocomplete.ts';
 import GsButton from '@/components/common/GsButton.vue';
-import { i18n } from '@/i18n.js';
-import { Autocomplete } from '@/utility/autocomplete.js';
+import { i18n } from '@/i18n.ts';
+import { Autocomplete } from '@/utility/autocomplete.ts';
 
 const props = defineProps<{
 	modelValue: string | null;

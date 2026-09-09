@@ -17,7 +17,7 @@ import { shallowRef, onMounted, nextTick } from 'vue';
 import GsButton from './common/GsButton.vue';
 import { i18n } from '@/i18n';
 import { Asset } from '@/types';
-import * as api from '@/api.js';
+import * as api from '@/api.ts';
 import { appContext } from '@/app.ts';
 
 const props = defineProps<{

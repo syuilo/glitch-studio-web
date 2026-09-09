@@ -1,4 +1,4 @@
-import { deviceKind } from '@/utility/device-kind.js';
+import { deviceKind } from '@/utility/device-kind.ts';
 
 const isTouchSupported = 'maxTouchPoints' in navigator && navigator.maxTouchPoints > 0;
 

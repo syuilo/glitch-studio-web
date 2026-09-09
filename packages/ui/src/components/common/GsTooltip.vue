@@ -19,9 +19,9 @@
 
 <script lang="ts" setup>
 import { nextTick, onMounted, onUnmounted, useTemplateRef } from 'vue';
-import * as ui from '@/ui.js';
-import { calcPopupPosition } from '@/utility/popup-position.js';
-import { prefer } from '@/preferences.js';
+import * as ui from '@/ui.ts';
+import { calcPopupPosition } from '@/utility/popup-position.ts';
+import { prefer } from '@/preferences.ts';
 
 const props = withDefaults(defineProps<{
 	showing: boolean;

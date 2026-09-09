@@ -34,7 +34,7 @@
 </template>
 
 <script lang="ts">
-import type { OptionValue } from '@/types/option-value.js';
+import type { OptionValue } from '@/types/option-value.ts';
 
 export type ItemOption<T extends OptionValue = OptionValue> = {
 	type?: 'option';
@@ -68,8 +68,8 @@ export type GetGsSelectValueTypesFromDef<T extends GsSelectItem[]> = T[number] e
 
 <script lang="ts" setup generic="const ITEMS extends GsSelectItem[], MODELT extends OptionValue">
 import { onMounted, onUnmounted, nextTick, ref, watch, computed, toRefs, useTemplateRef } from 'vue';
-import type { MenuItem } from '@/types/menu.js';
-import * as ui from '@/ui.js';
+import type { MenuItem } from '@/types/menu.ts';
+import * as ui from '@/ui.ts';
 
 const props = defineProps<{
 	items: ITEMS;

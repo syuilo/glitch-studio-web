@@ -49,11 +49,11 @@
 
 <script lang="ts" setup>
 import { onBeforeUnmount, onMounted, provide, useTemplateRef, ref } from 'vue';
-import type { MenuItem } from '@/types/menu.js';
-import { elementContains } from '@/utility/element-contains.js';
-import * as ui from '@/ui.js';
-import { i18n } from '@/i18n.js';
-import { prefer } from '@/preferences.js';
+import type { MenuItem } from '@/types/menu.ts';
+import { elementContains } from '@/utility/element-contains.ts';
+import * as ui from '@/ui.ts';
+import { i18n } from '@/i18n.ts';
+import { prefer } from '@/preferences.ts';
 
 type WindowButton = {
 	title: string;

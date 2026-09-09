@@ -19,7 +19,7 @@ import tearings from './fx-implementations/tearings/main.ts';
 import test from './fx-implementations/test/main.ts';
 import video from './fx-implementations/video/main.ts';
 import water from './fx-implementations/water/main.ts';
-import type { EffectImplementation } from './fx-implementation.js';
+import type { EffectImplementation } from './fx-implementation.ts';
 
 const _fxImplementations = {
 	bloom,

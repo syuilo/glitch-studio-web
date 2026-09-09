@@ -2,7 +2,7 @@ import { nextTick, ref, defineAsyncComponent } from 'vue';
 import getCaretCoordinates from 'textarea-caret';
 import type { Ref } from 'vue';
 import type { CompleteInfo } from '@/components/common/GsAutocomplete.vue';
-import { popup } from '@/ui.js';
+import { popup } from '@/ui.ts';
 
 export type SuggestionType = keyof CompleteInfo;
 

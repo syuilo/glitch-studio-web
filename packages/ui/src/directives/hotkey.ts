@@ -1,6 +1,6 @@
 import type { Directive } from 'vue';
-import { makeHotkey } from '@/utility/hotkey.js';
-import type { Keymap } from '@/utility/hotkey.js';
+import { makeHotkey } from '@/utility/hotkey.ts';
+import type { Keymap } from '@/utility/hotkey.ts';
 
 const abortControllers = new WeakMap<HTMLElement, AbortController>();
 

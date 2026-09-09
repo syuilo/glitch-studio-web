@@ -1,6 +1,5 @@
-import { Ref } from 'vue';
-import { GsNode } from '../../renderer/src/renderer.js';
-import { GsAutomation } from './engine/types.ts';
+import type { Asset, GsNode, Macro, GsAutomation } from '@glitch/shared/types.ts';
+import type { Ref } from 'vue';
 
 export type AppState = {
 	resolution: Ref<{ width: number; height: number }>;

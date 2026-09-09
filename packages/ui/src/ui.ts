@@ -1,10 +1,10 @@
 import { markRaw, ref, nextTick } from 'vue';
 import type { Component, MaybeRef, InjectionKey, Ref } from 'vue';
 import type { ComponentEmit, ComponentProps as CP } from 'vue-component-type-helpers';
-import type { MenuItem } from '@/types/menu.js';
-import type { OverloadToUnion } from '@/types/overload-to-union.js';
-import { getHTMLElementOrNull } from '@/utility/get-dom-node-or-null.js';
-import { focusParent } from '@/utility/focus.js';
+import type { MenuItem } from '@/types/menu.ts';
+import type { OverloadToUnion } from '@/types/overload-to-union.ts';
+import { getHTMLElementOrNull } from '@/utility/get-dom-node-or-null.ts';
+import { focusParent } from '@/utility/focus.ts';
 import GsPopupMenu from '@/components/common/GsPopupMenu.vue';
 import GsContextMenu from '@/components/common/GsContextMenu.vue';
 import GsDialog from '@/components/common/GsDialog.vue';

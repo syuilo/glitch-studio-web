@@ -45,9 +45,9 @@ import GsSystemIcon from '@/components/common/GsSystemIcon.vue';
 import GsInput from '@/components/common/GsInput.vue';
 import GsSelect from '@/components/common/GsSelect.vue';
 import type { GsSelectItem } from '@/components/common/GsSelect.vue';
-import type { OptionValue } from '@/types/option-value.js';
-import { useGsSelect } from '@/composables/useGsSelect.js';
-import { i18n } from '@/i18n.js';
+import type { OptionValue } from '@/types/option-value.ts';
+import { useGsSelect } from '@/composables/useGsSelect.ts';
+import { i18n } from '@/i18n.ts';
 
 type Input = {
 	type?: 'text' | 'number' | 'password' | 'email' | 'url' | 'date' | 'time' | 'search' | 'datetime-local';

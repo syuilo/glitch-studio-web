@@ -118,7 +118,7 @@
 import { computed, onMounted, ref, shallowRef, watch } from 'vue';
 import GsButton from './common/GsButton.vue';
 import { playing, frame, frameMax } from '@/app';
-import { dragListen, evalAutomationValue, insertIntermediateNumbers, niceScale, rndstr, nearlyEqual } from '@/utility/drag.js';
+import { dragListen, evalAutomationValue, insertIntermediateNumbers, niceScale, rndstr, nearlyEqual } from '@/utility/drag.ts';
 import { GsAutomation, GsKeyframe } from '@/engine/types';
 import { useStore } from '@/store';
 import { genId } from '@/utility/id.ts';

@@ -19,7 +19,7 @@ import GsModal from './common/GsModal.vue';
 import { SettingsStore } from '@/settings';
 import { version } from '@/version';
 import { genId } from '@/utility/id.ts';
-import * as api from '@/api.js';
+import * as api from '@/api.ts';
 
 const modal = useTemplateRef('modal');
 

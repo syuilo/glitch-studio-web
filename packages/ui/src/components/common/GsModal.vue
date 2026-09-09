@@ -38,13 +38,13 @@
 
 <script lang="ts" setup>
 import { nextTick, normalizeClass, onMounted, onUnmounted, provide, watch, ref, useTemplateRef, computed } from 'vue';
-import type { Keymap } from '@/utility/hotkey.js';
-import * as ui from '@/ui.js';
-import { isTouchUsing } from '@/utility/touch.js';
-import { deviceKind } from '@/utility/device-kind.js';
-import { focusTrap } from '@/utility/focus-trap.js';
-import { focusParent } from '@/utility/focus.js';
-import { prefer } from '@/preferences.js';
+import type { Keymap } from '@/utility/hotkey.ts';
+import * as ui from '@/ui.ts';
+import { isTouchUsing } from '@/utility/touch.ts';
+import { deviceKind } from '@/utility/device-kind.ts';
+import { focusTrap } from '@/utility/focus-trap.ts';
+import { focusParent } from '@/utility/focus.ts';
+import { prefer } from '@/preferences.ts';
 
 function getFixedContainer(el: Element | null): Element | null {
 	if (el == null || el.tagName === 'BODY') return null;

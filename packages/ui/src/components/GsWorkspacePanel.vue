@@ -31,13 +31,13 @@
 
 <script lang="ts" setup>
 import { onBeforeUnmount, onMounted, provide, watch, useTemplateRef, ref, computed } from 'vue';
-import type { MenuItem } from '@/types/menu.js';
-import * as ui from '@/ui.js';
-import { i18n } from '@/i18n.js';
+import type { MenuItem } from '@/types/menu.ts';
+import * as ui from '@/ui.ts';
+import { i18n } from '@/i18n.ts';
 import { WorkspaceDivider, WorkspacePanel } from '@/types/workspace.ts';
 import { appContext } from '@/app.ts';
 import { genId } from '@/utility/id.ts';
-//import { checkDragDataType, getDragData, setDragData } from '@/drag-and-drop.js';
+//import { checkDragDataType, getDragData, setDragData } from '@/drag-and-drop.ts';
 
 const props = withDefaults(defineProps<{
 	panel: WorkspacePanel;
