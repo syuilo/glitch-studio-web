@@ -44,7 +44,7 @@ class AppContext {
 			direction: 'vertical',
 			children: [{
 				id: '938e3eedc00d4287885b6894ee3ea8c3',
-				ratio: 0.5,
+				ratio: 0.7,
 				type: null,
 				direction: 'horizontal',
 				children: [{
@@ -72,7 +72,7 @@ class AppContext {
 				}],
 			}, {
 				id: '8aec4dd7bf82460eba420680fda4f652',
-				ratio: 0.25,
+				ratio: 0.3,
 				type: null,
 				direction: 'vertical',
 				children: [{
