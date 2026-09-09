@@ -186,6 +186,10 @@ importers:
         version: 4.1.10(@types/node@26.2.0)(vite@8.2.2(@types/node@26.2.0)(esbuild@0.28.2)(sass@1.83.4))
 
   packages/shared:
+    dependencies:
+      bezier-easing:
+        specifier: 3.0.1
+        version: 3.0.1
     devDependencies:
       '@typescript-eslint/eslint-plugin':
         specifier: 8.59.2
@@ -196,6 +200,9 @@ importers:
 
   packages/ui:
     dependencies:
+      '@glitch/renderer':
+        specifier: workspace:*
+        version: link:../renderer
       '@glitch/shared':
         specifier: workspace:*
         version: link:../shared
@@ -208,9 +215,6 @@ importers:
       '@tabler/icons-webfont':
         specifier: 3.35.0
         version: 3.35.0
-      bezier-easing:
-        specifier: 3.0.1
-        version: 3.0.1
       color-blend:
         specifier: 4.0.0
         version: 4.0.0

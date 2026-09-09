@@ -16,5 +16,6 @@
 		"@typescript-eslint/parser": "8.59.2"
 	},
 	"dependencies": {
+		"bezier-easing": "3.0.1"
 	}
 }
