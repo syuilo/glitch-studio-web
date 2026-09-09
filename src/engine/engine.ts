@@ -3,7 +3,7 @@ import { getFxNodes, GsFxNode, GsNode, Renderer } from './renderer.ts';
 import { GsAutomation } from './types.ts';
 import { Asset, Macro } from '@/types.ts';
 import { deepClone } from '@/utility/deep-clone.ts';
-import { isVideoFrameAvailable } from '@/utility/video.ts';
+import { isVideoFrameAvailable, playVideoAfterFirstFrameIsReady } from '@/utility/video.ts';
 import * as ui from '@/ui.ts';
 import { deepEqual } from '@/utility/deep-equal.ts';
 
@@ -218,8 +218,12 @@ export class Engine {
 					const asset = this.assets.find(asset => asset.id === node.params.video.value.id);
 					video.src = URL.createObjectURL(asset.fileData);
 				} else if (node.params.video.value.type === 'webcam') {
-					const camera = await setupWebcam();
-					video.srcObject = camera;
+					this.videoLoads.set(node.id, setupWebcam().then(camera => {
+						video.srcObject = camera;
+						video.muted = true;
+						video.playsInline = true;
+						return playVideoAfterFirstFrameIsReady(video);
+					}));
 				}
 			}
 		}
