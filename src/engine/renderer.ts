@@ -119,6 +119,10 @@ export class Renderer {
 		};
 		enableFloat32Filtering: boolean;
 		enableStats: boolean;
+		assets: Asset[];
+		macros: Macro[];
+		automations: GsAutomation[];
+		nodes: GsNode[];
 		histogramCanvas: HTMLCanvasElement | null;
 		waveformCanvas: HTMLCanvasElement | null;
 	}) {
@@ -181,6 +185,11 @@ export class Renderer {
 			size: this.finalRenderUniformValues.arrayBuffer.byteLength,
 			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
 		});
+
+		this.updateAssets(options.assets);
+		this.updateMacros(options.macros);
+		this.updateAutomations(options.automations);
+		this.updateNodes(options.nodes);
 	}
 
 	public findNode(nodeId: string, nodes: GsNode[] = this.nodes): GsNode | undefined {

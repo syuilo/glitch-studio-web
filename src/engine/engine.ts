@@ -104,6 +104,10 @@ export class Engine {
 					resolution,
 					enableFloat32Filtering: this.enableFloat32Filtering,
 					enableStats: this.enableStats,
+					assets: this.assets,
+					macros: this.macros,
+					automations: this.automations,
+					nodes: this.nodes,
 				} }, [offscreen]);
 				resolve(worker);
 			});
@@ -128,12 +132,6 @@ export class Engine {
 		};
 
 		await ready;
-
-		// TODO: 初期化時に渡す
-		this.call('updateAssets', [this.assets]);
-		this.call('updateMacros', [this.macros]);
-		this.call('updateAutomations', [this.automations]);
-		this.call('updateNodes', [this.nodes]);
 	}
 
 	/*

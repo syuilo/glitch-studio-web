@@ -37,6 +37,10 @@ onmessage = async (event) => {
 				resolution: event.data.options.resolution,
 				enableFloat32Filtering: event.data.options.enableFloat32Filtering,
 				enableStats: event.data.options.enableStats,
+				assets: event.data.options.assets,
+				macros: event.data.options.macros,
+				automations: event.data.options.automations,
+				nodes: event.data.options.nodes,
 				//histogramCanvas: this.histogramCanvas,
 				//waveformCanvas: this.waveformCanvas,
 			});
