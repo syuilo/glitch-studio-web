@@ -1,59 +1,3 @@
-fn blendNormal(base: f32, blend: f32) -> f32 {
-	return blend;
-}
-fn blendNormalVec3f(base: vec3f, blend: vec3f) -> vec3f {
-	return blend;
-}
-
-fn blendAdd(base: f32, blend: f32) -> f32 {
-	return min(base + blend, 1.0);
-}
-fn blendAddVec3f(base: vec3f, blend: vec3f) -> vec3f {
-	return min(base + blend, vec3f(1.0));
-}
-
-fn blendSubtract(base: f32, blend: f32) -> f32 {
-	return max(base + blend - 1.0, 0.0);
-}
-fn blendSubtractVec3f(base: vec3f, blend: vec3f) -> vec3f {
-	return max(base + blend - vec3f(1.0), vec3f(0.0));
-}
-
-fn blendMultiply(base: f32, blend: f32) -> f32 {
-	return base * blend;
-}
-fn blendMultiplyVec3f(base: vec3f, blend: vec3f) -> vec3f {
-	return base * blend;
-}
-
-fn blendDarken(base: f32, blend: f32) -> f32 {
-	return min(blend, base);
-}
-fn blendDarkenVec3f(base: vec3f, blend: vec3f) -> vec3f {
-	return vec3f(blendDarken(base.r, blend.r), blendDarken(base.g, blend.g), blendDarken(base.b, blend.b));
-}
-
-fn blendLighten(base: f32, blend: f32) -> f32 {
-	return max(blend, base);
-}
-fn blendLightenVec3f(base: vec3f, blend: vec3f) -> vec3f {
-	return vec3f(blendLighten(base.r, blend.r), blendLighten(base.g, blend.g), blendLighten(base.b, blend.b));
-}
-
-fn blendScreen(base: f32, blend: f32) -> f32 {
-	return 1.0 - ((1.0 - base) * (1.0 - blend));
-}
-fn blendScreenVec3f(base: vec3f, blend: vec3f) -> vec3f {
-	return vec3f(blendScreen(base.r, blend.r), blendScreen(base.g, blend.g), blendScreen(base.b, blend.b));
-}
-
-fn blendOverlay(base: f32, blend: f32) -> f32 {
-	return select(1.0 - 2.0 * (1.0 - base) * (1.0 - blend), 2.0 * base * blend, base < 0.5);
-}
-fn blendOverlayVec3f(base: vec3f, blend: vec3f) -> vec3f {
-	return vec3f(blendOverlay(base.r, blend.r), blendOverlay(base.g, blend.g), blendOverlay(base.b, blend.b));
-}
-
 const PI = 3.141592653589793;
 const TWO_PI = 6.283185307179586;
 const HALF_PI = 1.5707963267948966;
@@ -164,7 +108,6 @@ struct Uniforms {
 	useOriginalColor: u32,
 	sourceAspectRatio: f32,
 	sourceContrast: f32,
-	sourceBlend: f32,
 	highlightClipThreshold: f32,
 	shadowClipThreshold: f32,
 	enableClippedAreaFill: u32,
