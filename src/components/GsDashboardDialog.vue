@@ -1,6 +1,6 @@
 <template>
 <GsModal ref="modal" preferType="dialog" @closed="emit('closed')">
-	<div :class="$style.root" class="_gaps_s _shadow">
+	<div :class="$style.root" class="_gaps_s">
 		<div>
 			<div><b>Glitch Studio</b></div>
 			<div>{{ version }}</div>
