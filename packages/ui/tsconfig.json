@@ -24,9 +24,7 @@
 		"verbatimModuleSyntax": true,
 		"skipLibCheck": true,
 		"paths": {
-			"@/*": ["./src/*"],
-			"@@/*": ["../shared/src/*"],
-			"renderer/*": ["../renderer/src/*"]
+			"@/*": ["./src/*"]
 		},
 		"typeRoots": [
 			"./@types",

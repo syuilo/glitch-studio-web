@@ -2,38 +2,27 @@
 	"$schema": "https://json.schemastore.org/tsconfig",
 	"compilerOptions": {
 		"target": "ES2022",
-		"module": "nodenext",
-		"moduleResolution": "nodenext",
-		"declaration": true,
-		"declarationMap": true,
-		"sourceMap": false,
-		"outDir": "./built",
-		"removeComments": true,
-		"skipLibCheck": true,
-		"resolveJsonModule": true,
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
+		"noEmit": true,
+    "allowImportingTsExtensions": true,
 		"strict": true,
 		"strictFunctionTypes": true,
 		"strictNullChecks": true,
-		"experimentalDecorators": true,
 		"noImplicitReturns": true,
-		"esModuleInterop": true,
 		"verbatimModuleSyntax": true,
-		"rootDir": "./src",
+		"rootDir": "..",
 		"paths": {
 			"@/*": ["./*"]
 		},
 		"typeRoots": [
 			"./@types",
 			"./node_modules/@types"
-		],
-		"lib": [
-			"esnext",
-			"dom"
 		]
 	},
 	"include": [
 		"@types/**/*.ts",
-		"js/**/*"
+		"src/**/*"
 	],
 	"exclude": [
 		"node_modules",
