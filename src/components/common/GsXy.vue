@@ -8,7 +8,6 @@
 		}]"
 		tabindex="0"
 		role="group"
-		:aria-label="`X ${formatValue(value[0])}, Y ${formatValue(value[1])}`"
 		@keydown="onKeydown"
 		@pointerdown="onPointerDown"
 		@pointermove="onPointerMove"
@@ -25,8 +24,8 @@
 			<span><b>Y</b> {{ formatValue(value[1]) }}</span>
 		</div>
 		<div :class="$style.locks">
-			<GsButton small :primary="axisLock === 'x'" :aria-pressed="axisLock === 'x'" title="X axis" @click="toggleAxisLock('x')">X</GsButton>
-			<GsButton small :primary="axisLock === 'y'" :aria-pressed="axisLock === 'y'" title="Y axis" @click="toggleAxisLock('y')">Y</GsButton>
+			<GsButton small :primary="axisLock === 'x'" title="X axis" @click="toggleAxisLock('x')">X</GsButton>
+			<GsButton small :primary="axisLock === 'y'" title="Y axis" @click="toggleAxisLock('y')">Y</GsButton>
 		</div>
 	</div>
 </div>

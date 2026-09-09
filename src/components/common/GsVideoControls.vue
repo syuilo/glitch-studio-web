@@ -1,17 +1,17 @@
 <template>
 <div :class="$style.root">
 	<div :class="$style.row">
-		<GsButton small iconOnly :disabled="!ready" :title="paused ? i18n.ts._VideoControls.Play : i18n.ts._VideoControls.Pause" :aria-label="paused ? i18n.ts._VideoControls.Play : i18n.ts._VideoControls.Pause" @click="togglePlayback">
-			<i :class="paused ? 'ti ti-player-play' : 'ti ti-player-pause'" aria-hidden="true"></i>
+		<GsButton small iconOnly primary :disabled="!ready" :title="paused ? i18n.ts._VideoControls.Play : i18n.ts._VideoControls.Pause" @click="togglePlayback">
+			<i :class="paused ? 'ti ti-player-play' : 'ti ti-player-pause'"></i>
 		</GsButton>
-		<GsButton small iconOnly :disabled="!ready" :title="i18n.ts._VideoControls.Stop" :aria-label="i18n.ts._VideoControls.Stop" @click="stop">
-			<i class="ti ti-player-stop" aria-hidden="true"></i>
+		<GsButton small iconOnly :disabled="!ready" :title="i18n.ts._VideoControls.Stop" @click="stop">
+			<i class="ti ti-player-stop"></i>
 		</GsButton>
 		<span :class="$style.time">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
 	</div>
-	<input :class="$style.slider" type="range" min="0" :max="duration || 1" step="0.01" :value="currentTime" :disabled="!ready || duration === 0" :aria-label="i18n.ts._VideoControls.Seek" @input="seek"/>
+	<input :class="$style.slider" type="range" min="0" :max="duration || 1" step="0.01" :value="currentTime" :disabled="!ready || duration === 0" @input="seek"/>
 	<label :class="$style.row">
-		<i class="ti ti-volume" aria-hidden="true"></i>
+		<i class="ti ti-volume"></i>
 		<span>{{ i18n.ts._VideoControls.Volume }}</span>
 		<input :class="$style.slider" type="range" min="0" max="1" step="0.01" :value="volume" :disabled="!video" @input="setVolume"/>
 		<span>{{ Math.round(volume * 100) }}%</span>
