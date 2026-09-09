@@ -1,4 +1,4 @@
-import { Renderer } from './renderer.js';
+import { Renderer } from './renderer.ts';
 
 let renderer: Renderer | null = null;
 let canvas: OffscreenCanvas | null = null;
@@ -61,6 +61,7 @@ onmessage = async (event) => {
 			break;
 		}
 		case 'resize': {
+			if (canvas == null) return;
 			canvas.width = event.data.resolution.width;
 			canvas.height = event.data.resolution.height;
 			if (renderer != null) renderer.resize(event.data.resolution);

@@ -1,8 +1,8 @@
 // Adapted from Paper Design's Water (Apache-2.0; see LICENSE).
 // Modified for WebGPU node inputs, without background or image layout controls.
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
+import { defineEffect } from '../../fx-utils.ts';
 import code from './shader.wgsl?raw';
-import { defineEffect } from '@/engine/fx-utils';
 
 export default defineEffect({
 	name: 'water',

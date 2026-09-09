@@ -1,6 +1,6 @@
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
+import { defineEffect } from '../../fx-utils.ts';
 import code from './shader.wgsl?raw';
-import { defineEffect } from '@/engine/fx-utils';
 
 export default defineEffect({
 	name: 'rainDropsOnWindow1',

@@ -1,6 +1,6 @@
 import { createTextureFromImages, makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
+import { defineEffect } from '../../fx-utils.ts';
 import code from './shader.wgsl?raw';
-import { defineEffect } from '@/engine/fx-utils';
 
 function getSymbolTextureUrls(type: string) {
 	return type === 'symbols_numbers' ? [

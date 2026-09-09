@@ -1,5 +1,5 @@
-import { defineEffect } from '@/engine/fx-utils';
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
+import { defineEffect } from '../../fx-utils.ts';
 import code from './shader.wgsl?raw';
 
 // A fixed working grid AND level count keep the normalized bloom footprint

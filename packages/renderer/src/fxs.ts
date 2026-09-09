@@ -20,7 +20,7 @@ import liquidMetal from './fx/liquidMetal/main.js';
 import water from './fx/water/main.js';
 import symbols from './fx/symbols/main.js';
 import type { Effect } from './fx-utils.js';
-import type { FxParamDefs } from '../../ui/src/types.js';
+import type { FxParamDefs } from '@glitch/shared/types.ts';
 
 const _fxs = {
 	test,

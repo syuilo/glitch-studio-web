@@ -1,9 +1,9 @@
 // Adapted from Paper Design's Liquid Metal (Apache-2.0; see LICENSE).
 // Modified for WebGPU and live node inputs; no uploaded-image or shape selector.
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
+import { defineEffect } from '../../fx-utils.ts';
 import code from './shader.wgsl?raw';
 import preprocessCode from './preprocess.wgsl?raw';
-import { defineEffect } from '@/engine/fx-utils';
 
 export default defineEffect({
 	name: 'liquidMetal',
