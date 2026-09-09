@@ -11,7 +11,7 @@
 	--THEME-dialog: #1c1c1c;
 	--THEME-buttonBg: #222;
 	--THEME-buttonHoverBg: #333;
-	--THEME-nodeBg: #222;
+	--THEME-nodeBg: #181818;
 	--THEME-panel: #222;
 	--THEME-success: #86b300;
 	--THEME-error: #ec4137;
@@ -20,6 +20,8 @@
 	--THEME-shadow: #000a;
 
 	--control-height: 25px;
+
+	color-scheme: dark;
 }
 
 html, body, #app {

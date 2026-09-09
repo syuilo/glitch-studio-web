@@ -306,7 +306,7 @@ function onDrop(ev: DragEvent) {
 	height: var(--headerHeight);
 	padding: 0 16px 0 30px;
 	font-size: 85%;
-	background: var(--THEME-workspacePanelHeader);
+	background: linear-gradient(0deg, var(--THEME-workspacePanelHeader), hsl(from var(--THEME-workspacePanelHeader) h s calc(l + 5)));
 	user-select: none;
 }
 
@@ -342,6 +342,7 @@ function onDrop(ev: DragEvent) {
 	z-index: 1;
 	width: var(--headerHeight);
 	line-height: var(--headerHeight);
+	font-size: 90%;
 }
 
 .toggleActive {

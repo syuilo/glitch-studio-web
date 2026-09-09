@@ -109,7 +109,7 @@ function toggleMacroValueType(macro: Macro) {
 	padding: 8px 0;
 
 	&:not(:first-child) {
-		border-top: solid 1px rgba(255, 255, 255, 0.05);
+		border-top: solid 1px #0006;
 	}
 }
 

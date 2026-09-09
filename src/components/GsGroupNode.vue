@@ -189,6 +189,7 @@ onMounted(() => {
 	font-weight: bold;
 	cursor: move;
 	line-height: 32px;
+	background: linear-gradient(0deg, var(--THEME-nodeBg), hsl(from var(--THEME-nodeBg) h s calc(l + 5)));
 }
 
 .indicator {
@@ -244,7 +245,6 @@ onMounted(() => {
 }
 
 .params {
-	background: rgba(0, 0, 0, 0.3);
 	padding: 0 16px;
 }
 
@@ -253,11 +253,7 @@ onMounted(() => {
 	padding: 8px 0;
 
 	&:not(:first-child) {
-		border-top: solid 1px rgba(255, 255, 255, 0.05);
-	}
-
-	&:not(:last-child) {
-		border-bottom: solid 1px rgba(0, 0, 0, 0.5);
+		border-top: solid 1px #0006;
 	}
 }
 
