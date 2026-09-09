@@ -288,8 +288,8 @@ function onMousedown(ev: MouseEvent | TouchEvent) {
 		}
 	}
 
-	$thumbHeight: 22px;
-	$thumbWidth: 22px;
+	$thumbHeight: 20px;
+	$thumbWidth: 20px;
 	$thumbInnerHeight: 13px;
 	$thumbInnerWidth: 13px;
 
