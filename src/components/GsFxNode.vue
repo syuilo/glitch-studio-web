@@ -205,7 +205,7 @@ onMounted(() => {
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	font-size: 14px;
+	font-size: 95%;
 	font-weight: bold;
 	cursor: move;
 	line-height: 32px;
@@ -287,8 +287,7 @@ onMounted(() => {
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	overflow: hidden;
-	font-size: 14px;
-	color: rgba(255, 255, 255, 0.9);
+	font-size: 95%;
 	cursor: pointer;
 
 	&.expression {
