@@ -1,11 +1,11 @@
 <template>
 <GsWorkspacePanel :panel="panel" :isStacked="isStacked">
 	<template #header>
-		<i class="ti ti-activity"></i><span style="margin-left: 8px;">Stats</span>
+		<i class="ti ti-chart-dots-3"></i><span style="margin-left: 8px;">Node Editor</span>
 	</template>
 
 	<div :class="$style.root">
-		<GsNodesEditor />
+		<GsNodesEditor/>
 	</div>
 </GsWorkspacePanel>
 </template>

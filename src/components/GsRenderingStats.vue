@@ -136,8 +136,8 @@ onBeforeUnmount(() => {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 10px 10px;
-	padding: 2px 4px 12px;
-	font-size: 12px;
+	padding: 0 0 8px 2px;
+	font-size: 80%;
 }
 
 .legendItem {
