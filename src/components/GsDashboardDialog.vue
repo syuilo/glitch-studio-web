@@ -1,6 +1,6 @@
 <template>
 <GsModal ref="modal" preferType="dialog" @closed="emit('closed')">
-	<div :class="$style.root">
+	<div :class="$style.root" class="_gaps_s _shadow">
 		<div>
 			<div><b>Glitch Studio</b></div>
 			<div>{{ version }}</div>
@@ -20,9 +20,9 @@
 
 <script lang="ts" setup>
 import { useTemplateRef } from 'vue';
-import { version } from '@/version';
 import GsButton from './common/GsButton.vue';
 import GsModal from './common/GsModal.vue';
+import { version } from '@/version';
 import { newProject, newProjectFromImageOrVideo, openProject } from '@/app.ts';
 
 const modal = useTemplateRef('modal');
@@ -57,5 +57,6 @@ async function _openProject() {
 	box-sizing: border-box;
 	text-align: center;
 	background: var(--THEME-dialog);
+	border-radius: 10px;
 }
 </style>
