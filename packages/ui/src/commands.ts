@@ -1,3 +1,4 @@
+import { fxDefinitions as fxs } from '@glitch/shared/fx-definitions.ts';
 import { AiSON } from '@syuilo/aiscript';
 import { deepClone } from '@glitch/shared/utility/deep-clone.ts';
 import { genEmptyValue } from '@glitch/shared/utility/misc.ts';

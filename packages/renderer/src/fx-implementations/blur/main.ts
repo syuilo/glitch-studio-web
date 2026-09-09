@@ -1,20 +1,9 @@
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
-import { defineEffect } from '../../types.ts';
+import type definition from '@glitch/shared/fx-definitions/blur.ts';
+import { implementEffect } from '../../fx-implementation.ts';
 import code from './shader.wgsl?raw';
 
-export default defineEffect({
-	name: 'blur',
-	displayName: 'Blur',
-	category: 'effect',
-	paramDefs: {
-		input: { type: 'node', label: 'Input', primary: true },
-		amount: { type: 'node', label: 'Amount' },
-		samples: { type: 'range', label: 'Samples', min: 4, max: 256, step: 1 },
-	},
-	getDefaultParams: () => ({
-		amount: { type: 'literal', value: null },
-		samples: { type: 'literal', value: 16 },
-	}),
+export default implementEffect<typeof definition>({
 	getOut: ({ wgpu, resolution }) => {
 		return wgpu.device.createTexture({
 			size: resolution,

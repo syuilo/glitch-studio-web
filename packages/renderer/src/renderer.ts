@@ -4,13 +4,14 @@ import { deepClone } from '@glitch/shared/utility/deep-clone.ts';
 import { evalAutomationValue, genEmptyValue } from '@glitch/shared/utility/misc.ts';
 import defaultVertexShaderCode from './vertex.wgsl?raw';
 import TimingHelper from './TimingHelper.ts';
-import { fxs } from './fx-implementations.ts';
+import { fxImplementations } from './fx-implementations.ts';
+import { fxDefinitions } from '@glitch/shared/fx-definitions.ts';
 import finalRenderShaderCode from './render.wgsl?raw';
 import { NonNegativeRollingAverage } from './NonNegativeRollingAverage.ts';
 import { GpuHistogram } from './GpuHistogram.ts';
 import { GpuWaveform } from './GpuWaveform.ts';
 import type { Asset, FxParamValue, Macro, GsAutomation, GsFxNode, GsNode, GsGroupNode } from '@glitch/shared/types.ts';
-import type { EffectInstance } from './types.ts';
+import type { EffectInstance } from './fx-implementation.ts';
 
 const aisParser = new AiScript.Parser();
 
@@ -223,7 +224,7 @@ export class Renderer {
 
 		for (const node of nodes.filter((n): n is GsFxNode => n.type === 'fx')) {
 			const params = node.params;
-			const paramDefs = fxs[node.fx].paramDefs;
+			const paramDefs = fxDefinitions[node.fx].paramDefs;
 
 			// Bake all params
 			const defaults = {} as GsFxNode['params'];
@@ -296,11 +297,11 @@ export class Renderer {
 
 			// TODO: macro
 		} else {
-			if (fxs[node.fx].disableCache) {
+			if (fxImplementations[node.fx].disableCache) {
 				return null;
 			}
 
-			const paramDefs = fxs[node.fx].paramDefs;
+			const paramDefs = fxDefinitions[node.fx].paramDefs;
 
 			for (const [k, v] of Object.entries(this.evaledNodeParams.get(node.id)!)) {
 				key += `${k}=${JSON.stringify(v)};`;
@@ -350,11 +351,11 @@ export class Renderer {
 		}
 		if (key != null) this.effectCacheKeys.set(node.id, key);
 
-		const effect = fxs[node.fx];
+		const effect = fxImplementations[node.fx];
 
 		const params = this.evaledNodeParams.get(node.id)!;
 
-		for (const [k, _] of Object.entries(effect.paramDefs).filter(([, v]) => v.type === 'node')) {
+		for (const [k, _] of Object.entries(fxDefinitions[node.fx].paramDefs).filter(([, v]) => v.type === 'node')) {
 			const v = params[k];
 			if (v == null) {
 				continue;
@@ -378,9 +379,9 @@ export class Renderer {
 
 		const paramsWithOuts = Object.fromEntries(Object.entries(params).map(([k, v]) =>
 			[k,
-				effect.paramDefs[k].type === 'node' ? params[k] == null ? this.fallbackTexture : this.effectOuts.get(getActualOutputNodeId(this.findNode(params[k])!)!)! :
-				effect.paramDefs[k].type === 'image' ? this.assetTextures.get(params[k])! :
-				effect.paramDefs[k].type === 'video' ? this.videoFrames.get(node.id)! :
+				fxDefinitions[node.fx].paramDefs[k].type === 'node' ? params[k] == null ? this.fallbackTexture : this.effectOuts.get(getActualOutputNodeId(this.findNode(params[k])!)!)! :
+				fxDefinitions[node.fx].paramDefs[k].type === 'image' ? this.assetTextures.get(params[k])! :
+				fxDefinitions[node.fx].paramDefs[k].type === 'video' ? this.videoFrames.get(node.id)! :
 				v]));
 
 		let effectInstance = this.effectInstances.get(node.id);
@@ -497,7 +498,7 @@ export class Renderer {
 		const removedNodes = oldFxNodes.filter(node => !newNodeIds.has(node.id));
 
 		for (const node of addedNodes) {
-			const effect = fxs[node.fx];
+			const effect = fxImplementations[node.fx];
 			const out = effect.getOut({
 				wgpu: { device: this.gpuDevice, enableFloat32Filtering: this.enableFloat32Filtering },
 				resolution: { width: this.resolution.width, height: this.resolution.height },

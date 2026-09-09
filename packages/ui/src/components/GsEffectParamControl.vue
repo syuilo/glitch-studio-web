@@ -187,7 +187,7 @@ import XNodesInput from './nodes-input.vue';
 import GsButton from './common/GsButton.vue';
 import GsSelect from './common/GsSelect.vue';
 import GsVideoControls from './common/GsVideoControls.vue';
-import { fxs } from '@/engine/fxs';
+import { fxDefinitions as fxs } from '@glitch/shared/fx-definitions.ts';
 import { i18n } from '@/i18n';
 import { appContext, engine, wireMap } from '@/app';
 import { GsGroupNode, GsNode } from '@/engine/renderer.ts';

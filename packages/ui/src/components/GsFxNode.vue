@@ -44,7 +44,7 @@ import { ref, computed, shallowRef, onMounted } from 'vue';
 import GsEffectParamControl from './GsEffectParamControl.vue';
 import GsButton from './common/GsButton.vue';
 import GsInput from './common/GsInput.vue';
-import { fxs } from '@/engine/fxs';
+import { fxDefinitions as fxs } from '@glitch/shared/fx-definitions.ts';
 import { subStore } from '@/sub-store';
 import { i18n } from '@/i18n';
 import { appContext, wireMap } from '@/app';

@@ -1,17 +1,9 @@
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
-import { defineEffect } from '../../types.ts';
+import type definition from '@glitch/shared/fx-definitions/fill.ts';
+import { implementEffect } from '../../fx-implementation.ts';
 import code from './shader.wgsl?raw';
 
-export default defineEffect({
-	name: 'fill',
-	displayName: 'Fill',
-	category: 'utility',
-	paramDefs: {
-		color: { type: 'color', label: 'Color' },
-	},
-	getDefaultParams: () => ({
-		color: { type: 'literal', value: [1, 1, 1] },
-	}),
+export default implementEffect<typeof definition>({
 	getOut: ({ wgpu, resolution }) => {
 		const out = wgpu.device.createTexture({
 			size: resolution,

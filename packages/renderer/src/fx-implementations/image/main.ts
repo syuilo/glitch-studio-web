@@ -1,35 +1,9 @@
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
-import { defineEffect } from '../../types.ts';
+import type definition from '@glitch/shared/fx-definitions/image.ts';
+import { implementEffect } from '../../fx-implementation.ts';
 import code from './shader.wgsl?raw';
 
-export default defineEffect({
-	name: 'image',
-	displayName: 'Image',
-	category: '',
-	paramDefs: {
-		image: {
-			label: 'Image',
-			type: 'image',
-		},
-		sizeMode: {
-			label: 'Size mode',
-			type: 'enum',
-			options: [{
-				label: 'Stretch',
-				value: 0,
-			}, {
-				label: 'Cover',
-				value: 1,
-			}, {
-				label: 'Contain',
-				value: 2,
-			}],
-		},
-	},
-	getDefaultParams: () => ({
-		image: { type: 'literal', value: null },
-		sizeMode: { type: 'literal', value: 1 },
-	}),
+export default implementEffect<typeof definition>({
 	getOut: ({ wgpu, resolution }) => {
 		const out = wgpu.device.createTexture({
 			size: resolution,

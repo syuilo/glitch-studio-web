@@ -45,7 +45,7 @@
 import { defineAsyncComponent, ref, shallowRef, watch } from 'vue';
 import GsButton from './common/GsButton.vue';
 import GsSelect from './common/GsSelect.vue';
-import { fxs } from '@/engine/fxs';
+import { fxDefinitions as fxs } from '@glitch/shared/fx-definitions.ts';
 import { i18n } from '@/i18n';
 import { wireMap } from '@/app';
 import { genId } from '@/utility/id.ts';

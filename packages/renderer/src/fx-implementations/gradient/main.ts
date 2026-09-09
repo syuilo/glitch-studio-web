@@ -1,29 +1,9 @@
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
-import { defineEffect } from '../../types.ts';
+import type definition from '@glitch/shared/fx-definitions/gradient.ts';
+import { implementEffect } from '../../fx-implementation.ts';
 import code from './shader.wgsl?raw';
 
-export default defineEffect({
-	name: 'gradient',
-	displayName: 'Gradient',
-	category: 'utility',
-	paramDefs: {
-		start: { type: 'range', min: -1, max: 1, step: 0.01, label: 'Start' },
-		end: { type: 'range', min: -1, max: 1, step: 0.01, label: 'End' },
-		angle: { type: 'range', min: -180, max: 180, step: 0.01, label: 'Angle' },
-		interpolation: {
-			type: 'enum', label: 'Interpolation',
-			options: [
-				{ value: 'linear', label: 'Linear' },
-				{ value: 'easing', label: 'Easing' },
-			],
-		},
-	},
-	getDefaultParams: () => ({
-		start: { type: 'literal', value: -1 },
-		end: { type: 'literal', value: 1 },
-		angle: { type: 'literal', value: 0 },
-		interpolation: { type: 'literal', value: 'linear' },
-	}),
+export default implementEffect<typeof definition>({
 	getOut: ({ wgpu, resolution }) => {
 		const out = wgpu.device.createTexture({
 			size: resolution,

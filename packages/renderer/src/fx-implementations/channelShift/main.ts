@@ -1,5 +1,6 @@
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
-import { defineEffect } from '../../types.ts';
+import type definition from '@glitch/shared/fx-definitions/channelShift.ts';
+import { implementEffect } from '../../fx-implementation.ts';
 import code from './shader.wgsl?raw';
 
 const blendModes: Record<string, number> = {
@@ -13,33 +14,7 @@ const blendModes: Record<string, number> = {
 	overlay: 9,
 };
 
-export default defineEffect({
-	name: 'channelShift',
-	displayName: 'Channel Shift',
-	category: 'glitch',
-	paramDefs: {
-		input: { type: 'node', label: 'Input', primary: true },
-		amount: { type: 'vector', min: -1, max: 1, step: 0.01, label: 'Amount' },
-		leftSignal: { type: 'signal', label: 'L signal' },
-		rightSignal: { type: 'signal', label: 'R signal' },
-		blendMode: { type: 'blendMode', label: 'Blend mode' },
-		wrap: {
-			type: 'enum',
-			label: 'Wrap',
-			options: [
-				{ label: 'Clamp to edge', value: 'clampToEdge' },
-				{ label: 'Repeat', value: 'repeat' },
-				{ label: 'Repeat (Mirrored)', value: 'repeatMirrored' },
-			],
-		},
-	},
-	getDefaultParams: () => ({
-		amount: { type: 'literal', value: [0.02, 0] },
-		leftSignal: { type: 'literal', value: [true, false, false] },
-		rightSignal: { type: 'literal', value: [false, false, true] },
-		blendMode: { type: 'literal', value: 'lighten' },
-		wrap: { type: 'literal', value: 'repeatMirrored' },
-	}),
+export default implementEffect<typeof definition>({
 	getOut: ({ wgpu, resolution }) => {
 		return wgpu.device.createTexture({
 			size: resolution,

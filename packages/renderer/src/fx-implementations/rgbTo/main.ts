@@ -1,28 +1,9 @@
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
-import { defineEffect } from '../../types.ts';
+import type definition from '@glitch/shared/fx-definitions/rgbTo.ts';
+import { implementEffect } from '../../fx-implementation.ts';
 import code from './shader.wgsl?raw';
 
-export default defineEffect({
-	name: 'rgbTo',
-	displayName: 'RGB To',
-	category: 'utility',
-	paramDefs: {
-		input: { type: 'node', label: 'Input', primary: true },
-		mode: {
-			label: 'Mode',
-			type: 'enum',
-			options: [{
-				label: 'Intensity',
-				value: 0,
-			}, {
-				label: 'Luminance',
-				value: 1,
-			}],
-		},
-	},
-	getDefaultParams: () => ({
-		mode: { type: 'literal', value: 0 },
-	}),
+export default implementEffect<typeof definition>({
 	getOut: ({ wgpu, resolution }) => {
 		const out = wgpu.device.createTexture({
 			size: resolution,

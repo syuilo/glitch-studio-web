@@ -19,6 +19,9 @@ type ColorOptionSchema = {
 type VectorOptionSchema = {
 	type: 'vector';
 	label: string;
+	min?: number;
+	max?: number;
+	step?: number;
 };
 
 type SignalOptionSchema = {
@@ -39,7 +42,7 @@ type SeedOptionSchema = {
 type EnumOptionSchema = {
 	type: 'enum';
 	label: string;
-	options: {
+	options: readonly {
 		value: string | number | null;
 		label: string;
 	}[];
@@ -66,6 +69,7 @@ type VideoOptionSchema = {
 type NodeOptionSchema = {
 	type: 'node';
 	label: string;
+	primary?: boolean;
 };
 
 export type EffectOptionsSchema = Record<string, NumberOptionSchema | BooleanOptionSchema | ColorOptionSchema | VectorOptionSchema | SignalOptionSchema | BlendModeOptionSchema | SeedOptionSchema | EnumOptionSchema | RangeOptionSchema | ImageOptionSchema | VideoOptionSchema | NodeOptionSchema>;

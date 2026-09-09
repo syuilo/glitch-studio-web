@@ -1,28 +1,9 @@
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
-import { defineEffect } from '../../types.ts';
+import type definition from '@glitch/shared/fx-definitions/shift.ts';
+import { implementEffect } from '../../fx-implementation.ts';
 import code from './shader.wgsl?raw';
 
-export default defineEffect({
-	name: 'shift',
-	displayName: 'Shift',
-	category: 'utility',
-	paramDefs: {
-		input: { type: 'node', label: 'Input', primary: true },
-		amount: { type: 'vector', min: -1, max: 1, step: 0.01, label: 'Amount' },
-		wrap: {
-			type: 'enum',
-			label: 'Wrap',
-			options: [
-				{ label: 'Clamp to edge', value: 'clampToEdge' },
-				{ label: 'Repeat', value: 'repeat' },
-				{ label: 'Repeat (Mirrored)', value: 'repeatMirrored' },
-			],
-		},
-	},
-	getDefaultParams: () => ({
-		amount: { type: 'literal', value: [0, 0] },
-		wrap: { type: 'literal', value: 'repeatMirrored' },
-	}),
+export default implementEffect<typeof definition>({
 	getOut: ({ wgpu, resolution }) => {
 		const out = wgpu.device.createTexture({
 			size: resolution,

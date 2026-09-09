@@ -2,7 +2,7 @@ import { Ref, ref, markRaw, Component, reactive, watch, shallowRef, triggerRef }
 import { GsFxNode, GsGroupNode, GsNode } from '../../renderer/src/renderer.js';
 import { deepClone } from '../../shared/src/utility/deep-clone.js';
 import { genId } from '../../shared/src/utility/id.js';
-import { fxs } from './engine/fxs';
+import { fxDefinitions as fxs } from '@glitch/shared/fx-definitions.ts';
 import { loadProjectFile, saveProjectFile, decodeAssets } from './api';
 import { RawProject } from './settings';
 import { Engine } from './engine.js';

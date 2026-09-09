@@ -11,7 +11,7 @@
 import { computed, defineAsyncComponent } from 'vue';
 import XFxNode from './GsFxNode.vue';
 import XGroupNode from './GsGroupNode.vue';
-import { fxs } from '@/engine/fxs';
+import { fxDefinitions as fxs } from '@glitch/shared/fx-definitions.ts';
 import { i18n } from '@/i18n';
 import { GsGroupNode, GsNode } from '@/engine/renderer.ts';
 

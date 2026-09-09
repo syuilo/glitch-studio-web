@@ -1,21 +1,9 @@
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
-import { defineEffect } from '../../types.ts';
+import type definition from '@glitch/shared/fx-definitions/snoise.ts';
+import { implementEffect } from '../../fx-implementation.ts';
 import code from './shader.wgsl?raw';
 
-export default defineEffect({
-	name: 'snoise',
-	displayName: 'snoise',
-	category: 'utility',
-	paramDefs: {
-		x: { type: 'range', min: -100, max: 100, step: 0.01, label: 'X' },
-		y: { type: 'range', min: -100, max: 100, step: 0.01, label: 'Y' },
-		time: { type: 'range', min: 0, max: 100, step: 0.01, label: 'Time' },
-	},
-	getDefaultParams: () => ({
-		x: { type: 'literal', value: 1 },
-		y: { type: 'literal', value: 1 },
-		time: { type: 'expression', value: 'TIME' },
-	}),
+export default implementEffect<typeof definition>({
 	getOut: ({ wgpu, resolution }) => {
 		const out = wgpu.device.createTexture({
 			size: resolution,

@@ -9,7 +9,7 @@
 <script lang="ts" setup>
 import { onMounted, ref, shallowRef, useTemplateRef, watch } from 'vue';
 import { appContext, wireMap } from '@/app';
-import { fxs } from '@/engine/fxs';
+import { fxDefinitions as fxs } from '@glitch/shared/fx-definitions.ts';
 import { GsNode } from '@/engine/renderer.ts';
 
 const props = defineProps<{

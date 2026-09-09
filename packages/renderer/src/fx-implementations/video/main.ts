@@ -1,36 +1,10 @@
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
-import { defineEffect } from '../../types.ts';
+import type definition from '@glitch/shared/fx-definitions/video.ts';
+import { implementEffect } from '../../fx-implementation.ts';
 import code from './shader.wgsl?raw';
 
-export default defineEffect({
-	name: 'video',
-	displayName: 'Video',
-	category: '',
+export default implementEffect<typeof definition>({
 	disableCache: true,
-	paramDefs: {
-		video: {
-			label: 'Video',
-			type: 'video',
-		},
-		sizeMode: {
-			label: 'Size mode',
-			type: 'enum',
-			options: [{
-				label: 'Stretch',
-				value: 0,
-			}, {
-				label: 'Cover',
-				value: 1,
-			}, {
-				label: 'Contain',
-				value: 2,
-			}],
-		},
-	},
-	getDefaultParams: () => ({
-		video: { type: 'literal', value: null },
-		sizeMode: { type: 'literal', value: 1 },
-	}),
 	getOut: ({ wgpu, resolution }) => {
 		const out = wgpu.device.createTexture({
 			size: resolution,

@@ -1,18 +1,9 @@
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
-import { defineEffect } from '../../types.ts';
+import type definition from '@glitch/shared/fx-definitions/multiply.ts';
+import { implementEffect } from '../../fx-implementation.ts';
 import code from './shader.wgsl?raw';
 
-export default defineEffect({
-	name: 'multiply',
-	displayName: 'multiply',
-	category: 'utility',
-	paramDefs: {
-		input: { type: 'node', label: 'Input', primary: true },
-		v: { type: 'range', min: -10, max: 10, step: 0.01, label: 'Value' },
-	},
-	getDefaultParams: () => ({
-		v: { type: 'literal', value: 2 },
-	}),
+export default implementEffect<typeof definition>({
 	getOut: ({ wgpu, resolution }) => {
 		const out = wgpu.device.createTexture({
 			size: resolution,

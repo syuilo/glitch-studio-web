@@ -11,7 +11,7 @@ export type EffectInstance<Options extends EffectOptionsSchema = any> = {
 	dispose: () => void;
 };
 
-export type EffectImplementation<Definition extends EffectDefinition = EffectDefinition, Options extends EffectOptionsSchema = Definition extends EffectDefinition<infer O> ? O : any> = {
+export type EffectImplementation<Definition extends Pick<EffectDefinition, 'paramDefs'> = EffectDefinition, Options extends EffectOptionsSchema = Definition['paramDefs']> = {
 	disableCache?: boolean;
 	getOut: (args: {
 		resolution: { width: number; height: number; },
@@ -34,6 +34,6 @@ export type EffectImplementation<Definition extends EffectDefinition = EffectDef
 	}) => EffectInstance<Options>;
 };
 
-export function implementEffect<Definition extends EffectDefinition>(def: EffectImplementation<Definition>): EffectImplementation<Definition> {
+export function implementEffect<Definition extends Pick<EffectDefinition, 'paramDefs'>>(def: EffectImplementation<Definition>): EffectImplementation<Definition> {
 	return def;
 }
