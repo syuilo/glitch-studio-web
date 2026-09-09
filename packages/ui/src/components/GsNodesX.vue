@@ -11,8 +11,8 @@
 import { computed, defineAsyncComponent } from 'vue';
 import XFxNode from './GsFxNode.vue';
 import XGroupNode from './GsGroupNode.vue';
-import { i18n } from '@/i18n';
-import { GsGroupNode, GsNode } from '@/engine/renderer.ts';
+import type { GsGroupNode, GsNode } from '@glitch/shared/types.ts';
+import { i18n } from '@/i18n.ts';
 
 const props = defineProps<{
 	group: GsGroupNode | null;

@@ -31,7 +31,7 @@ import { frame, frameMax, appReady, rendererEnv, saveProject, engine, openProjec
 import GsAboutDialog from '@/components/GsAboutDialog.vue';
 import GsDashboardDialog from '@/components/GsDashboardDialog.vue';
 import GsWorkspaceDivider from '@/components/GsWorkspaceDivider.vue';
-import { i18n } from '@/i18n';
+import { i18n } from '@/i18n.ts';
 import * as api from '@/api.ts';
 import GsButton from '@/components/common/GsButton.vue';
 import * as ui from '@/ui.ts';

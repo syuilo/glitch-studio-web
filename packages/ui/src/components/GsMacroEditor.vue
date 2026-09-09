@@ -37,10 +37,9 @@
 import GsSelect from './common/GsSelect.vue';
 import GsInput from './common/GsInput.vue';
 import GsButton from './common/GsButton.vue';
+import type { GsGroupNode, Macro } from '@glitch/shared/types.ts';
 import { appContext } from '@/app.ts';
-import { i18n } from '@/i18n';
-import { FxParamDataType, Macro } from '@/types';
-import { GsGroupNode } from '@/engine/renderer.ts';
+import { i18n } from '@/i18n.ts';
 
 const props = defineProps<{
 	macro: Macro;

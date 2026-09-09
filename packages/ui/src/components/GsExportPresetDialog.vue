@@ -15,10 +15,10 @@
 <script lang="ts" setup>
 import { ref, useTemplateRef } from 'vue';
 import { encode } from '@msgpack/msgpack';
+import { genId } from '@glitch/shared/utility/id.ts';
 import GsModal from './common/GsModal.vue';
-import { SettingsStore } from '@/settings';
-import { version } from '@/version';
-import { genId } from '@/utility/id.ts';
+import { SettingsStore } from '@/settings.ts';
+import { version } from '@/version.ts';
 import * as api from '@/api.ts';
 
 const modal = useTemplateRef('modal');

@@ -14,10 +14,10 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue';
-import { SettingsStore } from '@/settings';
-import { version } from '@/version';
+import { SettingsStore } from '@/settings.ts';
+import { version } from '@/version.ts';
 import XDialog from './dialog.vue';
-import { subStore } from '@/sub-store';
+import { subStore } from '@/sub-store.ts';
 import { useStore } from '@/store';
 import { genId } from '@/utility/id.ts';
 

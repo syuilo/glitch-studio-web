@@ -40,18 +40,17 @@
 
 <script lang="ts" setup>
 import { ref, onMounted, shallowRef } from 'vue';
+import { genId } from '@glitch/shared/utility/id.ts';
 import GsNodes from './GsNodes.vue';
 import GsEffectParamControl from './GsEffectParamControl.vue';
 import GsMacroEditor from './GsMacroEditor.vue';
 import GsButton from './common/GsButton.vue';
-import { subStore } from '@/sub-store';
-import { i18n } from '@/i18n';
-import { Asset, Macro } from '@/types';
-import { genId } from '@/utility/id.ts';
-import { version } from '@/version';
-import { appContext, showAddNodeMenu, wireMap } from '@/app';
+import type { Asset, GsGroupNode } from '@glitch/shared/types.ts';
+import { subStore } from '@/sub-store.ts';
+import { i18n } from '@/i18n.ts';
+import { version } from '@/version.ts';
+import { appContext, showAddNodeMenu, wireMap } from '@/app.ts';
 import * as api from '@/api.ts';
-import { GsGroupNode } from '@/engine/renderer.ts';
 
 const props = defineProps<{
 	node: GsGroupNode,
@@ -63,7 +62,7 @@ const showSettings = ref(false);
 const outPortEl = shallowRef<HTMLElement>();
 const allInPortEl = shallowRef<HTMLElement>();
 
-function add(ev) {
+function add(ev: PointerEvent) {
 	showAddNodeMenu(ev, props.node);
 }
 

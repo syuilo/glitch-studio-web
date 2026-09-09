@@ -11,13 +11,13 @@
 
 			<GsButton v-for="automation of store.automations" :key="automation.id" :primary="selectedAutomation?.id === automation.id" @click="switchAutomation(automation)">{{ automation.name }}</GsButton>
 		</div>
-		<div :class="$style.tl" @wheel="onTlWheel" @mousemove="onTlMousemove" @mousedown="onTlMousedown" @keydown="onTlKeydown" tabindex="-1" ref="tlEl">
+		<div ref="tlEl" :class="$style.tl" tabindex="-1" @wheel="onTlWheel" @mousemove="onTlMousemove" @mousedown="onTlMousedown" @keydown="onTlKeydown">
 			<div :class="$style.yTicks" @wheel="onYTicksWheel">
 				<div v-for="v of yTicks" :class="[$style.yTick, { [$style.yTickActive]: snappingY != null && nearlyEqual(snappingY, v) }]" :style="{ top: valueToDomY(v) + 'px' }">{{ v.toFixed(2) }}</div>
 			</div>
 			<div :class="$style.xTicks" @wheel="onXTicksWheel">
 				<div v-for="frame of xTicks" :class="$style.xTick" :style="{ left: frameToDomX(frame) + 'px' }">{{ frame }}</div>
-				<div :class="$style.xTicksSeekBar" :style="{ left: (seekBarPos - 1) + 'px' }" @mousedown="onSeekBarMousedown" ></div>
+				<div :class="$style.xTicksSeekBar" :style="{ left: (seekBarPos - 1) + 'px' }" @mousedown="onSeekBarMousedown"></div>
 			</div>
 			<div :class="$style.ticksCorner"></div>
 			<div :class="$style.tlRange" :style="{ width: tlRangeElWidth + 'px', left: tlRangeElPosX + 'px' }"></div>
@@ -28,7 +28,7 @@
 			<div :class="$style.valueBar" :style="{ top: valueBarPos + 'px' }"><div :class="$style.valueBarValue">{{ currentValue.toFixed(2) }}</div></div>
 			<div :class="$style.crossPoint" :style="{ left: seekBarPos + 'px', top: valueBarPos + 'px' }"></div>
 			<div v-if="!bezierDragging" :class="$style.cursorBar" :style="{ left: cursorBarPos + 'px' }"></div>
-			<div :class="$style.automation" v-if="selectedAutomation">
+			<div v-if="selectedAutomation" :class="$style.automation">
 				<svg version="1.1" :viewBox="`0 0 ${tlElWidth} ${tlElHeight}`" :class="$style.lines">
 					<defs>
 						<linearGradient id="tlAutomationGradient" x1="0" x2="0" y1="0" y2="1">
@@ -41,14 +41,16 @@
 				</svg>
 
 				<svg v-if="!nowSelecting && selectedKeyframe" version="1.1" :viewBox="`0 0 ${tlElWidth} ${tlElHeight}`" :class="$style.lines">
-					<line v-if="bezierHandleADomPos"
+					<line
+						v-if="bezierHandleADomPos"
 						:x1="frameToDomX(selectedKeyframe.frame)"
 						:y1="valueToDomY(selectedKeyframe.value)"
 						:x2="bezierHandleADomPos[0]"
 						:y2="bezierHandleADomPos[1]"
 						style="stroke: #00f3ff; stroke-width: 1;"
 					/>
-					<line v-if="bezierHandleBDomPos"
+					<line
+						v-if="bezierHandleBDomPos"
 						:x1="frameToDomX(selectedKeyframe.frame)"
 						:y1="valueToDomY(selectedKeyframe.value)"
 						:x2="bezierHandleBDomPos[0]"
@@ -57,7 +59,8 @@
 					/>
 				</svg>
 
-				<div v-for="keyframe of selectedAutomation.keyframes"
+				<div
+					v-for="keyframe of selectedAutomation.keyframes"
 					:class="[$style.keyframe, { [$style.selectedKeyframe]: selectedKeyframes.includes(keyframe) }]"
 					:style="{ left: frameToDomX(keyframe.frame) + 'px', top: valueToDomY(keyframe.value) + 'px' }"
 					@mousedown="onKeyframeMousedown($event, keyframe)"
@@ -87,11 +90,13 @@
 			</div>
 
 			<template v-if="bezierDragging">
-				<div v-for="line of bezierSnapLinesX"
+				<div
+					v-for="line of bezierSnapLinesX"
 					:class="[$style.bezierSnapLineX, { [$style.bezierSnapLineXActive]: line.active }]"
 					:style="{ left: line.x + 'px' }"
 				></div>
-				<div v-for="line of bezierSnapLinesY"
+				<div
+					v-for="line of bezierSnapLinesY"
 					:class="[$style.bezierSnapLineY, { [$style.bezierSnapLineYActive]: line.active }]"
 					:style="{ left: line.x + 'px', top: line.y + 'px', width: line.width + 'px' }"
 				></div>
@@ -105,7 +110,7 @@
 				<div><b>Automation ID</b><code>{{ selectedAutomation ? selectedAutomation.id.toUpperCase() : '-' }}</code></div>
 			</div>
 		</div>
-		<div :class="$style.rightSidePanel" v-if="selectedKeyframe">
+		<div v-if="selectedKeyframe" :class="$style.rightSidePanel">
 			<div>Bezier</div>
 			<GsButton :primary="!isBezierAZero" @click="toggleBezierA">A</GsButton>
 			<GsButton :primary="!isBezierBZero" @click="toggleBezierB">B</GsButton>
@@ -117,11 +122,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref, shallowRef, watch } from 'vue';
 import GsButton from './common/GsButton.vue';
-import { playing, frame, frameMax } from '@/app';
-import { dragListen, evalAutomationValue, insertIntermediateNumbers, niceScale, rndstr, nearlyEqual } from '@/utility/drag.ts';
-import { GsAutomation, GsKeyframe } from '@/engine/types';
-import { useStore } from '@/store';
-import { genId } from '@/utility/id.ts';
+import { playing, frame, frameMax } from '@/app.ts';
 
 const X_TICKS_HEIGHT = 20;
 const Y_TICKS_WIDTH = 60;
@@ -484,7 +485,7 @@ function onTlMousedown(ev: MouseEvent) {
 
 		if (selectedAutomation.value) {
 			selectedKeyframes.value = selectedAutomation.value.keyframes.filter(kf =>
-				kf.frame >= originFrame && kf.frame <= targetFrame && kf.value >= originValue && kf.value <= targetValue
+				kf.frame >= originFrame && kf.frame <= targetFrame && kf.value >= originValue && kf.value <= targetValue,
 			);
 		}
 	}
@@ -591,6 +592,7 @@ function onKeyframeContextmenu(ev: MouseEvent, keyframe: GsKeyframe) {
 const BEZIER_SNAP_THRESHOLD = 8;
 const BEZIER_X_SNAP_STEPS = [0, 0.25, 0.5, 0.75, 1];
 const BEZIER_Y_SNAP_STEPS = [-2, -1.5, -1, -0.5, 0, 0.5, 1];
+
 function onBezierHandleAMousedown(ev: MouseEvent) {
 	ev.stopPropagation();
 	const keyframe = selectedAutomation.value.keyframes.find(kf => kf.id === selectedKeyframe.value.id)!;
@@ -751,6 +753,7 @@ function deleteKeyframe(keyframe: GsKeyframe) {
 }
 
 let copyingKeyframes = null;
+
 function onTlKeydown(ev: KeyboardEvent) {
 	console.log(ev.key, ev.ctrlKey);
 	if (ev.key === 'Backspace') {

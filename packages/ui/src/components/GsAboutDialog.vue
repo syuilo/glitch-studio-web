@@ -21,7 +21,7 @@
 import { useTemplateRef } from 'vue';
 import GsModal from './common/GsModal.vue';
 import GsButton from './common/GsButton.vue';
-import { version } from '@/version';
+import { version } from '@/version.ts';
 
 const modal = useTemplateRef('modal');
 

@@ -30,7 +30,7 @@
 
 <script lang="ts" setup>
 import { computed, useTemplateRef } from 'vue';
-import { WorkspaceDivider } from '@/types/workspace.ts';
+import type { WorkspaceDivider } from '@/types/workspace.ts';
 import XEmpty from '@/components/GsWorkspacePanel.Empty.vue';
 import XPreview from '@/components/GsWorkspacePanel.Preview.vue';
 import XNodesEditor from '@/components/GsWorkspacePanel.NodesEditor.vue';

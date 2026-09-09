@@ -36,13 +36,13 @@
 </template>
 
 <script lang="ts" setup>
+import { genId } from '@glitch/shared/utility/id.ts';
 import GsEffectParamControl from './GsEffectParamControl.vue';
 import GsMacroEditor from './GsMacroEditor.vue';
 import GsButton from './common/GsButton.vue';
+import type { Macro } from '@glitch/shared/types.ts';
 import { appContext } from '@/app.ts';
-import { i18n } from '@/i18n';
-import { Macro } from '@/types';
-import { genId } from '@/utility/id.ts';
+import { i18n } from '@/i18n.ts';
 
 function addMacro() {
 	appContext.commit('addMacro', {

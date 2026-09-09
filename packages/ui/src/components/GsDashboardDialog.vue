@@ -22,7 +22,7 @@
 import { useTemplateRef } from 'vue';
 import GsButton from './common/GsButton.vue';
 import GsModal from './common/GsModal.vue';
-import { version } from '@/version';
+import { version } from '@/version.ts';
 import { newProject, newProjectFromImageOrVideo, openProject } from '@/app.ts';
 
 const modal = useTemplateRef('modal');

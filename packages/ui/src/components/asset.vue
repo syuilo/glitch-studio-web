@@ -15,7 +15,7 @@
 <script lang="ts" setup>
 import { shallowRef, onMounted, nextTick } from 'vue';
 import GsButton from './common/GsButton.vue';
-import { i18n } from '@/i18n';
+import { i18n } from '@/i18n.ts';
 import { Asset } from '@/types';
 import * as api from '@/api.ts';
 import { appContext } from '@/app.ts';

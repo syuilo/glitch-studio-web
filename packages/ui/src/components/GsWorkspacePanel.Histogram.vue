@@ -13,8 +13,8 @@
 <script lang="ts" setup>
 import { watch, useTemplateRef, ref, onMounted } from 'vue';
 import GsWorkspacePanel from './GsWorkspacePanel.vue';
-import { WorkspacePanel } from '@/types/workspace.ts';
-import { i18n } from '@/i18n';
+import type { WorkspacePanel } from '@/types/workspace.ts';
+import { i18n } from '@/i18n.ts';
 import GsHistogram from '@/components/GsHistogram.vue';
 
 const props = defineProps<{

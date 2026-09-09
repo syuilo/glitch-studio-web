@@ -11,7 +11,7 @@
 import { computed, defineAsyncComponent } from 'vue';
 import XFxNode from './GsFxNode.vue';
 import XGroupNode from './GsGroupNode.vue';
-import { GsGroupNode, GsNode } from '@/engine/renderer.ts';
+import type { GsGroupNode, GsNode } from '@glitch/shared/types.ts';
 import { appContext } from '@/app.ts';
 
 const Sortable = defineAsyncComponent(() => import('vuedraggable').then(x => x.default));

@@ -19,7 +19,7 @@ import GsNodes from './GsNodes.vue';
 import GsNodesX from './GsNodesX.vue';
 import GsWires from './GsWires.vue';
 import GsButton from './common/GsButton.vue';
-import { showAddNodeMenu } from '@/app';
+import { showAddNodeMenu } from '@/app.ts';
 </script>
 
 <style module lang="scss">

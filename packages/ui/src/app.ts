@@ -11,7 +11,7 @@ import type { WorkspaceDivider } from './types/workspace.ts';
 import type { Asset, GsNode, Macro, GsAutomation, GsGroupNode } from '@glitch/shared/types.ts';
 import type { RawProject } from './settings.ts';
 import * as ui from '@/ui.ts';
-import { version } from '@/version';
+import { version } from '@/version.ts';
 import * as api from '@/api.ts';
 
 type CommandLog = {

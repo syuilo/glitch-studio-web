@@ -42,16 +42,15 @@
 <script lang="ts" setup>
 import { ref, computed, shallowRef, onMounted } from 'vue';
 import { fxDefinitions } from '@glitch/shared/fx-definitions.ts';
+import { genId } from '@glitch/shared/utility/id.ts';
 import GsEffectParamControl from './GsEffectParamControl.vue';
 import GsButton from './common/GsButton.vue';
 import GsInput from './common/GsInput.vue';
-import { subStore } from '@/sub-store';
-import { i18n } from '@/i18n';
-import { appContext, wireMap } from '@/app';
-import { GsAutomation } from '@/engine/types';
-import * as ui from '@/ui';
-import { GsFxNode, GsGroupNode } from '@/engine/renderer.ts';
-import { genId } from '@/utility/id.ts';
+import type { GsAutomation, GsFxNode, GsGroupNode } from '@glitch/shared/types.ts';
+import { subStore } from '@/sub-store.ts';
+import { i18n } from '@/i18n.ts';
+import { appContext, wireMap } from '@/app.ts';
+import * as ui from '@/ui.ts';
 
 const props = defineProps<{
 	node: GsFxNode,

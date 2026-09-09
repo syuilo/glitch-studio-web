@@ -188,9 +188,9 @@ import XNodesInput from './nodes-input.vue';
 import GsButton from './common/GsButton.vue';
 import GsSelect from './common/GsSelect.vue';
 import GsVideoControls from './common/GsVideoControls.vue';
-import { i18n } from '@/i18n';
-import { appContext, engine, wireMap } from '@/app';
-import { GsGroupNode, GsNode } from '@/engine/renderer.ts';
+import type { GsGroupNode, GsNode } from '@glitch/shared/types.ts';
+import { i18n } from '@/i18n.ts';
+import { appContext, engine, wireMap } from '@/app.ts';
 
 const props = defineProps<{
 	type: string;

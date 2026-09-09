@@ -23,7 +23,7 @@
 <script lang="ts" setup>
 import { ref, watch } from 'vue';
 import GsButton from './GsButton.vue';
-import { i18n } from '@/i18n';
+import { i18n } from '@/i18n.ts';
 
 const props = defineProps<{
 	video: HTMLVideoElement | null;
