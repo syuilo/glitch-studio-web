@@ -336,6 +336,7 @@ function show() {
 }
 
 .chevron {
+	font-size: 90%;
 	transition: transform 0.1s ease-out;
 }
 
