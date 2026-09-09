@@ -1,17 +1,25 @@
 <template>
-<div :class="$style.root" @wheel="onViewWheel">
-	<div :class="$style.scaling">
-		<div :class="$style.zoom">ZOOM: {{ Math.round(zoom * 100) }}%</div>
+<div :class="$style.root">
+	<div v-if="pipWindow" :class="$style.placeholder">
+		<span>Preview is open in PiP</span>
+		<button class="_button" @click="closePip">Return preview</button>
 	</div>
-	<div :class="$style.container" @click="onViewClick()" @mousemove="onMousemove" @contextmenu.prevent.stop="onContextmenu">
-		<canvas ref="canvas" :class="$style.canvas"></canvas>
+	<div v-show="!pipWindow" ref="home" :class="$style.root">
+		<div ref="preview" :class="$style.root" @wheel="onViewWheel">
+			<div :class="$style.scaling">
+				<button v-if="pipWindow" class="_button" @click.stop="closePip">Return preview</button>
+				<div :class="$style.zoom">ZOOM: {{ Math.round(zoom * 100) }}%</div>
+			</div>
+			<div :class="$style.container" @click="onViewClick()" @mousemove="onMousemove" @contextmenu.prevent.stop="onContextmenu">
+				<canvas ref="canvas" :class="$style.canvas" :style="{ scale: zoom }"></canvas>
+			</div>
+		</div>
 	</div>
 </div>
 </template>
 
 <script lang="ts" setup>
-import { watch, useTemplateRef, ref, onMounted } from 'vue';
-import { i18n } from '@/i18n.ts';
+import { watch, useTemplateRef, ref, shallowRef, onBeforeUnmount } from 'vue';
 import { genId } from '@/utility/id.ts';
 import * as api from '@/api.js';
 import { appContext, engine, rendererEnv, resolutionFactor } from '@/app.ts';
@@ -19,6 +27,68 @@ import * as ui from '@/ui.js';
 import { MenuItem } from '@/types/menu.ts';
 
 const canvas = useTemplateRef('canvas');
+const home = useTemplateRef('home');
+const preview = useTemplateRef('preview');
+const pipWindow = shallowRef<Window | null>(null);
+// Kept local until TypeScript's DOM library includes Document PiP.
+const pipApi = (window as Window & {
+	documentPictureInPicture?: { requestWindow(options: { width: number; height: number }): Promise<Window> };
+}).documentPictureInPicture;
+let openingPip = false;
+let disposed = false;
+
+function restorePreview() {
+	const pip = pipWindow.value;
+	if (!pip) return;
+	pip.removeEventListener('pagehide', restorePreview);
+	// Restore synchronously, before the PiP document or Vue subtree is destroyed.
+	if (home.value && preview.value) home.value.append(preview.value);
+	engine.setRenderWindow(window);
+	pipWindow.value = null;
+}
+
+function closePip() {
+	const pip = pipWindow.value;
+	restorePreview();
+	pip?.close();
+}
+
+async function startPip() {
+	if (disposed || openingPip || !pipApi || !preview.value) return;
+	if (pipWindow.value && !pipWindow.value.closed) {
+		pipWindow.value.focus();
+		return;
+	}
+	openingPip = true;
+	let pip: Window | undefined;
+	try {
+		const { width, height } = preview.value.getBoundingClientRect();
+		pip = await pipApi.requestWindow({ width: Math.max(240, Math.round(width)), height: Math.max(160, Math.round(height)) });
+		if (disposed || pip.closed) {
+			pip.close();
+			return;
+		}
+		pipWindow.value = pip;
+		pip.addEventListener('pagehide', restorePreview);
+		pip.document.title = 'Glitch Studio — Preview';
+		for (const style of window.document.querySelectorAll('style, link[rel="stylesheet"]')) {
+			pip.document.head.append(style.cloneNode(true));
+		}
+		pip.document.body.append(preview.value!);
+		engine.setRenderWindow(pip);
+	} catch (error) {
+		restorePreview();
+		pip?.close();
+		if (!disposed) ui.alert({ type: 'error', title: 'Could not open PiP', text: String(error) });
+	} finally {
+		openingPip = false;
+	}
+}
+
+onBeforeUnmount(() => {
+	disposed = true;
+	closePip();
+});
 const ZOOM_STEP = 1.25;
 const zoom = ref(1 / ZOOM_STEP / ZOOM_STEP / ZOOM_STEP);
 
@@ -41,6 +111,7 @@ watch(() => [canvas.value, appContext.state.resolution.value, resolutionFactor.v
 }, { immediate: true });
 
 async function onViewClick() {
+	if (pipWindow.value) return;
 	if (appContext.state.nodes.value.length === 0) {
 		const result = await api.openImageOrVideoFile({});
 		if (result == null) return;
@@ -93,12 +164,12 @@ function onViewWheel(ev: WheelEvent) {
 }
 
 function onContextmenu(ev: PointerEvent) {
-	const menuItems: MenuItem[] = [{
+	// Shared context menus render in the main document; PiP has a return button.
+	if (pipWindow.value) return;
+	const menuItems: MenuItem[] = pipApi ? [{
 		text: 'Start PiP',
-		action: () => {
-			// TODO
-		},
-	}];
+		action: startPip,
+	}] : [{ type: 'label', text: 'PiP is not supported in this browser' }];
 	ui.contextMenu(menuItems, ev);
 }
 
@@ -112,6 +183,8 @@ function onContextmenu(ev: PointerEvent) {
 }
 
 .scaling {
+	display: flex;
+	gap: 12px;
 	position: absolute;
 	z-index: 1;
 	top: 0;
@@ -138,8 +211,16 @@ function onContextmenu(ev: PointerEvent) {
 .canvas {
 	display: block;
 	image-rendering: pixelated;
-	scale: v-bind(zoom);
 	//box-shadow: 0px 0px 0px 999px #0006;
+}
+
+.placeholder {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
 }
 
 @keyframes bg {
