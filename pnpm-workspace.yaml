@@ -5,6 +5,15 @@ packages:
 minimumReleaseAge: 10080 # delay 7days to mitigate supply-chain attack
 minimumReleaseAgeExclude:
   - '@syuilo/aiscript'
+  - '@pnpm/exe.darwin-arm64@12.3.4'
+  - '@pnpm/exe.darwin-x64@12.3.4'
+  - '@pnpm/exe.linux-arm64-musl@12.3.4'
+  - '@pnpm/exe.linux-arm64@12.3.4'
+  - '@pnpm/exe.linux-x64-musl@12.3.4'
+  - '@pnpm/exe.linux-x64@12.3.4'
+  - '@pnpm/exe.win32-arm64@12.3.4'
+  - '@pnpm/exe.win32-x64@12.3.4'
+  - pnpm@12.3.4
 overrides:
   '@aiscript-dev/aiscript-languageserver': '-'
   '@tabler/icons-webfont>sharp': '-'
@@ -14,3 +23,4 @@ shellEmulator: true
 allowBuilds:
   '@parcel/watcher': false
   esbuild: false
+  pnpm: false
