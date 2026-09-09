@@ -1,6 +1,7 @@
 {
 	"compilerOptions": {
 		"allowJs": true,
+		"noEmit": true,
 		"noEmitOnError": false,
 		"noImplicitAny": true,
 		"noImplicitReturns": true,
@@ -12,7 +13,7 @@
 		"target": "ES2022",
 		"module": "esnext",
 		"moduleResolution": "Bundler",
-		"removeComments": false,
+		"allowImportingTsExtensions": true,
 		"noLib": false,
 		"strict": true,
 		"strictNullChecks": true,
@@ -49,5 +50,5 @@
 		"./test/**/*.ts",
 		"./test/**/*.vue",
 		"./@types/**/*.ts"
-, "../shared/src/utility/bezier.ts", "../shared/src/utility/deep-clone.ts", "../shared/src/utility/deep-equal.ts", "../shared/src/utility/id.ts"	]
+	]
 }

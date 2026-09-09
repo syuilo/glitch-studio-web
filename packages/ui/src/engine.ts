@@ -1,11 +1,8 @@
 import { ref, shallowReactive } from 'vue';
-import { GsAutomation } from './types.ts';
-import type { GsFxNode, GsNode, Renderer } from '../../renderer/src/renderer.js';
-import { Asset, Macro } from '@/types.ts';
-import { deepClone } from '@/utility/deep-clone.ts';
-import { isVideoFrameAvailable, playVideoAfterFirstFrameIsReady } from '@/utility/video.ts';
+import { createRendererWorker } from '@glitch/renderer/client.ts';
+import { deepEqual } from '@glitch/shared/utility/deep-equal.ts';
+import { deepClone } from '@glitch/shared/utility/deep-clone.ts';
 import * as ui from '@/ui.ts';
-import { deepEqual } from '@/utility/deep-equal.ts';
 
 function getFxNodes(nodes: GsNode[]): GsFxNode[] {
 	return nodes.flatMap(node => node.type === 'group' ? getFxNodes(node.nodes) : [node]);
@@ -131,31 +128,24 @@ export class Engine {
 		const histogramOffscreen = this.histogramCanvas.transferControlToOffscreen();
 		const waveformOffscreen = this.waveformCanvas.transferControlToOffscreen();
 
-		const createWorker = () => new Promise((resolve) => {
-			import('./rendererWorker?worker').then(({ default: RendererWorker }) => {
-				const worker = new RendererWorker();
-				worker.postMessage({
-					type: 'init',
-					canvas: offscreen,
-					histogramCanvas: histogramOffscreen,
-					waveformCanvas: waveformOffscreen,
-					options: {
-						resolution,
-						enableFloat32Filtering: this.enableFloat32Filtering,
-						enableStats: this.enableStats,
-						assets: this.assets,
-						macros: this.macros,
-						automations: this.automations,
-						nodes: this.nodes,
-					},
-				}, [offscreen, histogramOffscreen, waveformOffscreen]);
-				resolve(worker);
-			});
-		});
-
 		const { promise: ready, resolve: resolveReady } = Promise.withResolvers<void>();
 
-		this.rendererWorker = await createWorker();
+		this.rendererWorker = createRendererWorker();
+		this.rendererWorker.postMessage({
+			type: 'init',
+			canvas: offscreen,
+			histogramCanvas: histogramOffscreen,
+			waveformCanvas: waveformOffscreen,
+			options: {
+				resolution,
+				enableFloat32Filtering: this.enableFloat32Filtering,
+				enableStats: this.enableStats,
+				assets: this.assets,
+				macros: this.macros,
+				automations: this.automations,
+				nodes: this.nodes,
+			},
+		}, [offscreen, histogramOffscreen, waveformOffscreen]);
 		this.rendererWorker.onmessage = (event) => {
 			switch (event.data?.type) {
 				case 'inited': {
