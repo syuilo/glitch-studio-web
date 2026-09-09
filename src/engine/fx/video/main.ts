@@ -1,4 +1,4 @@
-import { createTextureFromSource, makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
+import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
 import code from './shader.wgsl?raw';
 import { defineEffect } from '@/engine/fx-utils';
 import { isVideoFrameAvailable } from '@/utility/video.ts';
@@ -79,34 +79,28 @@ export default defineEffect({
 			addressModeW: 'mirror-repeat',
 		});
 
-		const tex = params.video ? createTextureFromSource(wgpu.device, params.video, {
-			mips: false,
-		}) : fallbackTexture;
-
-		const bindGroup = wgpu.device.createBindGroup({
-			layout: pipeline.getBindGroupLayout(0),
-			entries: [
-				{ binding: 1, resource: { buffer: uniformBuffer } },
-				{ binding: 2, resource: sampler },
-				{ binding: 3, resource: tex.createView() },
-			],
-		});
+		let bindGroup: GPUBindGroup | null = null;
 
 		return {
 			render: (ctx) => {
 				const videoEl = params.video;
 				if (videoEl && isVideoFrameAvailable(videoEl)) {
-					// TODO: 動画のフレームが更新された場合のみcopyExternalImageToTextureするようにする
-					wgpu.device.queue.copyExternalImageToTexture(
+					const freshTex = wgpu.device.importExternalTexture(
 						{ source: videoEl },
-						{ texture: tex },
-						{ width: tex.width, height: tex.height },
 					);
+					bindGroup = wgpu.device.createBindGroup({
+						layout: pipeline.getBindGroupLayout(0),
+						entries: [
+							{ binding: 1, resource: { buffer: uniformBuffer } },
+							{ binding: 2, resource: sampler },
+							{ binding: 3, resource: freshTex },
+						],
+					});
 				}
+				if (bindGroup == null) return;
 
 				uniformValues.set({
 					aspectRatio: resolution.width / resolution.height,
-					sourceAspectRatio: tex.width / tex.height,
 					mode: ctx.params.sizeMode,
 				});
 				wgpu.device.queue.writeBuffer(uniformBuffer, 0, uniformValues.arrayBuffer);
