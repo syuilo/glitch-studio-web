@@ -561,9 +561,8 @@ export class Renderer {
 	}
 
 	public updateVideoFrame(nodeId: GsFxNode['id'], videoFrame: VideoFrame | null) {
+		this.videoFrames.get(nodeId)?.close();
 		if (videoFrame) {
-			const current = this.videoFrames.get(nodeId);
-			current?.close?.();
 			this.videoFrames.set(nodeId, videoFrame);
 		} else {
 			this.videoFrames.delete(nodeId);
@@ -646,6 +645,8 @@ export class Renderer {
 	}
 
 	public destroy() {
+		for (const frame of this.videoFrames.values()) frame.close();
+		this.videoFrames.clear();
 		this.gpuHistogram.dispose();
 		this.gpuWaveform.dispose();
 

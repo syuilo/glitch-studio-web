@@ -83,6 +83,10 @@ export default defineEffect({
 
 		return {
 			render: (ctx) => {
+				if (!ctx.params.video) {
+					bindGroup = null;
+					return;
+				}
 				if (ctx.params.video) {
 					const freshTex = wgpu.device.importExternalTexture(
 						{ source: ctx.params.video },
