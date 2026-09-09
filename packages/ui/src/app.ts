@@ -1,7 +1,7 @@
 import { ref, markRaw, reactive, watch, shallowRef, triggerRef } from 'vue';
 import { fxDefinitions } from '@glitch/shared/fx-definitions.ts';
-import { deepClone } from '../../shared/src/utility/deep-clone.ts';
-import { genId } from '../../shared/src/utility/id.ts';
+import { deepClone } from '@glitch/shared/utility/deep-clone.ts';
+import { genId } from '@glitch/shared/utility/id.ts';
 import { loadProjectFile, saveProjectFile, decodeAssets } from './api';
 import { Engine } from './engine.ts';
 import { COMMAND_DEFS } from './commands.ts';
