@@ -15,7 +15,7 @@
 		"paths": {
 			"@/*": ["./*"]
 		},
-		"types": ["@webgpu/types"]
+		"types": ["@webgpu/types", "vite/client"]
 	},
 	"include": [
 		"@types/**/*.ts",

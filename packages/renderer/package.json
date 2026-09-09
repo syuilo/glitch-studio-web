@@ -16,6 +16,7 @@
 		"@typescript-eslint/eslint-plugin": "8.59.2",
 		"@typescript-eslint/parser": "8.59.2",
 		"@webgpu/types": "0.1.72",
+		"vite": "8.2.2",
 		"vitest": "4.1.10"
 	},
 	"dependencies": {

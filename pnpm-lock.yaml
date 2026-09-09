@@ -184,6 +184,9 @@ importers:
       '@webgpu/types':
         specifier: 0.1.72
         version: 0.1.72
+      vite:
+        specifier: 8.2.2
+        version: 8.2.2(@types/node@26.2.0)(esbuild@0.28.2)(sass@1.83.4)
       vitest:
         specifier: 4.1.10
         version: 4.1.10(@types/node@26.2.0)(vite@8.2.2(@types/node@26.2.0)(esbuild@0.28.2)(sass@1.83.4))
