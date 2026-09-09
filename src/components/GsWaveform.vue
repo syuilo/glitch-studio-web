@@ -7,7 +7,7 @@
 	</div>
 	-->
 	<div :class="$style.scope">
-		<div ref="canvasContainer" :class="$style.canvas" :width="width" :height="height"></div>
+		<div ref="canvasContainer" :class="$style.canvas"></div>
 	</div>
 </div>
 </template>
@@ -16,9 +16,6 @@
 import { onBeforeUnmount, onMounted, useTemplateRef } from 'vue';
 import { engine } from '@/app.ts';
 import { i18n } from '@/i18n.ts';
-
-const width = 512;
-const height = 256;
 
 const canvasContainer = useTemplateRef('canvasContainer');
 
