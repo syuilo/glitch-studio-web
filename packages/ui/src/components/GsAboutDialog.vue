@@ -4,7 +4,7 @@
 		<div style="font-size: 110%;">
 			<img src="/gs.svg" style="display: block; margin: 0 auto 8px auto; width: 64px; height: 64px;">
 			<div><b>Glitch Studio for Web</b></div>
-			<div>{{ _VERSION_ }}</div>
+			<div>{{ version }}</div>
 		</div>
 		<div style="font-size: 110%;">
 			<small style="display: block;">
@@ -21,6 +21,8 @@
 import { useTemplateRef } from 'vue';
 import GsModal from './common/GsModal.vue';
 import GsButton from './common/GsButton.vue';
+
+const version = _VERSION_;
 
 const modal = useTemplateRef('modal');
 
