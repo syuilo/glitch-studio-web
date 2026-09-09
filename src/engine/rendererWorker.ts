@@ -66,6 +66,19 @@ onmessage = async (event) => {
 			if (renderer != null) renderer.resize(event.data.resolution);
 			break;
 		}
+		case 'videoFrame': {
+			const { nodeId, id, frame } = event.data;
+			try {
+				if (renderer) {
+					renderer.updateVideoFrame(nodeId, frame);
+				} else {
+					frame.close();
+				}
+			} finally {
+				self.postMessage({ type: 'videoFrameReceived', nodeId, id });
+			}
+			break;
+		}
 		case 'call': {
 			if (renderer == null) {
 				console.error('Failed to call: Renderer is not initialized yet!!!');

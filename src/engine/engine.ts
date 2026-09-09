@@ -53,6 +53,10 @@ export class Engine {
 	private automations: GsAutomation[] = [];
 	private videoElements = shallowReactive(new Map<GsFxNode['id'], HTMLVideoElement>());
 	private videoLoads = new Map<string, Promise<void>>();
+	private videoFrameCallbacks = new Map<string, number>();
+	private pendingVideoFrames = new Map<string, VideoFrame>();
+	private inFlightVideoFrames = new Map<string, number>();
+	private nextVideoFrameId = 0;
 	public fpsLimit: number | null = 60;
 	public gpuAverageDisplayFast = ref(0);
 	public gpuAverageDisplayMedium = ref(0);
@@ -85,6 +89,22 @@ export class Engine {
 		//	this.renderer[fn](...args);
 		} else {
 			throw new Error('Renderer is not initialized');
+		}
+	}
+
+	private sendPendingVideoFrame(nodeId: string) {
+		if (!this.isReady.value || !this.rendererWorker || this.inFlightVideoFrames.has(nodeId)) return;
+		const frame = this.pendingVideoFrames.get(nodeId);
+		if (!frame) return;
+		this.pendingVideoFrames.delete(nodeId);
+		const id = this.nextVideoFrameId++;
+		this.inFlightVideoFrames.set(nodeId, id);
+		try {
+			this.rendererWorker.postMessage({ type: 'videoFrame', nodeId, id, frame }, [frame]);
+		} catch (error) {
+			this.inFlightVideoFrames.delete(nodeId);
+			frame.close();
+			throw error;
 		}
 	}
 
@@ -140,8 +160,16 @@ export class Engine {
 			switch (event.data?.type) {
 				case 'inited': {
 					this.isReady.value = true;
+					for (const nodeId of this.pendingVideoFrames.keys()) this.sendPendingVideoFrame(nodeId);
 					console.log('Renderer worker initialized!');
 					resolveReady();
+					break;
+				}
+				case 'videoFrameReceived': {
+					const { nodeId, id } = event.data;
+					if (this.inFlightVideoFrames.get(nodeId) !== id) break;
+					this.inFlightVideoFrames.delete(nodeId);
+					this.sendPendingVideoFrame(nodeId);
 					break;
 				}
 				default: {
@@ -190,6 +218,13 @@ export class Engine {
 			const oldNode = oldFxNodes.find(node => node.id === id);
 			const newNode = newFxNodes.find(node => node.id === id);
 			if (newNode?.fx !== 'video' || !deepEqual(oldNode?.params.video.value, newNode.params.video.value)) {
+				const callbackId = this.videoFrameCallbacks.get(id);
+				if (callbackId !== undefined) video.cancelVideoFrameCallback(callbackId);
+				this.videoFrameCallbacks.delete(id);
+				this.pendingVideoFrames.get(id)?.close();
+				this.pendingVideoFrames.delete(id);
+				// Keep the in-flight slot until its ACK, even when reusing the node ID.
+				if (this.isReady.value) this.call('updateVideoFrame', [id, null]);
 				video.pause();
 				this.videoElements.delete(id);
 				this.videoLoads.delete(id);
@@ -223,12 +258,20 @@ export class Engine {
 				}));
 
 				const onVideoFrame = () => {
-					const frame = new VideoFrame(video);
-					this.call('updateVideoFrame', [node.id, frame], [frame]);
-					video.requestVideoFrameCallback(onVideoFrame);
+					if (this.videoElements.get(node.id) !== video) return;
+					try {
+						if (!isVideoFrameAvailable(video)) return;
+						const frame = new VideoFrame(video);
+						// Retain only the newest frame while the worker is busy.
+						this.pendingVideoFrames.get(node.id)?.close();
+						this.pendingVideoFrames.set(node.id, frame);
+						this.sendPendingVideoFrame(node.id);
+					} finally {
+						this.videoFrameCallbacks.set(node.id, video.requestVideoFrameCallback(onVideoFrame));
+					}
 				};
 
-				video.requestVideoFrameCallback(onVideoFrame);
+				this.videoFrameCallbacks.set(node.id, video.requestVideoFrameCallback(onVideoFrame));
 
 				if (node.params.video.value.type === 'asset') {
 					const asset = this.assets.find(asset => asset.id === node.params.video.value.id);
