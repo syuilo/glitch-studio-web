@@ -1,16 +1,10 @@
 <template>
 <div
 	:class="[$style.root, { [$style.active]: active, [$style.draghover]: draghover, [$style.dragging]: dragging, [$style.dropready]: dropready }]"
-	@dragover.prevent.stop="onDragover"
-	@dragleave="onDragleave"
-	@drop.prevent.stop="onDrop"
 >
 	<header
 		:class="[$style.header]"
-		draggable="true"
 		@click="goTop"
-		@dragstart="onDragstart"
-		@dragend="onDragend"
 		@contextmenu.prevent.stop="onContextmenu"
 	>
 		<svg viewBox="0 0 256 128" :class="$style.tabShape">
@@ -24,7 +18,7 @@
 			<template v-else><i class="ti ti-chevron-down"></i></template>
 		</button>
 		<span :class="$style.title"><slot name="header"></slot></span>
-		<svg viewBox="0 0 16 16" version="1.1" :class="$style.grabber">
+		<svg viewBox="0 0 16 16" version="1.1" :class="$style.grabber" draggable="true">
 			<path fill="currentColor" d="M10 13a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm0-4a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm-4 4a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm5-9a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM6 5a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path>
 		</svg>
 		<button :class="$style.menu" class="_button" @click.stop="showSettingsMenu"><i class="ti ti-dots"></i></button>
@@ -226,19 +220,16 @@ function onDragend(ev: DragEvent) {
 }
 
 function onDragover(ev: DragEvent) {
-	if (ev.dataTransfer == null) return;
-
-	// 自分自身がドラッグされている場合
-	if (dragging.value) {
-		// 自分自身にはドロップさせない
-		ev.dataTransfer.dropEffect = 'none';
-	} else {
-		const isDeckColumn = checkDragDataType(ev, ['deckColumn']);
-
-		ev.dataTransfer.dropEffect = isDeckColumn ? 'move' : 'none';
-
-		if (isDeckColumn) draghover.value = true;
-	}
+	//if (ev.dataTransfer == null) return;
+	//// 自分自身がドラッグされている場合
+	//if (dragging.value) {
+	//	// 自分自身にはドロップさせない
+	//	ev.dataTransfer.dropEffect = 'none';
+	//} else {
+	//	const isDeckColumn = checkDragDataType(ev, ['deckColumn']);
+	//	ev.dataTransfer.dropEffect = isDeckColumn ? 'move' : 'none';
+	//	if (isDeckColumn) draghover.value = true;
+	//}
 }
 
 function onDragleave() {
@@ -246,13 +237,12 @@ function onDragleave() {
 }
 
 function onDrop(ev: DragEvent) {
-	draghover.value = false;
-	deckGlobalEvents.emit('column.dragEnd');
-
-	const id = getDragData(ev, 'deckColumn');
-	if (id != null) {
-		swapColumn(props.panel.id, id);
-	}
+	//draghover.value = false;
+	//deckGlobalEvents.emit('column.dragEnd');
+	//const id = getDragData(ev, 'deckColumn');
+	//if (id != null) {
+	//	swapColumn(props.panel.id, id);
+	//}
 }
 </script>
 
