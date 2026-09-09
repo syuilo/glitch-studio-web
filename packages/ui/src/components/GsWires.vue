@@ -8,8 +8,8 @@
 
 <script lang="ts" setup>
 import { onMounted, ref, shallowRef, useTemplateRef, watch } from 'vue';
+import { fxDefinitions } from '@glitch/shared/fx-definitions.ts';
 import { appContext, wireMap } from '@/app';
-import { fxDefinitions as fxs } from '@glitch/shared/fx-definitions.ts';
 import { GsNode } from '@/engine/renderer.ts';
 
 const props = defineProps<{
@@ -55,7 +55,7 @@ function draw() {
 				if (node.type === 'group') {
 					scan(node.nodes);
 				} else {
-					const fx = fxs[node.fx];
+					const fx = fxDefinitions[node.fx];
 					for (const [k, v] of Object.entries(fx.paramDefs)) {
 						if (v.type === 'node' && node.params[k].value != null) {
 							const to = isHidden(wireMap.in[node.id][k]) ? getElementPosition(wireMap.allIn[node.id]) : getElementPosition(wireMap.in[node.id][k]);

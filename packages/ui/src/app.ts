@@ -1,8 +1,8 @@
 import { Ref, ref, markRaw, Component, reactive, watch, shallowRef, triggerRef } from 'vue';
+import { fxDefinitions } from '@glitch/shared/fx-definitions.ts';
 import { GsFxNode, GsGroupNode, GsNode } from '../../renderer/src/renderer.js';
 import { deepClone } from '../../shared/src/utility/deep-clone.js';
 import { genId } from '../../shared/src/utility/id.js';
-import { fxDefinitions as fxs } from '@glitch/shared/fx-definitions.ts';
 import { loadProjectFile, saveProjectFile, decodeAssets } from './api';
 import { RawProject } from './settings';
 import { Engine } from './engine.js';
@@ -173,7 +173,7 @@ export function showAddNodeMenu(ev: MouseEvent, group?: GsGroupNode) {
 				id: genId(),
 			});
 		},
-	}, ...Object.entries(fxs).filter(([_, v]) => v.category === '').map(x => ({
+	}, ...Object.entries(fxDefinitions).filter(([_, v]) => v.category === '').map(x => ({
 		text: x[1].displayName,
 		action: () => {
 			appContext.commit('addFxNode', {
@@ -185,7 +185,7 @@ export function showAddNodeMenu(ev: MouseEvent, group?: GsGroupNode) {
 	})), {
 		type: 'label',
 		text: 'Glitch',
-	}, ...Object.entries(fxs).filter(([_, v]) => v.category === 'glitch').map(x => ({
+	}, ...Object.entries(fxDefinitions).filter(([_, v]) => v.category === 'glitch').map(x => ({
 		text: x[1].displayName,
 		action: () => {
 			appContext.commit('addFxNode', {
@@ -197,7 +197,7 @@ export function showAddNodeMenu(ev: MouseEvent, group?: GsGroupNode) {
 	})), {
 		type: 'label',
 		text: 'Effect',
-	}, ...Object.entries(fxs).filter(([_, v]) => v.category === 'effect').map(x => ({
+	}, ...Object.entries(fxDefinitions).filter(([_, v]) => v.category === 'effect').map(x => ({
 		text: x[1].displayName,
 		action: () => {
 			appContext.commit('addFxNode', {
@@ -209,7 +209,7 @@ export function showAddNodeMenu(ev: MouseEvent, group?: GsGroupNode) {
 	})), {
 		type: 'label',
 		text: 'Draw',
-	}, ...Object.entries(fxs).filter(([_, v]) => v.category === 'draw').map(x => ({
+	}, ...Object.entries(fxDefinitions).filter(([_, v]) => v.category === 'draw').map(x => ({
 		text: x[1].displayName,
 		action: () => {
 			appContext.commit('addFxNode', {
@@ -221,7 +221,7 @@ export function showAddNodeMenu(ev: MouseEvent, group?: GsGroupNode) {
 	})), {
 		type: 'label',
 		text: 'Color',
-	}, ...Object.entries(fxs).filter(([_, v]) => v.category === 'color').map(x => ({
+	}, ...Object.entries(fxDefinitions).filter(([_, v]) => v.category === 'color').map(x => ({
 		text: x[1].displayName,
 		action: () => {
 			appContext.commit('addFxNode', {
@@ -233,7 +233,7 @@ export function showAddNodeMenu(ev: MouseEvent, group?: GsGroupNode) {
 	})), {
 		type: 'label',
 		text: 'Utility',
-	}, ...Object.entries(fxs).filter(([_, v]) => v.category === 'utility').map(x => ({
+	}, ...Object.entries(fxDefinitions).filter(([_, v]) => v.category === 'utility').map(x => ({
 		text: x[1].displayName,
 		action: () => {
 			appContext.commit('addFxNode', {

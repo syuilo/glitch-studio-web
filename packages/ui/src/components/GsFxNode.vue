@@ -41,10 +41,10 @@
 
 <script lang="ts" setup>
 import { ref, computed, shallowRef, onMounted } from 'vue';
+import { fxDefinitions } from '@glitch/shared/fx-definitions.ts';
 import GsEffectParamControl from './GsEffectParamControl.vue';
 import GsButton from './common/GsButton.vue';
 import GsInput from './common/GsInput.vue';
-import { fxDefinitions as fxs } from '@glitch/shared/fx-definitions.ts';
 import { subStore } from '@/sub-store';
 import { i18n } from '@/i18n';
 import { appContext, wireMap } from '@/app';
@@ -58,8 +58,8 @@ const props = defineProps<{
 	group: GsGroupNode | null,
 }>();
 
-const name = ref<string>(fxs[props.node.fx].displayName);
-const paramDefs = ref<ParamDefs>(fxs[props.node.fx].paramDefs);
+const name = ref<string>(fxDefinitions[props.node.fx].displayName);
+const paramDefs = ref<ParamDefs>(fxDefinitions[props.node.fx].paramDefs);
 const expanded = ref(true);
 const outPortEl = shallowRef<HTMLElement>();
 const allInPortEl = shallowRef<HTMLElement>();

@@ -1,4 +1,4 @@
-import { fxDefinitions as fxs } from '@glitch/shared/fx-definitions.ts';
+import { fxDefinitions } from '@glitch/shared/fx-definitions.ts';
 import { AiSON } from '@syuilo/aiscript';
 import { deepClone } from '@glitch/shared/utility/deep-clone.ts';
 import { genEmptyValue } from '@glitch/shared/utility/misc.ts';
@@ -59,11 +59,11 @@ const addFxNodeCommandDef = defineCommand<{ id: string; fx: string; params?: Rec
 	create: (payload) => {
 		return {
 			execute(state) {
-				const paramDefs = fxs[payload.fx].paramDefs as FxParamDefs;
+				const paramDefs = fxDefinitions[payload.fx].paramDefs as FxParamDefs;
 				const group = payload.groupId ? state.nodes.value.find(node => node.type === 'group' && node.id === payload.groupId) as GsGroupNode : undefined;
 
 				const params = {} as GsFxNode['params'];
-				const defaultParams = deepClone(fxs[payload.fx].getDefaultParams());
+				const defaultParams = deepClone(fxDefinitions[payload.fx].getDefaultParams());
 
 				for (const [k, v] of Object.entries(paramDefs)) {
 					if (defaultParams[k] != null) {
@@ -260,7 +260,7 @@ const removeAssetCommandDef = defineCommand<{ assetId: string }>({
 				// そのAssetを参照しているパラメータをnullにする
 				for (const node of state.nodes.value) {
 					if (node.type === 'fx') {
-						const imageParams = Object.entries(fxs[node.fx].paramDefs).filter(([k, v]) => v.type === 'image').map(([k, v]) => k);
+						const imageParams = Object.entries(fxDefinitions[node.fx].paramDefs).filter(([k, v]) => v.type === 'image').map(([k, v]) => k);
 						for (const p of imageParams) {
 							if (node.params[p].type === 'literal' && node.params[p].value === payload.assetId) {
 								node.params[p].value = null;
@@ -500,8 +500,8 @@ const changeParamValueTypeCommandDef = defineCommand<{ nodeId: GsNode['id']; par
 			execute(state) {
 				const node = stateUtility.findNode(state, payload.nodeId)! as GsFxNode;
 				const currentValue = node.params[payload.param];
-				const defaultValue = deepClone(fxs[node.fx].getDefaultParams()[payload.param]);
-				const emptyValue = genEmptyValue(fxs[node.fx].paramDefs[payload.param]);
+				const defaultValue = deepClone(fxDefinitions[node.fx].getDefaultParams()[payload.param]);
+				const emptyValue = genEmptyValue(fxDefinitions[node.fx].paramDefs[payload.param]);
 				if (payload.type === 'expression') {
 					node.params[payload.param] = {
 						type: 'expression',

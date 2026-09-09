@@ -12,7 +12,7 @@
 							type: 'group' as const,
 							label: 'In group',
 							items: group.nodes.filter(x => x.id !== props.node.id).map(node => ({
-								label: `${node.type === 'fx' ? fxs[node.fx].displayName : node.name} [${node.id}]`,
+								label: `${node.type === 'fx' ? fxDefinitions[node.fx].displayName : node.name} [${node.id}]`,
 								value: node.id,
 							})),
 						}] : []),
@@ -20,7 +20,7 @@
 							type: 'group' as const,
 							label: 'Nodes',
 							items: store.nodes.filter(x => x.id !== props.node.id).map(node => ({
-								label: `${node.type === 'fx' ? fxs[node.fx].displayName : node.name} [${node.id}]`,
+								label: `${node.type === 'fx' ? fxDefinitions[node.fx].displayName : node.name} [${node.id}]`,
 								value: node.id,
 							})),
 						}] : []),
@@ -43,9 +43,9 @@
 
 <script lang="ts" setup>
 import { defineAsyncComponent, ref, shallowRef, watch } from 'vue';
+import { fxDefinitions } from '@glitch/shared/fx-definitions.ts';
 import GsButton from './common/GsButton.vue';
 import GsSelect from './common/GsSelect.vue';
-import { fxDefinitions as fxs } from '@glitch/shared/fx-definitions.ts';
 import { i18n } from '@/i18n';
 import { wireMap } from '@/app';
 import { genId } from '@/utility/id.ts';
