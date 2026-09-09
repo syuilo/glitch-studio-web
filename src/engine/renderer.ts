@@ -605,6 +605,38 @@ export class Renderer {
 		);
 	}
 
+	public fpsLimit: number | null = 60;
+	private currentRafId: number | null = null;
+
+	public startRenderLoop() {
+		this.stopRenderLoop();
+		let then = 0;
+		const interval = 1000 / (this.fpsLimit ?? 30);
+
+		const renderLoop = (timeStamp: number) => {
+			this.currentRafId = requestAnimationFrame(renderLoop);
+
+			if (this.fpsLimit != null) {
+				const delta = timeStamp - then;
+				if (delta <= interval) return;
+				then = timeStamp - (delta % interval);
+			}
+
+			this.render(this.nodes.at(-1)!.id, {
+				time: timeStamp,
+			});
+		};
+
+		this.currentRafId = requestAnimationFrame(renderLoop);
+	}
+
+	public stopRenderLoop() {
+		if (this.currentRafId != null) {
+			cancelAnimationFrame(this.currentRafId);
+			this.currentRafId = null;
+		}
+	}
+
 	public destroy() {
 		this.gpuHistogram?.dispose();
 		this.gpuHistogram = null;

@@ -51,8 +51,6 @@ export class Engine {
 	private waveformCanvas: HTMLCanvasElement | null = null;
 	private videoElements = shallowReactive(new Map<GsFxNode['id'], HTMLVideoElement>());
 	private videoLoads = new Map<string, Promise<void>>();
-	private currentRafId: number | null = null;
-	private renderWindow: Window | null = null;
 	public fpsLimit: number | null = 60;
 	public gpuAverageDisplayFast = ref(0);
 	public gpuAverageDisplayMedium = ref(0);
@@ -63,7 +61,7 @@ export class Engine {
 	constructor() {
 	}
 
-	private call<FN extends keyof Renderer>(fn: FN, args: Parameters<Renderer[FN]> = [] as any, options: StructuredSerializeOptions | Transferable[]): void {
+	private call<FN extends keyof Renderer>(fn: FN, args: Parameters<Renderer[FN]> = [] as any, options?: StructuredSerializeOptions | Transferable[]): void {
 		if (!this.isReady.value) {
 			throw new Error('Renderer is not initialized');
 		}
@@ -154,6 +152,7 @@ export class Engine {
 		}
 	}
 
+	/*
 	public render(timeStamp: number, renderNodeId: string | null) {
 		if (!this.isReady.value) return;
 		if (this.nodes.length === 0) return;
@@ -170,40 +169,14 @@ export class Engine {
 			//this.gpuAverageDisplaySlow.value = this.renderer.gpuAverageSlow.get();
 		}
 	}
-
-	public setRenderWindow(target: Window) {
-		if (target === this.renderWindow) return;
-		const running = this.currentRafId != null;
-		this.stopRenderLoop();
-		this.renderWindow = target;
-		if (running) this.startRenderLoop();
-	}
+		*/
 
 	public startRenderLoop() {
-		this.stopRenderLoop();
-		let then = 0;
-		const interval = 1000 / (this.fpsLimit ?? 30);
-
-		const renderLoop = (timeStamp: number) => {
-			this.currentRafId = (this.renderWindow ?? window).requestAnimationFrame(renderLoop);
-
-			if (this.fpsLimit != null) {
-				const delta = timeStamp - then;
-				if (delta <= interval) return;
-				then = timeStamp - (delta % interval);
-			}
-
-			this.render(timeStamp, null);
-		};
-
-		this.currentRafId = (this.renderWindow ?? window).requestAnimationFrame(renderLoop);
+		this.call('startRenderLoop', []);
 	}
 
 	public stopRenderLoop() {
-		if (this.currentRafId != null) {
-			(this.renderWindow ?? window).cancelAnimationFrame(this.currentRafId);
-			this.currentRafId = null;
-		}
+		this.call('stopRenderLoop', []);
 	}
 
 	public async updateNodes(newNodes: GsNode[]) {
