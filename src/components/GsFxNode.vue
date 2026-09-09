@@ -260,8 +260,6 @@ onMounted(() => {
 }
 
 .params {
-	padding: 0 16px;
-
 	&.disabled {
 		opacity: 0.7;
 		pointer-events: none;
@@ -270,10 +268,10 @@ onMounted(() => {
 
 .param {
 	display: flex;
-	padding: 8px 0;
+	padding: 8px 16px;
 
-	&:not(:first-child) {
-		border-top: solid 1px #0006;
+	&:nth-child(even) {
+		background: #0003;
 	}
 }
 
