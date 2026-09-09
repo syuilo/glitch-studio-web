@@ -67,6 +67,10 @@ export type GsGroupNode = {
 
 export type GsNode = GsFxNode | GsGroupNode;
 
+export function getFxNodes(nodes: GsNode[]): GsFxNode[] {
+	return nodes.flatMap(node => node.type === 'group' ? getFxNodes(node.nodes) : [node]);
+}
+
 export class Renderer {
 	private gpuContext: GPUCanvasContext;
 	private gpuDevice: GPUDevice;
@@ -482,49 +486,33 @@ export class Renderer {
 	}
 
 	public updateNodes(newNodes: GsNode[], videoElements: Map<GsFxNode['id'], HTMLVideoElement>) {
-		const addedNodes = newNodes.filter(n => !this.nodes.some(existing => existing.id === n.id));
-		const removedNodes = this.nodes.filter(n => !newNodes.some(existing => existing.id === n.id));
-
-		const registerNodeOuts = (node: GsNode) => {
-			if (node.type === 'fx') {
-				const effect = fxs[node.fx];
-				const out = effect.getOut({
-					wgpu: { device: this.gpuDevice, enableFloat32Filtering: this.enableFloat32Filtering },
-					resolution: { width: this.resolution.width, height: this.resolution.height },
-				});
-				this.effectOuts.set(node.id, out);
-			} else if (node.type === 'group') {
-				for (const child of node.nodes) {
-					registerNodeOuts(child);
-				}
-			}
-		};
+		const oldFxNodes = getFxNodes(this.nodes);
+		const newFxNodes = getFxNodes(newNodes);
+		const oldNodeIds = new Set(oldFxNodes.map(node => node.id));
+		const newNodeIds = new Set(newFxNodes.map(node => node.id));
+		const addedNodes = newFxNodes.filter(node => !oldNodeIds.has(node.id));
+		const removedNodes = oldFxNodes.filter(node => !newNodeIds.has(node.id));
 
 		for (const node of addedNodes) {
-			registerNodeOuts(node);
+			const effect = fxs[node.fx];
+			const out = effect.getOut({
+				wgpu: { device: this.gpuDevice, enableFloat32Filtering: this.enableFloat32Filtering },
+				resolution: { width: this.resolution.width, height: this.resolution.height },
+			});
+			this.effectOuts.set(node.id, out);
 		}
 
-		const unregisterNodeOutAndInstances = (node: GsNode) => {
-			if (node.type === 'fx') {
-				const out = this.effectOuts.get(node.id);
-				if (out) {
-					out.destroy();
-					this.effectOuts.delete(node.id);
-				}
-				const instance = this.effectInstances.get(node.id);
-				if (instance) {
-					instance.dispose();
-					this.effectInstances.delete(node.id);
-				}
-			} else if (node.type === 'group') {
-				for (const child of node.nodes) {
-					unregisterNodeOutAndInstances(child);
-				}
-			}
-		};
-
 		for (const node of removedNodes) {
-			unregisterNodeOutAndInstances(node);
+			const out = this.effectOuts.get(node.id);
+			if (out) {
+				out.destroy();
+				this.effectOuts.delete(node.id);
+			}
+			const instance = this.effectInstances.get(node.id);
+			if (instance) {
+				instance.dispose();
+				this.effectInstances.delete(node.id);
+			}
 		}
 
 		this.nodes = deepClone(newNodes);

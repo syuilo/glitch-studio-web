@@ -1,5 +1,5 @@
 import { ref } from 'vue';
-import { GsFxNode, GsNode, Renderer } from './renderer.ts';
+import { getFxNodes, GsFxNode, GsNode, Renderer } from './renderer.ts';
 import { GsAutomation } from './types.ts';
 import { Asset, Macro } from '@/types.ts';
 import { deepClone } from '@/utility/deep-clone.ts';
@@ -145,8 +145,12 @@ export class Engine {
 	}
 
 	public async updateNodes(newNodes: GsNode[]) {
-		const addedNodes = newNodes.filter(node => !this.nodes.some(n => n.id === node.id));
-		const removedNodes = this.nodes.filter(n => !newNodes.some(node => node.id === n.id));
+		const oldFxNodes = getFxNodes(this.nodes);
+		const newFxNodes = getFxNodes(newNodes);
+		const oldNodeIds = new Set(oldFxNodes.map(node => node.id));
+		const newNodeIds = new Set(newFxNodes.map(node => node.id));
+		const addedNodes = newFxNodes.filter(node => !oldNodeIds.has(node.id));
+		const removedNodes = oldFxNodes.filter(node => !newNodeIds.has(node.id));
 
 		for (const node of removedNodes) {
 			if (this.videoElements.has(node.id)) {
@@ -158,7 +162,7 @@ export class Engine {
 		}
 
 		for (const node of addedNodes) {
-			if (node.type === 'fx' && node.fx === 'video' && !this.videoElements.has(node.id)) {
+			if (node.fx === 'video' && !this.videoElements.has(node.id)) {
 				const asset = this.assets.find(asset => asset.id === node.params.video.value)!;
 				const video = window.document.createElement('video');
 				video.src = URL.createObjectURL(asset.fileData);
