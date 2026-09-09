@@ -79,10 +79,6 @@ export class Renderer {
 	private gpuContext: GPUCanvasContext;
 	private gpuDevice: GPUDevice;
 	private resolution: { width: number; height: number; };
-	private histogramCanvas: HTMLCanvasElement | null = null;
-	private gpuHistogram: GpuHistogram | null = null;
-	private waveformCanvas: HTMLCanvasElement | null = null;
-	private gpuWaveform: GpuWaveform | null = null;
 	private defaultVertexShaderModule: GPUShaderModule;
 	private fallbackTexture: GPUTexture;
 	private enableStats = true;
@@ -104,6 +100,10 @@ export class Renderer {
 	private enableFloat32Filtering = false;
 	private evaledNodeParams: Map<GsNode['id'], Record<string, any>> = new Map();
 	private latestTimestamp: number = performance.now();
+	private histogramGpuContext: GPUCanvasContext;
+	private waveformGpuContext: GPUCanvasContext;
+	private gpuHistogram: GpuHistogram;
+	private gpuWaveform: GpuWaveform;
 	public gpuAverageFast = new NonNegativeRollingAverage(10);
 	public gpuAverageMedium = new NonNegativeRollingAverage(100);
 	public gpuAverageSlow = new NonNegativeRollingAverage(1000);
@@ -123,19 +123,26 @@ export class Renderer {
 		macros: Macro[];
 		automations: GsAutomation[];
 		nodes: GsNode[];
-		histogramCanvas: HTMLCanvasElement | null;
-		waveformCanvas: HTMLCanvasElement | null;
+		histogramGpuContext: GPUCanvasContext;
+		waveformGpuContext: GPUCanvasContext;
 	}) {
-		console.log('Renderer options:', options);
 		this.resolution = options.resolution;
 		this.enableStats = options.enableStats;
 		this.enableFloat32Filtering = options.enableFloat32Filtering;
 		this.gpuDevice = options.gpuDevice;
 		this.gpuContext = options.gpuContext;
-		this.histogramCanvas = options.histogramCanvas;
-		this.initHistogram();
-		this.waveformCanvas = options.waveformCanvas;
-		this.initWaveform();
+		this.histogramGpuContext = options.histogramGpuContext;
+		this.gpuHistogram = new GpuHistogram(
+			this.gpuDevice,
+			this.histogramGpuContext,
+			navigator.gpu.getPreferredCanvasFormat(),
+		);
+		this.waveformGpuContext = options.waveformGpuContext;
+		this.gpuWaveform = new GpuWaveform(
+			this.gpuDevice,
+			this.waveformGpuContext,
+			navigator.gpu.getPreferredCanvasFormat(),
+		);
 
 		this.timingHelper = new TimingHelper(this.gpuDevice);
 
@@ -488,8 +495,8 @@ export class Renderer {
 		passEncoder.draw(6);
 		passEncoder.end();
 
-		this.gpuHistogram?.render(commandEncoder, this.finalRenderInputTexture);
-		this.gpuWaveform?.render(commandEncoder, this.finalRenderInputTexture);
+		this.gpuHistogram.render(commandEncoder, this.finalRenderInputTexture);
+		this.gpuWaveform.render(commandEncoder, this.finalRenderInputTexture);
 
 		this.gpuDevice.queue.submit([commandEncoder.finish()]);
 		//#endregion
@@ -581,40 +588,6 @@ export class Renderer {
 		}
 	}
 
-	public setHistogramCanvas(canvas: HTMLCanvasElement | null) {
-		this.gpuHistogram?.dispose();
-		this.gpuHistogram = null;
-		this.histogramCanvas = canvas;
-		this.initHistogram();
-	}
-
-	private initHistogram() {
-		if (this.histogramCanvas == null) return;
-		this.gpuHistogram?.dispose();
-		this.gpuHistogram = new GpuHistogram(
-			this.gpuDevice,
-			this.histogramCanvas,
-			navigator.gpu.getPreferredCanvasFormat(),
-		);
-	}
-
-	public setWaveformCanvas(canvas: HTMLCanvasElement | null) {
-		this.gpuWaveform?.dispose();
-		this.gpuWaveform = null;
-		this.waveformCanvas = canvas;
-		this.initWaveform();
-	}
-
-	private initWaveform() {
-		if (this.waveformCanvas == null) return;
-		this.gpuWaveform?.dispose();
-		this.gpuWaveform = new GpuWaveform(
-			this.gpuDevice,
-			this.waveformCanvas,
-			navigator.gpu.getPreferredCanvasFormat(),
-		);
-	}
-
 	public fpsLimit: number | null = 60;
 	private currentRafId: number | null = null;
 
@@ -673,10 +646,8 @@ export class Renderer {
 	}
 
 	public destroy() {
-		this.gpuHistogram?.dispose();
-		this.gpuHistogram = null;
-		this.gpuWaveform?.dispose();
-		this.gpuWaveform = null;
+		this.gpuHistogram.dispose();
+		this.gpuWaveform.dispose();
 
 		for (const instance of this.effectInstances.values()) {
 			instance?.dispose();

@@ -2,6 +2,8 @@ import { Renderer } from './renderer.ts';
 
 let renderer: Renderer | null = null;
 let canvas: OffscreenCanvas | null = null;
+let histogramCanvas: OffscreenCanvas | null = null;
+let waveformCanvas: OffscreenCanvas | null = null;
 
 onmessage = async (event) => {
 	//console.log('Worker received message:', event.data);
@@ -9,6 +11,8 @@ onmessage = async (event) => {
 	switch (event.data?.type) {
 		case 'init': {
 			canvas = event.data.canvas as OffscreenCanvas;
+			histogramCanvas = event.data.histogramCanvas as OffscreenCanvas;
+			waveformCanvas = event.data.waveformCanvas as OffscreenCanvas;
 
 			const adapter = await navigator.gpu?.requestAdapter({
 				powerPreference: 'high-performance',
@@ -26,7 +30,9 @@ onmessage = async (event) => {
 			}
 
 			const context = canvas.getContext('webgpu');
-			if (context == null) {
+			const histogramContext = histogramCanvas.getContext('webgpu');
+			const waveformContext = waveformCanvas.getContext('webgpu');
+			if (context == null || histogramContext == null || waveformContext == null) {
 				//window.alert('cannot get webgpu context');
 				throw new Error('cannot get webgpu context');
 			}
@@ -41,8 +47,8 @@ onmessage = async (event) => {
 				macros: event.data.options.macros,
 				automations: event.data.options.automations,
 				nodes: event.data.options.nodes,
-				//histogramCanvas: this.histogramCanvas,
-				//waveformCanvas: this.waveformCanvas,
+				histogramGpuContext: histogramContext,
+				waveformGpuContext: waveformContext,
 			});
 
 			//renderer.on('ev', ({ type, ctx }) => {

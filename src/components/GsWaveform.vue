@@ -7,12 +7,7 @@
 	</div>
 	-->
 	<div :class="$style.scope">
-		<canvas
-			ref="canvas"
-			:class="$style.canvas"
-			:width="width"
-			:height="height"
-		></canvas>
+		<div ref="canvasContainer" :class="$style.canvas" :width="width" :height="height"></div>
 	</div>
 </div>
 </template>
@@ -24,14 +19,19 @@ import { i18n } from '@/i18n.ts';
 
 const width = 512;
 const height = 256;
-const canvas = useTemplateRef('canvas');
+
+const canvasContainer = useTemplateRef('canvasContainer');
 
 onMounted(() => {
-	engine.setWaveformCanvas(canvas.value!);
+	if (canvasContainer.value != null) {
+		canvasContainer.value.appendChild(engine.waveformCanvas);
+	}
 });
 
 onBeforeUnmount(() => {
-	engine.setWaveformCanvas(null);
+	if (canvasContainer.value != null) {
+		canvasContainer.value.removeChild(engine.waveformCanvas);
+	}
 });
 </script>
 

@@ -20,13 +20,9 @@ export class GpuHistogram {
 
 	constructor(
 		private readonly device: GPUDevice,
-		canvas: HTMLCanvasElement,
+		context: GPUCanvasContext,
 		format: GPUTextureFormat,
 	) {
-		const context = canvas.getContext('webgpu');
-		if (!context) {
-			throw new Error('cannot get WebGPU context for histogram');
-		}
 		this.context = context;
 		this.context.configure({
 			device,

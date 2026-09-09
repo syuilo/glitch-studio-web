@@ -1,24 +1,25 @@
 <template>
 <div :class="$style.root">
-	<canvas :class="$style.canvas" :width="width" :height="height" ref="canvas"/>
+	<div ref="canvasContainer" :class="$style.canvas"></div>
 </div>
 </template>
 
 <script lang="ts" setup>
-import { engine } from '@/app.ts';
 import { onBeforeUnmount, onMounted, useTemplateRef } from 'vue';
+import { engine } from '@/app.ts';
 
-const width = 256;
-const height = 150;
-
-const canvas = useTemplateRef('canvas');
+const canvasContainer = useTemplateRef('canvasContainer');
 
 onMounted(() => {
-	engine.setHistogramCanvas(canvas.value!);
+	if (canvasContainer.value != null) {
+		canvasContainer.value.appendChild(engine.histogramCanvas);
+	}
 });
 
 onBeforeUnmount(() => {
-	engine.setHistogramCanvas(null);
+	if (canvasContainer.value != null) {
+		canvasContainer.value.removeChild(engine.histogramCanvas);
+	}
 });
 </script>
 

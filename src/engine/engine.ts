@@ -39,6 +39,8 @@ function setupWebcam() {
 
 export class Engine {
 	public canvas: HTMLCanvasElement;
+	public histogramCanvas: HTMLCanvasElement;
+	public waveformCanvas: HTMLCanvasElement;
 
 	//private renderer: Renderer | null = null;
 	private rendererWorker: Worker | null = null;
@@ -49,8 +51,6 @@ export class Engine {
 	private assets: Asset[] = [];
 	private macros: Macro[] = [];
 	private automations: GsAutomation[] = [];
-	private histogramCanvas: HTMLCanvasElement | null = null;
-	private waveformCanvas: HTMLCanvasElement | null = null;
 	private videoElements = shallowReactive(new Map<GsFxNode['id'], HTMLVideoElement>());
 	private videoLoads = new Map<string, Promise<void>>();
 	public fpsLimit: number | null = 60;
@@ -63,6 +63,16 @@ export class Engine {
 	constructor() {
 		this.canvas = window.document.createElement('canvas');
 		this.canvas.style.imageRendering = 'pixelated';
+		this.histogramCanvas = window.document.createElement('canvas');
+		this.histogramCanvas.width = 256;
+		this.histogramCanvas.height = 150;
+		this.histogramCanvas.style.width = '100%';
+		this.histogramCanvas.style.height = '100%';
+		this.waveformCanvas = window.document.createElement('canvas');
+		this.waveformCanvas.width = 512;
+		this.waveformCanvas.height = 256;
+		this.waveformCanvas.style.width = '100%';
+		this.waveformCanvas.style.height = '100%';
 	}
 
 	private call<FN extends keyof Renderer>(fn: FN, args: Parameters<Renderer[FN]> = [] as any, options?: StructuredSerializeOptions | Transferable[]): void {
@@ -97,25 +107,34 @@ export class Engine {
 		this.canvas.width = resolution.width;
 		this.canvas.height = resolution.height;
 
+		const offscreen = this.canvas.transferControlToOffscreen();
+		const histogramOffscreen = this.histogramCanvas.transferControlToOffscreen();
+		const waveformOffscreen = this.waveformCanvas.transferControlToOffscreen();
+
 		const createWorker = () => new Promise((resolve) => {
 			import('./rendererWorker?worker').then(({ default: RendererWorker }) => {
 				const worker = new RendererWorker();
-				worker.postMessage({ type: 'init', canvas: offscreen, options: {
-					resolution,
-					enableFloat32Filtering: this.enableFloat32Filtering,
-					enableStats: this.enableStats,
-					assets: this.assets,
-					macros: this.macros,
-					automations: this.automations,
-					nodes: this.nodes,
-				} }, [offscreen]);
+				worker.postMessage({
+					type: 'init',
+					canvas: offscreen,
+					histogramCanvas: histogramOffscreen,
+					waveformCanvas: waveformOffscreen,
+					options: {
+						resolution,
+						enableFloat32Filtering: this.enableFloat32Filtering,
+						enableStats: this.enableStats,
+						assets: this.assets,
+						macros: this.macros,
+						automations: this.automations,
+						nodes: this.nodes,
+					},
+				}, [offscreen, histogramOffscreen, waveformOffscreen]);
 				resolve(worker);
 			});
 		});
 
 		const { promise: ready, resolve: resolveReady } = Promise.withResolvers<void>();
 
-		const offscreen = this.canvas.transferControlToOffscreen();
 		this.rendererWorker = await createWorker();
 		this.rendererWorker.onmessage = (event) => {
 			switch (event.data?.type) {
@@ -248,16 +267,6 @@ export class Engine {
 		this.assets = deepClone(newAssets);
 		await this.call('updateAssets', [this.assets]);
 		await this.updateNodes(this.nodes);
-	}
-
-	public setHistogramCanvas(canvas: HTMLCanvasElement | null) {
-		this.histogramCanvas = canvas;
-		this.renderer?.setHistogramCanvas(canvas);
-	}
-
-	public setWaveformCanvas(canvas: HTMLCanvasElement | null) {
-		this.waveformCanvas = canvas;
-		this.renderer?.setWaveformCanvas(canvas);
 	}
 
 	public saveImage(options: {
