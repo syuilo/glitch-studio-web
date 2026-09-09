@@ -11,7 +11,7 @@ function getFxNodes(nodes: GsNode[]): GsFxNode[] {
 	return nodes.flatMap(node => node.type === 'group' ? getFxNodes(node.nodes) : [node]);
 }
 
-function setupWebcam() {
+function setupWebcam(): Promise<MediaStream> {
 	return new Promise((resolve, reject) => {
 		navigator.mediaDevices.getUserMedia({
 			video: true,
@@ -267,7 +267,7 @@ export class Engine {
 				this.videoFrameCallbacks.set(node.id, video.requestVideoFrameCallback(onVideoFrame));
 
 				if (node.params.video.value.type === 'asset') {
-					const asset = this.assets.find(asset => asset.id === node.params.video.value.id);
+					const asset = this.assets.find(asset => asset.id === node.params.video.value.id)!;
 					video.src = URL.createObjectURL(asset.fileData);
 				} else if (node.params.video.value.type === 'webcam') {
 					this.videoLoads.set(node.id, setupWebcam().then(camera => {

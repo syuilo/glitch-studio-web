@@ -15,7 +15,7 @@ async function loadImageFromBuffer(image: Uint8Array, type: string): Promise<Dec
 			const img = new Image();
 			img.onerror = () => reject(new Error('Could not decode image'));
 			img.onload = async () => {
-				const canvas = document.createElement('canvas');
+				const canvas = window.document.createElement('canvas');
 				canvas.width = img.width;
 				canvas.height = img.height;
 				const ctx = canvas.getContext('2d');
@@ -72,7 +72,7 @@ export function openImageOrVideoFile(options: { multiple?: boolean } = {}): Prom
 	hash?: string;
 }> {
 	return new Promise((resolve, reject) => {
-		const input = document.createElement('input');
+		const input = window.document.createElement('input');
 		input.type = 'file';
 		input.accept = 'image/*,video/*';
 		input.multiple = options.multiple ?? false;
@@ -86,7 +86,7 @@ export function openImageOrVideoFile(options: { multiple?: boolean } = {}): Prom
 					const img = new Image();
 					img.onerror = () => reject(new Error('Could not decode image'));
 					img.onload = async () => {
-						const canvas = document.createElement('canvas');
+						const canvas = window.document.createElement('canvas');
 						canvas.width = img.width;
 						canvas.height = img.height;
 						const ctx = canvas.getContext('2d');
@@ -108,7 +108,7 @@ export function openImageOrVideoFile(options: { multiple?: boolean } = {}): Prom
 					};
 					img.src = reader.result as string;
 				} else if (file.type.startsWith('video/')) {
-					const video = document.createElement('video');
+					const video = window.document.createElement('video');
 					video.onerror = () => reject(new Error('Could not decode video'));
 					video.onloadeddata = async () => {
 						resolve({
@@ -135,7 +135,7 @@ export function openPresetFile(_options: Record<string, never> = {}): Promise<{
 	name: string;
 }> {
 	return new Promise((resolve, reject) => {
-		const input = document.createElement('input');
+		const input = window.document.createElement('input');
 		input.type = 'file';
 		input.accept = '.gspreset';
 		input.multiple = false;
@@ -167,7 +167,7 @@ export function exportPresetFile(preset: RawPreset) {
 	const buffer = msgpack.encode(preset); // NOTE: バイナリはUint8Arrayである必要がある
 	const blob = new Blob([buffer], { type: 'application/octet-stream' });
 	const url = URL.createObjectURL(blob);
-	const a = document.createElement('a');
+	const a = window.document.createElement('a');
 	a.href = url;
 	a.download = `${preset.name}.gspreset`;
 	a.click();
@@ -179,7 +179,7 @@ export function saveProjectFile(project: RawProject) {
 	const buffer = msgpack.encode(project); // NOTE: バイナリはUint8Arrayである必要がある
 	const blob = new Blob([buffer], { type: 'application/octet-stream' });
 	const url = URL.createObjectURL(blob);
-	const a = document.createElement('a');
+	const a = window.document.createElement('a');
 	a.href = url;
 	a.download = `${project.name}.gsproj`;
 	a.click();
@@ -191,7 +191,7 @@ export function loadProjectFile(): Promise<{
 	name: string;
 }> {
 	return new Promise((resolve, reject) => {
-		const input = document.createElement('input');
+		const input = window.document.createElement('input');
 		input.type = 'file';
 		input.accept = '.gsproj';
 		input.multiple = false;
