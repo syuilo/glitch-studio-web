@@ -156,7 +156,6 @@ fn convertTexCoords(uv: vec2f) -> vec2f {
 
 struct Uniforms {
 	aspectRatio: f32,
-	time: f32,
 	divisions: f32,
 	margin: f32,
 	symbolTexturesCount: u32,
@@ -234,8 +233,6 @@ struct FragmentIn {
 
 @fragment
 fn fs(fragData: FragmentIn) -> @location(0) vec4f {
-	let time = uniforms.time;
-	let scroll = vec2f(0.0, -time * 0.0001);
 	let uv = scaleUvToCoverGivenAspectRatio(fragData.uv, uniforms.aspectRatio);
 	var cellSize = vec2f(1.0 / (uniforms.divisions * 0.5));
 	var border = uniforms.margin;

@@ -62,8 +62,8 @@ export default defineEffect({
 		const sampler = wgpu.device.createSampler({
 			magFilter: 'nearest',
 			minFilter: 'nearest',
-			addressModeU: 'clamp-to-edge',
-			addressModeV: 'clamp-to-edge',
+			addressModeU: 'mirror-repeat',
+			addressModeV: 'mirror-repeat',
 		});
 
 		let inputTexture: GPUTexture | null | undefined;
