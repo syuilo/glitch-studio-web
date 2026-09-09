@@ -1,4 +1,3 @@
-import type { FxParamDefs } from '../types.ts';
 import { Effect } from './fx-utils.ts';
 
 import test from './fx/test/main.ts';
@@ -21,6 +20,8 @@ import rainDropsOnWindow1 from './fx/rainDropsOnWindow1/main.ts';
 import rainDropsOnWindow2 from './fx/rainDropsOnWindow2/main.ts';
 import liquidMetal from './fx/liquidMetal/main.ts';
 import water from './fx/water/main.ts';
+import symbols from './fx/symbols/main.ts';
+import type { FxParamDefs } from '../types.ts';
 
 const _fxs = {
 	test,
@@ -43,6 +44,7 @@ const _fxs = {
 	rainDropsOnWindow2,
 	liquidMetal,
 	water,
+	symbols,
 } as Record<string, Omit<Effect<any>, 'paramDefs'> & { paramDefs: FxParamDefs }>;
 
 const fxs = {} as typeof _fxs;
