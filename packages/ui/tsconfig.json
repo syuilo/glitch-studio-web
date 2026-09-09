@@ -1,49 +1,27 @@
 {
 	"compilerOptions": {
-		"allowJs": true,
 		"noEmit": true,
-		"noEmitOnError": false,
-		"noImplicitAny": true,
 		"noImplicitReturns": true,
 		"noUnusedParameters": false,
 		"noUnusedLocals": false,
 		"noFallthroughCasesInSwitch": true,
-		"declaration": false,
-		"sourceMap": false,
 		"target": "ES2022",
 		"module": "esnext",
 		"moduleResolution": "Bundler",
 		"allowImportingTsExtensions": true,
 		"noLib": false,
 		"strict": true,
-		"strictNullChecks": true,
-		"experimentalDecorators": true,
 		"resolveJsonModule": true,
-		"allowSyntheticDefaultImports": true,
-		"isolatedModules": true,
 		"useDefineForClassFields": true,
 		"verbatimModuleSyntax": true,
 		"skipLibCheck": true,
 		"paths": {
 			"@/*": ["./src/*"]
 		},
-		"typeRoots": [
-			"./@types",
-			"./node_modules/@types",
-			"./node_modules"
-		],
-		"types": [
-			"vite/client",
-			"vitest/importMeta",
-		],
-		"lib": [
-			"esnext",
-			"dom",
-			"dom.iterable"
-		],
+		"types": ["vite/client"],
+		"lib": ["esnext", "dom", "dom.iterable"],
 		"jsx": "preserve"
 	},
-	"compileOnSave": false,
 	"include": [
 		"./src/**/*.ts",
 		"./src/**/*.vue",
