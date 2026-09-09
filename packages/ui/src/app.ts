@@ -1,10 +1,10 @@
 import { Ref, ref, markRaw, Component, reactive, watch, shallowRef, triggerRef } from 'vue';
 import { genId } from './utility/id.ts';
 import { fxs } from './engine/fxs';
-import { GsFxNode, GsGroupNode, GsNode } from './engine/renderer';
+import { GsFxNode, GsGroupNode, GsNode } from '../../renderer/src/renderer.js';
 import { loadProjectFile, saveProjectFile, decodeAssets } from './api';
 import { RawProject } from './settings';
-import { Engine } from './engine/engine.ts';
+import { Engine } from './engine.js';
 import { deepClone } from './utility/deep-clone.ts';
 import { AppState, Asset, Macro } from './types.ts';
 import { GsAutomation } from './engine/types.ts';

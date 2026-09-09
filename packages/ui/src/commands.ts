@@ -1,6 +1,6 @@
 import { AiSON } from '@syuilo/aiscript';
 import { fxs } from './engine/fxs.ts';
-import { GsFxNode, GsGroupNode, GsNode } from './engine/renderer.ts';
+import { GsFxNode, GsGroupNode, GsNode } from '../../renderer/src/renderer.js';
 import { AppState, Asset, FxParamDataType, FxParamDefs } from './types.ts';
 import { deepClone } from './utility/deep-clone.ts';
 import { genEmptyValue } from './utility/misc.ts';

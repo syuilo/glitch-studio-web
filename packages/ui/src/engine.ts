@@ -1,6 +1,6 @@
 import { ref, shallowReactive } from 'vue';
 import { GsAutomation } from './types.ts';
-import type { GsFxNode, GsNode, Renderer } from './renderer.ts';
+import type { GsFxNode, GsNode, Renderer } from '../../renderer/src/renderer.js';
 import { Asset, Macro } from '@/types.ts';
 import { deepClone } from '@/utility/deep-clone.ts';
 import { isVideoFrameAvailable, playVideoAfterFirstFrameIsReady } from '@/utility/video.ts';

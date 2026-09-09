@@ -1,4 +1,4 @@
-import { Renderer } from './renderer.ts';
+import { Renderer } from './renderer.js';
 
 let renderer: Renderer | null = null;
 let canvas: OffscreenCanvas | null = null;

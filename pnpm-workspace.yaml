@@ -1,0 +1,16 @@
+packages:
+  - packages/shared
+  - packages/renderer
+  - packages/ui
+minimumReleaseAge: 10080 # delay 7days to mitigate supply-chain attack
+minimumReleaseAgeExclude:
+  - '@syuilo/aiscript'
+overrides:
+  '@aiscript-dev/aiscript-languageserver': '-'
+  '@tabler/icons-webfont>sharp': '-'
+engineStrict: true
+saveExact: true
+shellEmulator: true
+allowBuilds:
+  '@parcel/watcher': false
+  esbuild: false
