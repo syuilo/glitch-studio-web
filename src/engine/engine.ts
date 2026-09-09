@@ -1,11 +1,15 @@
 import { ref, shallowReactive } from 'vue';
-import { getFxNodes, GsFxNode, GsNode, Renderer } from './renderer.ts';
 import { GsAutomation } from './types.ts';
+import type { GsFxNode, GsNode, Renderer } from './renderer.ts';
 import { Asset, Macro } from '@/types.ts';
 import { deepClone } from '@/utility/deep-clone.ts';
 import { isVideoFrameAvailable, playVideoAfterFirstFrameIsReady } from '@/utility/video.ts';
 import * as ui from '@/ui.ts';
 import { deepEqual } from '@/utility/deep-equal.ts';
+
+function getFxNodes(nodes: GsNode[]): GsFxNode[] {
+	return nodes.flatMap(node => node.type === 'group' ? getFxNodes(node.nodes) : [node]);
+}
 
 function setupWebcam() {
 	return new Promise((resolve, reject) => {
@@ -34,7 +38,9 @@ function setupWebcam() {
 }
 
 export class Engine {
-	private renderer: Renderer | null = null;
+	//private renderer: Renderer | null = null;
+	private rendererWorker: Worker | null = null;
+
 	private enableFloat32Filtering = false;
 	private enableStats = true;
 	private nodes: GsNode[] = [];
@@ -52,27 +58,30 @@ export class Engine {
 	public gpuAverageDisplayMedium = ref(0);
 	public gpuAverageDisplaySlow = ref(0);
 	public fpsDisplay = ref(0);
+	public isReady = ref(false);
 
 	constructor() {
 	}
 
-	async setCanvas(options: {
-		canvas: HTMLCanvasElement;
-		resolution: {
-			width: number;
-			height: number;
-		};
-	}) {
-		if (this.renderer != null) {
-			this.renderer.destroy();
-			this.renderer = null;
+	private call<FN extends keyof Renderer>(fn: FN, args: Parameters<Renderer[FN]> = [] as any, options: StructuredSerializeOptions | Transferable[]): void {
+		if (!this.isReady.value) {
+			throw new Error('Renderer is not initialized');
 		}
+		if (this.rendererWorker != null) {
+			this.rendererWorker.postMessage({ type: 'call', fn, args }, options);
+		//} else if (this.renderer != null) {
+		//	this.renderer[fn](...args);
+		} else {
+			throw new Error('Renderer is not initialized');
+		}
+	}
 
+	public async init(canvas: HTMLCanvasElement, resolution: { width: number; height: number }) {
 		// Scaled preview dimensions can be fractional. Use the same integer pixel
 		// dimensions for the canvas, textures, shader uniforms, and storage buffers.
-		const resolution = {
-			width: Math.max(1, Math.floor(options.resolution.width)),
-			height: Math.max(1, Math.floor(options.resolution.height)),
+		resolution = {
+			width: Math.max(1, Math.floor(resolution.width)),
+			height: Math.max(1, Math.floor(resolution.height)),
 		};
 
 		if (resolution.width > 8192 || resolution.height > 8192) {
@@ -83,44 +92,59 @@ export class Engine {
 			throw new Error('maximum supported resolution is 8192x8192');
 		}
 
-		options.canvas.width = resolution.width;
-		options.canvas.height = resolution.height;
+		canvas.width = resolution.width;
+		canvas.height = resolution.height;
 
-		const adapter = await navigator.gpu?.requestAdapter({
-			powerPreference: 'high-performance',
+		const createWorker = () => new Promise((resolve) => {
+			import('./rendererWorker?worker').then(({ default: RendererWorker }) => {
+				const worker = new RendererWorker();
+				worker.postMessage({ type: 'init', canvas: offscreen, options: {
+					resolution,
+					enableFloat32Filtering: this.enableFloat32Filtering,
+					enableStats: this.enableStats,
+				} }, [offscreen]);
+				resolve(worker);
+			});
 		});
 
-		const device = await adapter?.requestDevice({
-			requiredFeatures: [
-				...(this.enableFloat32Filtering ? ['float32-filterable'] as const : []),
-				...(this.enableStats ? ['timestamp-query'] as const : []),
-			],
-		});
-		if (device == null) {
-			window.alert('need a browser that supports WebGPU');
-			throw new Error('need a browser that supports WebGPU');
+		const offscreen = canvas.transferControlToOffscreen();
+		this.rendererWorker = await createWorker();
+		this.rendererWorker.onmessage = (event) => {
+			switch (event.data?.type) {
+				case 'inited': {
+					this.isReady.value = true;
+					console.log('Renderer worker initialized!');
+					break;
+				}
+				default: {
+					console.warn('Unrecognized message from worker:', event.data?.type);
+				}
+			}
+		};
+
+		this.call('updateAssets', [this.assets]);
+		this.call('updateMacros', [this.macros]);
+		this.call('updateAutomations', [this.automations]);
+		this.call('updateNodes', [this.nodes]);
+	}
+
+	async setCanvas(options: {
+		canvas: HTMLCanvasElement;
+		resolution: {
+			width: number;
+			height: number;
+		};
+	}) {
+		//if (this.renderer != null) {
+		//	this.renderer.destroy();
+		//	this.renderer = null;
+		//}
+		if (this.rendererWorker != null) {
+			this.rendererWorker.terminate();
+			this.rendererWorker = null;
 		}
 
-		const context = options.canvas.getContext('webgpu');
-		if (context == null) {
-			window.alert('cannot get webgpu context');
-			throw new Error('cannot get webgpu context');
-		}
-
-		this.renderer = new Renderer({
-			gpuDevice: device,
-			gpuContext: context,
-			resolution,
-			enableFloat32Filtering: this.enableFloat32Filtering,
-			enableStats: this.enableStats,
-			histogramCanvas: this.histogramCanvas,
-			waveformCanvas: this.waveformCanvas,
-		});
-
-		this.renderer.updateAssets(this.assets);
-		this.renderer.updateMacros(this.macros);
-		this.renderer.updateAutomations(this.automations);
-		this.renderer.updateNodes(this.nodes, this.getReadyVideoElements());
+		await this.init(options.canvas, options.resolution);
 	}
 
 	public unsetCanvas() {
@@ -131,19 +155,19 @@ export class Engine {
 	}
 
 	public render(timeStamp: number, renderNodeId: string | null) {
-		if (this.renderer == null) return;
+		if (!this.isReady.value) return;
 		if (this.nodes.length === 0) return;
 
-		this.renderer.render(renderNodeId ?? this.nodes.at(-1)!.id, {
+		this.call('render', [renderNodeId ?? this.nodes.at(-1)!.id, {
 			time: timeStamp,
-		});
+		}]);
 
-		this.fpsDisplay.value = this.renderer.fpsAverage.get();
+		//this.fpsDisplay.value = this.renderer.fpsAverage.get();
 
 		if (this.enableStats) {
-			this.gpuAverageDisplayFast.value = this.renderer.gpuAverageFast.get();
-			this.gpuAverageDisplayMedium.value = this.renderer.gpuAverageMedium.get();
-			this.gpuAverageDisplaySlow.value = this.renderer.gpuAverageSlow.get();
+			//this.gpuAverageDisplayFast.value = this.renderer.gpuAverageFast.get();
+			//this.gpuAverageDisplayMedium.value = this.renderer.gpuAverageMedium.get();
+			//this.gpuAverageDisplaySlow.value = this.renderer.gpuAverageSlow.get();
 		}
 	}
 
@@ -224,6 +248,14 @@ export class Engine {
 					video.addEventListener('emptied', finish);
 				}));
 
+				const onVideoFrame = () => {
+					const frame = new VideoFrame(video);
+					this.call('updateVideoFrame', [node.id, frame], [frame]);
+					video.requestVideoFrameCallback(onVideoFrame);
+				};
+
+				video.requestVideoFrameCallback(onVideoFrame);
+
 				if (node.params.video.value.type === 'asset') {
 					const asset = this.assets.find(asset => asset.id === node.params.video.value.id);
 					video.src = URL.createObjectURL(asset.fileData);
@@ -240,11 +272,7 @@ export class Engine {
 
 		await Promise.all(this.videoLoads.values());
 		if (this.nodes !== nodes) return;
-		this.renderer?.updateNodes(this.nodes, this.getReadyVideoElements());
-	}
-
-	private getReadyVideoElements(): Map<GsFxNode['id'], HTMLVideoElement> {
-		return new Map([...this.videoElements].filter(([, video]) => isVideoFrameAvailable(video)));
+		this.call('updateNodes', [this.nodes]);
 	}
 
 	public getVideoElement(nodeId: GsFxNode['id']): HTMLVideoElement | null {
@@ -253,17 +281,17 @@ export class Engine {
 
 	public updateMacros(newMacros: Macro[]) {
 		this.macros = deepClone(newMacros);
-		this.renderer?.updateMacros(this.macros);
+		this.call('updateMacros', [this.macros]);
 	}
 
 	public updateAutomations(newAutomations: GsAutomation[]) {
 		this.automations = deepClone(newAutomations);
-		this.renderer?.updateAutomations(this.automations);
+		this.call('updateAutomations', [this.automations]);
 	}
 
 	public async updateAssets(newAssets: Asset[]) {
 		this.assets = deepClone(newAssets);
-		this.renderer?.updateAssets(this.assets);
+		await this.call('updateAssets', [this.assets]);
 		await this.updateNodes(this.nodes);
 	}
 

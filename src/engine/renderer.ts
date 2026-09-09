@@ -67,7 +67,7 @@ export type GsGroupNode = {
 
 export type GsNode = GsFxNode | GsGroupNode;
 
-export function getFxNodes(nodes: GsNode[]): GsFxNode[] {
+function getFxNodes(nodes: GsNode[]): GsFxNode[] {
 	return nodes.flatMap(node => node.type === 'group' ? getFxNodes(node.nodes) : [node]);
 }
 
@@ -91,7 +91,7 @@ export class Renderer {
 	private macros: Macro[] = [];
 	private automations: GsAutomation[] = [];
 	private assetTextures: Map<string, GPUTexture> = new Map();
-	private videoElements: Map<GsFxNode['id'], HTMLVideoElement> = new Map();
+	private videoFrames: Map<GsFxNode['id'], VideoFrame> = new Map();
 	private effectInstances: Map<GsFxNode['id'], EffectInstance | null> = new Map();
 	private effectOuts: Map<GsFxNode['id'], GPUTexture> = new Map();
 	private effectCacheKeys: Map<GsFxNode['id'], string> = new Map();
@@ -122,6 +122,7 @@ export class Renderer {
 		histogramCanvas: HTMLCanvasElement | null;
 		waveformCanvas: HTMLCanvasElement | null;
 	}) {
+		console.log('Renderer options:', options);
 		this.resolution = options.resolution;
 		this.enableStats = options.enableStats;
 		this.enableFloat32Filtering = options.enableFloat32Filtering;
@@ -389,7 +390,7 @@ export class Renderer {
 			[k,
 				effect.paramDefs[k].type === 'node' ? params[k] == null ? this.fallbackTexture : this.effectOuts.get(getActualOutputNodeId(this.findNode(params[k])!)!)! :
 				effect.paramDefs[k].type === 'image' ? this.assetTextures.get(params[k])! :
-				effect.paramDefs[k].type === 'video' ? this.videoElements.get(node.id)! :
+				effect.paramDefs[k].type === 'video' ? this.videoFrames.get(node.id)! :
 				v]));
 
 		let effectInstance = this.effectInstances.get(node.id);
@@ -496,13 +497,7 @@ export class Renderer {
 		}
 	}
 
-	public updateNodes(newNodes: GsNode[], videoElements: Map<GsFxNode['id'], HTMLVideoElement>) {
-		for (const [id, instance] of this.effectInstances) {
-			if (this.videoElements.get(id) !== videoElements.get(id)) {
-				instance.dispose();
-				this.effectInstances.delete(id);
-			}
-		}
+	public updateNodes(newNodes: GsNode[]) {
 		const oldFxNodes = getFxNodes(this.nodes);
 		const newFxNodes = getFxNodes(newNodes);
 		const oldNodeIds = new Set(oldFxNodes.map(node => node.id));
@@ -533,7 +528,6 @@ export class Renderer {
 		}
 
 		this.nodes = deepClone(newNodes);
-		this.videoElements = videoElements;
 	}
 
 	public updateAssets(newAssets: Asset[]) {
@@ -547,6 +541,16 @@ export class Renderer {
 
 	public updateAutomations(newAutomations: GsAutomation[]) {
 		this.automations = deepClone(newAutomations);
+	}
+
+	public updateVideoFrame(nodeId: GsFxNode['id'], videoFrame: VideoFrame | null) {
+		if (videoFrame) {
+			const current = this.videoFrames.get(nodeId);
+			current?.close?.();
+			this.videoFrames.set(nodeId, videoFrame);
+		} else {
+			this.videoFrames.delete(nodeId);
+		}
 	}
 
 	public async bakeAssets() {

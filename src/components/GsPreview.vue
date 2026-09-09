@@ -131,13 +131,17 @@ watch(resolutionFactor, (newFactor, oldFactor) => {
 
 watch(() => [canvas.value, appContext.state.resolution.value, resolutionFactor.value], () => {
 	if (canvas.value != null) {
-		engine.setCanvas({
-			canvas: canvas.value,
-			resolution: {
-				width: appContext.state.resolution.value.width * resolutionFactor.value,
-				height: appContext.state.resolution.value.height * resolutionFactor.value,
-			},
+		engine.init(canvas.value, {
+			width: appContext.state.resolution.value.width * resolutionFactor.value,
+			height: appContext.state.resolution.value.height * resolutionFactor.value,
 		});
+		//engine.setCanvas({
+		//	canvas: canvas.value,
+		//	resolution: {
+		//		width: appContext.state.resolution.value.width * resolutionFactor.value,
+		//		height: appContext.state.resolution.value.height * resolutionFactor.value,
+		//	},
+		//});
 	} else {
 		engine.unsetCanvas();
 	}

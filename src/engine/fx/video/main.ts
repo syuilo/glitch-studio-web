@@ -83,10 +83,9 @@ export default defineEffect({
 
 		return {
 			render: (ctx) => {
-				const videoEl = params.video;
-				if (videoEl && isVideoFrameAvailable(videoEl)) {
+				if (ctx.params.video) {
 					const freshTex = wgpu.device.importExternalTexture(
-						{ source: videoEl },
+						{ source: ctx.params.video },
 					);
 					bindGroup = wgpu.device.createBindGroup({
 						layout: pipeline.getBindGroupLayout(0),

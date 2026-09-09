@@ -91,7 +91,7 @@ type GetEffectOptionsSchemaValues<T extends EffectOptionsSchema> = {
 	T[K] extends EnumOptionSchema ? T[K]['options'][number]['value'] :
 	T[K] extends RangeOptionSchema ? number :
 	T[K] extends ImageOptionSchema ? GPUTexture | null :
-	T[K] extends VideoOptionSchema ? HTMLVideoElement | null :
+	T[K] extends VideoOptionSchema ? VideoFrame | null :
 	T[K] extends NodeOptionSchema ? GPUTexture | null :
 	never;
 };
