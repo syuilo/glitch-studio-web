@@ -263,8 +263,20 @@ watch(fpsLimit, () => {
 	engine.startRenderLoop();
 });
 
+watch([appContext.state.resolution, resolutionFactor], () => {
+	engine.resize({
+		width: appContext.state.resolution.value.width * resolutionFactor.value,
+		height: appContext.state.resolution.value.height * resolutionFactor.value,
+	});
+});
+
 export async function appReady(project: RawProject) {
 	window.document.title = `Glitch Studio (${project.name})`;
+
+	await engine.init({
+		width: appContext.state.resolution.value.width * resolutionFactor.value,
+		height: appContext.state.resolution.value.height * resolutionFactor.value,
+	});
 
 	appContext.projectId = project.id;
 	appContext.projectName = project.name;

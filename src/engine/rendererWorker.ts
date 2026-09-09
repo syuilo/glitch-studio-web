@@ -51,9 +51,9 @@ onmessage = async (event) => {
 			break;
 		}
 		case 'resize': {
-			canvas.width = event.data.width;
-			canvas.height = event.data.height;
-			if (renderer != null) renderer.resize();
+			canvas.width = event.data.resolution.width;
+			canvas.height = event.data.resolution.height;
+			if (renderer != null) renderer.resize(event.data.resolution);
 			break;
 		}
 		case 'call': {

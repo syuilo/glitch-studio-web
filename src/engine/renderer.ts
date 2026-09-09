@@ -425,12 +425,13 @@ export class Renderer {
 		return node.id;
 	}
 
-	public render(renderNodeId: string, args: {
+	public render(renderNodeId: string | null | undefined, args: {
 		time: number;
 		mouseX?: number;
 		mouseY?: number;
 		frame?: number;
 	}) {
+		if (renderNodeId == null) return;
 		const node = this.findNode(renderNodeId);
 		if (node == null) return;
 
@@ -622,7 +623,7 @@ export class Renderer {
 				then = timeStamp - (delta % interval);
 			}
 
-			this.render(this.nodes.at(-1)!.id, {
+			this.render(this.nodes.at(-1)?.id, {
 				time: timeStamp,
 			});
 		};
@@ -635,6 +636,31 @@ export class Renderer {
 			cancelAnimationFrame(this.currentRafId);
 			this.currentRafId = null;
 		}
+	}
+
+	// TODO: もっとスマートなリソース更新方法を考える
+	public resize(resolution: {
+		width: number;
+		height: number;
+	}) {
+		this.stopRenderLoop();
+		this.resolution = resolution;
+
+		for (const instance of this.effectInstances.values()) {
+			instance?.dispose();
+		}
+		this.effectInstances.clear();
+
+		for (const out of this.effectOuts.values()) {
+			out.destroy();
+		}
+		this.effectOuts.clear();
+
+		const currentNodes = this.nodes;
+		this.updateNodes([]);
+		this.updateNodes(currentNodes);
+
+		this.startRenderLoop();
 	}
 
 	public destroy() {

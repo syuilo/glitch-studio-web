@@ -38,6 +38,8 @@ function setupWebcam() {
 }
 
 export class Engine {
+	public canvas: HTMLCanvasElement;
+
 	//private renderer: Renderer | null = null;
 	private rendererWorker: Worker | null = null;
 
@@ -59,6 +61,8 @@ export class Engine {
 	public isReady = ref(false);
 
 	constructor() {
+		this.canvas = window.document.createElement('canvas');
+		this.canvas.style.imageRendering = 'pixelated';
 	}
 
 	private call<FN extends keyof Renderer>(fn: FN, args: Parameters<Renderer[FN]> = [] as any, options?: StructuredSerializeOptions | Transferable[]): void {
@@ -74,7 +78,7 @@ export class Engine {
 		}
 	}
 
-	public async init(canvas: HTMLCanvasElement, resolution: { width: number; height: number }) {
+	public async init(resolution: { width: number; height: number }) {
 		// Scaled preview dimensions can be fractional. Use the same integer pixel
 		// dimensions for the canvas, textures, shader uniforms, and storage buffers.
 		resolution = {
@@ -90,8 +94,8 @@ export class Engine {
 			throw new Error('maximum supported resolution is 8192x8192');
 		}
 
-		canvas.width = resolution.width;
-		canvas.height = resolution.height;
+		this.canvas.width = resolution.width;
+		this.canvas.height = resolution.height;
 
 		const createWorker = () => new Promise((resolve) => {
 			import('./rendererWorker?worker').then(({ default: RendererWorker }) => {
@@ -105,13 +109,16 @@ export class Engine {
 			});
 		});
 
-		const offscreen = canvas.transferControlToOffscreen();
+		const { promise: ready, resolve: resolveReady } = Promise.withResolvers<void>();
+
+		const offscreen = this.canvas.transferControlToOffscreen();
 		this.rendererWorker = await createWorker();
 		this.rendererWorker.onmessage = (event) => {
 			switch (event.data?.type) {
 				case 'inited': {
 					this.isReady.value = true;
 					console.log('Renderer worker initialized!');
+					resolveReady();
 					break;
 				}
 				default: {
@@ -120,36 +127,13 @@ export class Engine {
 			}
 		};
 
+		await ready;
+
+		// TODO: 初期化時に渡す
 		this.call('updateAssets', [this.assets]);
 		this.call('updateMacros', [this.macros]);
 		this.call('updateAutomations', [this.automations]);
 		this.call('updateNodes', [this.nodes]);
-	}
-
-	async setCanvas(options: {
-		canvas: HTMLCanvasElement;
-		resolution: {
-			width: number;
-			height: number;
-		};
-	}) {
-		//if (this.renderer != null) {
-		//	this.renderer.destroy();
-		//	this.renderer = null;
-		//}
-		if (this.rendererWorker != null) {
-			this.rendererWorker.terminate();
-			this.rendererWorker = null;
-		}
-
-		await this.init(options.canvas, options.resolution);
-	}
-
-	public unsetCanvas() {
-		if (this.renderer != null) {
-			this.renderer.destroy();
-			this.renderer = null;
-		}
 	}
 
 	/*
@@ -298,5 +282,14 @@ export class Engine {
 		//canvas.value!.toBlob(async blob => {
 		//	api.saveFile(path, await blob.arrayBuffer());
 		//});
+	}
+
+	public resize(resolution: {
+		width: number;
+		height: number;
+	}) {
+		if (this.rendererWorker != null) {
+			this.rendererWorker.postMessage({ type: 'resize', resolution });
+		}
 	}
 }

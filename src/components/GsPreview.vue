@@ -11,8 +11,8 @@
 				<button v-if="previewWindow" class="_button" @click.stop="closePreview">Return preview</button>
 				<div :class="$style.zoom">ZOOM: {{ Math.round(zoom * 100) }}%</div>
 			</div>
-			<div :class="$style.container" @click="onViewClick()" @mousemove="onMousemove" @contextmenu.prevent.stop="onContextmenu">
-				<canvas ref="canvas" :class="$style.canvas" :style="{ scale: zoom }"></canvas>
+			<div :class="$style.containerContainer" @click="onViewClick()" @mousemove="onMousemove" @contextmenu.prevent.stop="onContextmenu">
+				<div ref="canvasContainer" :class="$style.canvasContainer" :style="{ scale: zoom }"></div>
 			</div>
 		</div>
 	</div>
@@ -20,14 +20,14 @@
 </template>
 
 <script lang="ts" setup>
-import { watch, useTemplateRef, ref, shallowRef, onBeforeUnmount } from 'vue';
+import { watch, useTemplateRef, ref, shallowRef, onBeforeUnmount, onMounted } from 'vue';
 import { genId } from '@/utility/id.ts';
 import * as api from '@/api.js';
 import { appContext, engine, rendererEnv, resolutionFactor } from '@/app.ts';
 import * as ui from '@/ui.js';
 import { MenuItem } from '@/types/menu.ts';
 
-const canvas = useTemplateRef('canvas');
+const canvasContainer = useTemplateRef('canvasContainer');
 const home = useTemplateRef('home');
 const preview = useTemplateRef('preview');
 const previewWindow = shallowRef<Window | null>(null);
@@ -129,23 +129,17 @@ watch(resolutionFactor, (newFactor, oldFactor) => {
 	zoom.value *= (oldFactor ?? 1) / newFactor;
 }, { immediate: true });
 
-watch(() => [canvas.value, appContext.state.resolution.value, resolutionFactor.value], () => {
-	if (canvas.value != null) {
-		engine.init(canvas.value, {
-			width: appContext.state.resolution.value.width * resolutionFactor.value,
-			height: appContext.state.resolution.value.height * resolutionFactor.value,
-		});
-		//engine.setCanvas({
-		//	canvas: canvas.value,
-		//	resolution: {
-		//		width: appContext.state.resolution.value.width * resolutionFactor.value,
-		//		height: appContext.state.resolution.value.height * resolutionFactor.value,
-		//	},
-		//});
-	} else {
-		engine.unsetCanvas();
+onMounted(() => {
+	if (canvasContainer.value != null) {
+		canvasContainer.value.appendChild(engine.canvas);
 	}
-}, { immediate: true });
+});
+
+onBeforeUnmount(() => {
+	if (canvasContainer.value != null) {
+		canvasContainer.value.removeChild(engine.canvas);
+	}
+});
 
 async function onViewClick() {
 	if (previewWindow.value) return;
@@ -186,9 +180,9 @@ async function onViewClick() {
 }
 
 function onMousemove(ev: MouseEvent) {
-	const rect = canvas.value!.getBoundingClientRect();
-	rendererEnv.mouseX = ((ev.clientX - rect.left) / rect.width) - 0.5;
-	rendererEnv.mouseY = ((ev.clientY - rect.top) / rect.height) - 0.5;
+	//const rect = canvas.value!.getBoundingClientRect();
+	//rendererEnv.mouseX = ((ev.clientX - rect.left) / rect.width) - 0.5;
+	//rendererEnv.mouseY = ((ev.clientY - rect.top) / rect.height) - 0.5;
 }
 
 function onViewWheel(ev: WheelEvent) {
@@ -231,7 +225,7 @@ function onContextmenu(ev: PointerEvent) {
 	background: #0008;
 }
 
-.container {
+.containerContainer {
 	width: 100%;
 	height: 100%;
 	display: grid;
@@ -246,10 +240,8 @@ function onContextmenu(ev: PointerEvent) {
 	contain: content;
 }
 
-.canvas {
+.canvasContainer {
 	display: block;
-	image-rendering: pixelated;
-	//box-shadow: 0px 0px 0px 999px #0006;
 }
 
 .placeholder {
