@@ -1,4 +1,11 @@
 {
+	"_VideoControls": {
+		"Play": "Play",
+		"Pause": "Pause",
+		"Stop": "Stop",
+		"Seek": "Playback position",
+		"Volume": "Volume"
+	},
 	"Menu": {
 		"File": "File",
 		"Edit": "Edit",

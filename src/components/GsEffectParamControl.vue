@@ -169,9 +169,7 @@
 			]"
 			@update:modelValue="v => changeValue(v)"
 		/>
-		<div :class="$style.player">
-			TODO
-		</div>
+		<GsVideoControls v-if="node && value" :video="engine.getVideoElement(node.id)" :class="$style.player"/>
 	</div>
 </div>
 </template>
@@ -187,9 +185,10 @@ import GsRange from './common/GsRange.vue';
 import XNodesInput from './nodes-input.vue';
 import GsButton from './common/GsButton.vue';
 import GsSelect from './common/GsSelect.vue';
+import GsVideoControls from './common/GsVideoControls.vue';
 import { fxs } from '@/engine/fxs';
 import { i18n } from '@/i18n';
-import { appContext, wireMap } from '@/app';
+import { appContext, engine, wireMap } from '@/app';
 import { GsGroupNode, GsNode } from '@/engine/renderer.ts';
 
 const props = defineProps<{
@@ -249,5 +248,6 @@ onMounted(() => {
 }
 
 .player {
+	margin-top: 8px;
 }
 </style>

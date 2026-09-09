@@ -1,9 +1,9 @@
-import { ref } from 'vue';
+import { ref, shallowReactive } from 'vue';
 import { getFxNodes, GsFxNode, GsNode, Renderer } from './renderer.ts';
 import { GsAutomation } from './types.ts';
 import { Asset, Macro } from '@/types.ts';
 import { deepClone } from '@/utility/deep-clone.ts';
-import { playVideoAfterFirstFrameIsReady } from '@/utility/video.ts';
+import { isVideoFrameAvailable } from '@/utility/video.ts';
 import * as ui from '@/ui.ts';
 
 export class Engine {
@@ -16,7 +16,8 @@ export class Engine {
 	private automations: GsAutomation[] = [];
 	private histogramCanvas: HTMLCanvasElement | null = null;
 	private waveformCanvas: HTMLCanvasElement | null = null;
-	private videoElements: Map<GsFxNode['id'], HTMLVideoElement> = new Map();
+	private videoElements = shallowReactive(new Map<GsFxNode['id'], HTMLVideoElement>());
+	private videoLoads = new Map<string, Promise<void>>();
 	private currentRafId: number | null = null;
 	public fpsLimit: number | null = 60;
 	public gpuAverageDisplayFast = ref(0);
@@ -91,7 +92,7 @@ export class Engine {
 		this.renderer.updateAssets(this.assets);
 		this.renderer.updateMacros(this.macros);
 		this.renderer.updateAutomations(this.automations);
-		this.renderer.updateNodes(this.nodes, this.videoElements);
+		this.renderer.updateNodes(this.nodes, this.getReadyVideoElements());
 	}
 
 	public unsetCanvas() {
@@ -147,35 +148,60 @@ export class Engine {
 	public async updateNodes(newNodes: GsNode[]) {
 		const oldFxNodes = getFxNodes(this.nodes);
 		const newFxNodes = getFxNodes(newNodes);
-		const oldNodeIds = new Set(oldFxNodes.map(node => node.id));
-		const newNodeIds = new Set(newFxNodes.map(node => node.id));
-		const addedNodes = newFxNodes.filter(node => !oldNodeIds.has(node.id));
-		const removedNodes = oldFxNodes.filter(node => !newNodeIds.has(node.id));
+		const nodes = deepClone(newNodes);
+		this.nodes = nodes;
 
-		for (const node of removedNodes) {
-			if (this.videoElements.has(node.id)) {
-				const video = this.videoElements.get(node.id)!;
+		for (const [id, video] of this.videoElements) {
+			const oldNode = oldFxNodes.find(node => node.id === id);
+			const newNode = newFxNodes.find(node => node.id === id);
+			if (newNode?.fx !== 'video' || oldNode?.params.video.value !== newNode.params.video.value) {
 				video.pause();
-				this.videoElements.delete(node.id);
+				this.videoElements.delete(id);
+				this.videoLoads.delete(id);
 				URL.revokeObjectURL(video.src);
+				video.removeAttribute('src');
+				video.load();
 			}
 		}
 
-		for (const node of addedNodes) {
+		for (const node of newFxNodes) {
 			if (node.fx === 'video' && !this.videoElements.has(node.id)) {
-				const asset = this.assets.find(asset => asset.id === node.params.video.value)!;
+				const asset = this.assets.find(asset => asset.id === node.params.video.value);
+				if (!asset?.fileDataType.startsWith('video/')) continue;
 				const video = window.document.createElement('video');
-				video.src = URL.createObjectURL(asset.fileData);
 				video.loop = true;
+				video.preload = 'auto';
+				video.volume = 0.5;
 				this.videoElements.set(node.id, video);
-				await playVideoAfterFirstFrameIsReady(video);
+				this.videoLoads.set(node.id, new Promise<void>(resolve => {
+					const finish = () => {
+						video.removeEventListener('loadeddata', finish);
+						video.removeEventListener('error', finish);
+						video.removeEventListener('emptied', finish);
+						if (video.error && this.videoElements.get(node.id) === video) {
+							void ui.alert({ type: 'error', text: video.error.message });
+						}
+						resolve();
+					};
+					video.addEventListener('loadeddata', finish);
+					video.addEventListener('error', finish);
+					video.addEventListener('emptied', finish);
+				}));
+				video.src = URL.createObjectURL(asset.fileData);
 			}
 		}
 
-		// TODO: video nodeが追加も削除もされずにassetだけ更新された場合の処理
+		await Promise.all(this.videoLoads.values());
+		if (this.nodes !== nodes) return;
+		this.renderer?.updateNodes(this.nodes, this.getReadyVideoElements());
+	}
 
-		this.nodes = deepClone(newNodes);
-		this.renderer?.updateNodes(this.nodes, this.videoElements);
+	private getReadyVideoElements(): Map<GsFxNode['id'], HTMLVideoElement> {
+		return new Map([...this.videoElements].filter(([, video]) => isVideoFrameAvailable(video)));
+	}
+
+	public getVideoElement(nodeId: GsFxNode['id']): HTMLVideoElement | null {
+		return this.videoElements.get(nodeId) ?? null;
 	}
 
 	public updateMacros(newMacros: Macro[]) {
@@ -191,6 +217,7 @@ export class Engine {
 	public async updateAssets(newAssets: Asset[]) {
 		this.assets = deepClone(newAssets);
 		this.renderer?.updateAssets(this.assets);
+		await this.updateNodes(this.nodes);
 	}
 
 	public setHistogramCanvas(canvas: HTMLCanvasElement | null) {

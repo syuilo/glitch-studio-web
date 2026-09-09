@@ -1,4 +1,11 @@
 {
+	"_VideoControls": {
+		"Play": "再生",
+		"Pause": "一時停止",
+		"Stop": "停止",
+		"Seek": "再生位置",
+		"Volume": "音量"
+	},
 	"Menu": {
 		"File": "ファイル",
 		"Edit": "編集",

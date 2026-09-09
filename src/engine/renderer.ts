@@ -494,6 +494,12 @@ export class Renderer {
 	}
 
 	public updateNodes(newNodes: GsNode[], videoElements: Map<GsFxNode['id'], HTMLVideoElement>) {
+		for (const [id, instance] of this.effectInstances) {
+			if (this.videoElements.get(id) !== videoElements.get(id)) {
+				instance.dispose();
+				this.effectInstances.delete(id);
+			}
+		}
 		const oldFxNodes = getFxNodes(this.nodes);
 		const newFxNodes = getFxNodes(newNodes);
 		const oldNodeIds = new Set(oldFxNodes.map(node => node.id));
