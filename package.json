@@ -9,6 +9,10 @@
 		"packages/ui"
 	],
 	"scripts": {
+		"dev": "pnpm --dir packages/ui dev",
+		"build": "pnpm --dir packages/ui build",
+		"preview": "pnpm --dir packages/ui preview",
+		"typecheck": "pnpm --no-bail -r typecheck",
 		"lint": "pnpm --no-bail -r lint"
 	},
 	"dependencies": {
