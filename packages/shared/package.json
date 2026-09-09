@@ -9,7 +9,9 @@
 	},
 	"exports": {
 		"./types.ts": "./src/types.ts",
-		"./utility/*.ts": "./src/utility/*.ts"
+		"./utility/*.ts": "./src/utility/*.ts",
+		"./fx-definition.ts": "./src/fx-definition.ts",
+		"./fx-definitions/*.ts": "./src/fx-definitions/*.ts"
 	},
 	"devDependencies": {
 		"@typescript-eslint/eslint-plugin": "8.59.2",

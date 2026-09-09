@@ -1,0 +1,84 @@
+import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
+import { defineEffect } from '../../types.ts';
+import code from './shader.wgsl?raw';
+
+export default defineEffect({
+	name: 'snoise',
+	displayName: 'snoise',
+	category: 'utility',
+	paramDefs: {
+		x: { type: 'range', min: -100, max: 100, step: 0.01, label: 'X' },
+		y: { type: 'range', min: -100, max: 100, step: 0.01, label: 'Y' },
+		time: { type: 'range', min: 0, max: 100, step: 0.01, label: 'Time' },
+	},
+	getDefaultParams: () => ({
+		x: { type: 'literal', value: 1 },
+		y: { type: 'literal', value: 1 },
+		time: { type: 'expression', value: 'TIME' },
+	}),
+	getOut: ({ wgpu, resolution }) => {
+		const out = wgpu.device.createTexture({
+			size: resolution,
+			format: wgpu.enableFloat32Filtering ? 'r32float' : 'r16float',
+			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
+		});
+		return out;
+	},
+	init: ({ wgpu, resolution }) => {
+		const shaderModule = wgpu.device.createShaderModule({
+			code: code,
+		});
+
+		const shaderDataDefinitions = makeShaderDataDefinitions(code);
+
+		const pipeline = wgpu.device.createRenderPipeline({
+			vertex: {
+				module: wgpu.defaultVertexShaderModule,
+			},
+			fragment: {
+				module: shaderModule,
+				targets: [{
+					format: wgpu.enableFloat32Filtering ? 'r32float' : 'r16float',
+				}],
+			},
+			primitive: {
+				topology: 'triangle-list',
+			},
+			layout: 'auto',
+		});
+
+		const uniformValues = makeStructuredView(shaderDataDefinitions.uniforms.uniforms);
+
+		const uniformBuffer = wgpu.device.createBuffer({
+			size: uniformValues.arrayBuffer.byteLength,
+			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+		});
+
+		const bindGroup = wgpu.device.createBindGroup({
+			layout: pipeline.getBindGroupLayout(0),
+			entries: [
+				{ binding: 1, resource: { buffer: uniformBuffer } },
+			],
+		});
+
+		return {
+			render: (ctx) => {
+				uniformValues.set({
+					aspectRatio: resolution.width / resolution.height,
+					scale: [ctx.params.x, ctx.params.y],
+					time: ctx.params.time,
+				});
+				wgpu.device.queue.writeBuffer(uniformBuffer, 0, uniformValues.arrayBuffer);
+
+				const passEncoder = ctx.createPassEncoder(ctx.commandEncoder);
+				passEncoder.setPipeline(pipeline);
+				passEncoder.setBindGroup(0, bindGroup);
+				passEncoder.draw(6);
+				passEncoder.end();
+			},
+			dispose: () => {
+				uniformBuffer.destroy();
+			},
+		};
+	},
+});

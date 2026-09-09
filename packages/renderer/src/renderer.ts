@@ -4,13 +4,13 @@ import { deepClone } from '@glitch/shared/utility/deep-clone.ts';
 import { evalAutomationValue, genEmptyValue } from '@glitch/shared/utility/misc.ts';
 import defaultVertexShaderCode from './vertex.wgsl?raw';
 import TimingHelper from './TimingHelper.ts';
-import { fxs } from './fxs.ts';
+import { fxs } from './fx-implementations.ts';
 import finalRenderShaderCode from './render.wgsl?raw';
 import { NonNegativeRollingAverage } from './NonNegativeRollingAverage.ts';
 import { GpuHistogram } from './GpuHistogram.ts';
 import { GpuWaveform } from './GpuWaveform.ts';
 import type { Asset, FxParamValue, Macro, GsAutomation, GsFxNode, GsNode, GsGroupNode } from '@glitch/shared/types.ts';
-import type { EffectInstance } from './fx-utils.ts';
+import type { EffectInstance } from './types.ts';
 
 const aisParser = new AiScript.Parser();
 
