@@ -170,10 +170,12 @@ export default defineEffect({
 		});
 
 		const sampler = wgpu.device.createSampler({
-			magFilter: 'nearest',
-			minFilter: 'nearest',
+			magFilter: 'linear',
+			minFilter: 'linear',
+			mipmapFilter: 'linear',
 			addressModeU: 'mirror-repeat',
 			addressModeV: 'mirror-repeat',
+			addressModeW: 'mirror-repeat',
 		});
 
 		let symbolTexture: GPUTexture | null = null;
@@ -190,7 +192,7 @@ export default defineEffect({
 					{ binding: 1, resource: { buffer: uniformBuffer } },
 					{ binding: 2, resource: sampler },
 					{ binding: 3, resource: (inputTexture ?? fallbackTexture).createView() },
-					{ binding: 4, resource: (symbolTexture ?? fallbackTexture).createView() },
+					{ binding: 4, resource: (symbolTexture ?? fallbackTexture).createView({ dimension: '2d-array' }) },
 					{ binding: 5, resource: (forceFieldTexture ?? fallbackTexture).createView() },
 				],
 			});
