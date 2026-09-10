@@ -25,11 +25,18 @@ export default implementEffect<typeof definition>({
 			});
 		};
 		const module = device.createShaderModule({ code });
+		const sampler = device.createSampler({
+			minFilter: 'linear',
+			magFilter: 'linear',
+			addressModeU: 'clamp-to-edge',
+			addressModeV: 'clamp-to-edge',
+		});
 		const computeLayout = device.createBindGroupLayout({
 			entries: [
 				{ binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
-				{ binding: 1, visibility: GPUShaderStage.COMPUTE, texture: { sampleType: 'unfilterable-float' } },
+				{ binding: 1, visibility: GPUShaderStage.COMPUTE, texture: { sampleType: 'float' } },
 				{ binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+				{ binding: 4, visibility: GPUShaderStage.COMPUTE, sampler: { type: 'filtering' } },
 			],
 		});
 		const accumulate = device.createComputePipeline({
@@ -63,6 +70,7 @@ export default implementEffect<typeof definition>({
 				uniformEntry,
 				{ binding: 1, resource: (input ?? fallbackTexture).createView() },
 				{ binding: 2, resource: { buffer: waveform } },
+				{ binding: 4, resource: sampler },
 			],
 		});
 		let inputGroup = createInputGroup();

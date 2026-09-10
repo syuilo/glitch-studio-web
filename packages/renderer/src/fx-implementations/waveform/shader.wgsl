@@ -8,6 +8,7 @@ struct Params {
 @group(0) @binding(1) var source: texture_2d<f32>;
 @group(0) @binding(2) var<storage, read_write> counts: array<atomic<u32>>;
 @group(0) @binding(3) var<storage, read> waveform: array<u32>;
+@group(0) @binding(4) var sourceSampler: sampler;
 
 fn index(column: u32, level: u32, channel: u32) -> u32 {
 	return (level * params.size.x + column) * 3u + channel;
@@ -35,9 +36,8 @@ fn accumulate(@builtin(global_invocation_id) id: vec3u) {
 	if (any(id.xy >= params.size)) {
 		return;
 	}
-	let size = textureDimensions(source);
-	let coord = min((id.xy * 2u + vec2u(1u)) * size / (params.size * 2u), size - vec2u(1u));
-	let color = textureLoad(source, vec2i(coord), 0);
+	let uv = (vec2f(id.xy) + 0.5) / vec2f(params.size);
+	let color = textureSampleLevel(source, sourceSampler, uv, 0.0);
 	let weight = clamp(color.a, 0.0, 1.0) * 65535.0;
 	if (weight == 0.0) {
 		return;
