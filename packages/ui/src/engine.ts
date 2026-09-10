@@ -169,6 +169,16 @@ export class Engine {
 					this.sendPendingVideoFrame(nodeId);
 					break;
 				}
+				case 'stats': {
+					const { stats } = event.data;
+					this.fpsDisplay.value = stats.fpsAverage;
+					if (this.enableStats) {
+						this.gpuAverageDisplayFast.value = stats.gpuAverageFast;
+						this.gpuAverageDisplayMedium.value = stats.gpuAverageMedium;
+						this.gpuAverageDisplaySlow.value = stats.gpuAverageSlow;
+					}
+					break;
+				}
 				default: {
 					console.warn('Unrecognized message from worker:', event.data?.type);
 				}
@@ -177,25 +187,6 @@ export class Engine {
 
 		await ready;
 	}
-
-	/*
-	public render(timeStamp: number, renderNodeId: string | null) {
-		if (!this.isReady.value) return;
-		if (this.nodes.length === 0) return;
-
-		this.call('render', [renderNodeId ?? this.nodes.at(-1)!.id, {
-			time: timeStamp,
-		}]);
-
-		//this.fpsDisplay.value = this.renderer.fpsAverage.get();
-
-		if (this.enableStats) {
-			//this.gpuAverageDisplayFast.value = this.renderer.gpuAverageFast.get();
-			//this.gpuAverageDisplayMedium.value = this.renderer.gpuAverageMedium.get();
-			//this.gpuAverageDisplaySlow.value = this.renderer.gpuAverageSlow.get();
-		}
-	}
-		*/
 
 	public startRenderLoop() {
 		this.call('startRenderLoop', []);

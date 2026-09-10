@@ -5,6 +5,16 @@ let canvas: OffscreenCanvas | null = null;
 let histogramCanvas: OffscreenCanvas | null = null;
 let waveformCanvas: OffscreenCanvas | null = null;
 
+setInterval(() => {
+	if (renderer == null) return;
+	self.postMessage({ type: 'stats', stats: {
+		fpsAverage: renderer.fpsAverage.get(),
+		gpuAverageFast: renderer.gpuAverageFast.get(),
+		gpuAverageMedium: renderer.gpuAverageMedium.get(),
+		gpuAverageSlow: renderer.gpuAverageSlow.get(),
+	} });
+}, 100);
+
 onmessage = async (event) => {
 	//console.log('Worker received message:', event.data);
 
