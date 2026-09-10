@@ -4,7 +4,7 @@
 		<div :class="$style.zoom">ZOOM: {{ Math.round(zoom * 100) }}%</div>
 	</template>
 	<template #default="{ detached }">
-		<div ref="containerContainer" :class="$style.containerContainer" @wheel="onViewWheel" @click="onViewClick(detached)" @mousemove="onMousemove">
+		<div ref="containerContainer" :class="$style.containerContainer" @wheel="onViewWheel" @click="onViewClick(detached)" @pointermove="onPointermove">
 			<div ref="canvasContainer" :class="$style.canvasContainer" :style="{ scale: zoom }"></div>
 		</div>
 	</template>
@@ -77,7 +77,7 @@ async function onViewClick(detached: boolean) {
 	}
 }
 
-function onMousemove(ev: MouseEvent) {
+function onPointermove(ev: PointerEvent) {
 	if (canvasContainer.value == null) return;
 	const rect = canvasContainer.value.getBoundingClientRect();
 	engine.updatePointerPosition({
