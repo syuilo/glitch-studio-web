@@ -1,6 +1,6 @@
 # Glitch Studio for Web (⚠️Under Development!!!)
 
-Glitch Studio for Webは、ノードベースのエディタを通じてリアルタイムな画像・動画の加工・編集を行ったり、シェーダーのplaygroundとして使えるWebアプリケーションです。
+Glitch Studioは、ノードベースのエディタを通じてリアルタイムな画像・動画の加工・編集を行ったり、シェーダーのplaygroundとして使えるWebアプリケーションです。
 
 - 全ての画像処理がGPU上で行われ、高効率です
 - resolution-independentなので、どのような解像度でレンダリングしても見た目が変わらず、一貫した結果が得られます(※1)
