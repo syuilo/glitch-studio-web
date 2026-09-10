@@ -344,16 +344,18 @@ export class Renderer {
 		return key;
 	}
 
-	private renderNode(node: GsNode, commandEncoder: GPUCommandEncoder, visited: GsNode['id'][]): GsFxNode['id'] | void {
-		if (visited.includes(node.id)) {
+	private renderNode(node: GsNode, commandEncoder: GPUCommandEncoder, context: { visited: Set<GsNode['id']>; rendered: Set<GsNode['id']>; }): void {
+		if (context.visited.has(node.id)) {
 			throw new Error('circular dependency detected');
+		}
+		if (context.rendered.has(node.id)) { // キャッシュが無効だったとしても同じフレーム内に同じノードを複数回レンダリングするのは無駄(というかping-pongするエフェクトなら結果がおかしくなる)なため弾く
+			return;
 		}
 
 		if (node.type === 'group') {
-			if (node.nodes.length === 0) {
-				return;
-			}
-			return this.renderNode(node.nodes.at(-1)!, commandEncoder, [...visited, node.id]);
+			if (node.nodes.length === 0) return;
+			context.visited.add(node.id);
+			return this.renderNode(node.nodes.at(-1)!, commandEncoder, context);
 		}
 
 		const key = this.evalCacheKey(node);
@@ -375,7 +377,8 @@ export class Renderer {
 			}
 			const targetNode = this.findNode(v);
 			if (targetNode) {
-				this.renderNode(targetNode, commandEncoder, [...visited, node.id]);
+				context.visited.add(node.id);
+				this.renderNode(targetNode, commandEncoder, context);
 			}
 		}
 		//for (const [k, _] of Object.entries(fx.paramDefs).filter(([k, v]) => v.type === 'nodes')) {
@@ -456,7 +459,7 @@ export class Renderer {
 			effectOut.previousFrameTextureView = previousFrameTextureView!;
 		}
 
-		return node.id;
+		context.rendered.add(node.id);
 	}
 
 	public render(renderNodeId: string | null | undefined, args: {
@@ -477,7 +480,10 @@ export class Renderer {
 
 		const commandEncoder = this.gpuDevice.createCommandEncoder();
 
-		this.renderNode(node, commandEncoder, []);
+		this.renderNode(node, commandEncoder, {
+			visited: new Set<GsNode['id']>(),
+			rendered: new Set<GsNode['id']>(),
+		});
 
 		//#region nodeのoutをcanvasに描画
 		const actualOutputNodeId = getActualOutputNodeId(node);
