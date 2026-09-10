@@ -53,6 +53,7 @@ onmessage = async (event) => {
 				resolution: event.data.options.resolution,
 				enableFloat32Filtering: event.data.options.enableFloat32Filtering,
 				enableStats: event.data.options.enableStats,
+				fpsLimit: event.data.options.fpsLimit,
 				assets: event.data.options.assets,
 				macros: event.data.options.macros,
 				automations: event.data.options.automations,

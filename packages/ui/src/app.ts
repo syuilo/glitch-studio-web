@@ -254,12 +254,12 @@ export const rendererEnv = {
 	mouseX: 0,
 	mouseY: 0,
 };
-export const engine = markRaw(new Engine());
+export const engine = markRaw(new Engine({
+	fpsLimit: fpsLimit.value,
+}));
 
 watch(fpsLimit, () => {
-	engine.fpsLimit = fpsLimit.value;
-	engine.stopRenderLoop();
-	engine.startRenderLoop();
+	engine.changeFpsLimit(fpsLimit.value);
 });
 
 watch([appContext.state.resolution, resolutionFactor], () => {

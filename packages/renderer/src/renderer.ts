@@ -2,10 +2,10 @@ import { createTextureFromSource, makeShaderDataDefinitions, makeStructuredView 
 import * as AiScript from '@syuilo/aiscript';
 import { deepClone } from '@glitch/shared/utility/deep-clone.ts';
 import { evalAutomationValue, genEmptyValue } from '@glitch/shared/utility/misc.ts';
+import { fxDefinitions } from '@glitch/shared/fx-definitions.ts';
 import defaultVertexShaderCode from './vertex.wgsl?raw';
 import TimingHelper from './TimingHelper.ts';
 import { fxImplementations } from './fx-implementations.ts';
-import { fxDefinitions } from '@glitch/shared/fx-definitions.ts';
 import finalRenderShaderCode from './render.wgsl?raw';
 import { NonNegativeRollingAverage } from './NonNegativeRollingAverage.ts';
 import { GpuHistogram } from './GpuHistogram.ts';
@@ -94,6 +94,7 @@ export class Renderer {
 		};
 		enableFloat32Filtering: boolean;
 		enableStats: boolean;
+		fpsLimit: number | null;
 		assets: Asset[];
 		macros: Macro[];
 		automations: GsAutomation[];
@@ -104,6 +105,7 @@ export class Renderer {
 		this.resolution = options.resolution;
 		this.enableStats = options.enableStats;
 		this.enableFloat32Filtering = options.enableFloat32Filtering;
+		this.fpsLimit = options.fpsLimit;
 		this.gpuDevice = options.gpuDevice;
 		this.gpuContext = options.gpuContext;
 		this.histogramGpuContext = options.histogramGpuContext;
@@ -562,13 +564,19 @@ export class Renderer {
 		}
 	}
 
-	public fpsLimit: number | null = 60;
+	private fpsLimit: number | null;
 	private currentRafId: number | null = null;
+
+	public changeFpsLimit(newFpsLimit: number | null) {
+		this.fpsLimit = newFpsLimit;
+		this.stopRenderLoop();
+		this.startRenderLoop();
+	}
 
 	public startRenderLoop() {
 		this.stopRenderLoop();
 		let then = 0;
-		const interval = 1000 / (this.fpsLimit ?? 30);
+		const interval = 1000 / (this.fpsLimit ?? 999);
 
 		const renderLoop = (timeStamp: number) => {
 			this.currentRafId = requestAnimationFrame(renderLoop);

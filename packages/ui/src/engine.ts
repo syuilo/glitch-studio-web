@@ -61,14 +61,16 @@ export class Engine {
 	private pendingVideoFrames = new Map<string, VideoFrame>();
 	private inFlightVideoFrames = new Map<string, number>();
 	private nextVideoFrameId = 0;
-	public fpsLimit: number | null = 60;
+	private fpsLimit: number | null;
 	public gpuAverageDisplayFast = ref(0);
 	public gpuAverageDisplayMedium = ref(0);
 	public gpuAverageDisplaySlow = ref(0);
 	public fpsDisplay = ref(0);
 	public isReady = ref(false);
 
-	constructor() {
+	constructor(options: {
+		fpsLimit: number | null;
+	}) {
 		this.canvas = window.document.createElement('canvas');
 		this.canvas.style.imageRendering = 'pixelated';
 		this.histogramCanvas = window.document.createElement('canvas');
@@ -81,6 +83,7 @@ export class Engine {
 		this.waveformCanvas.height = 256;
 		this.waveformCanvas.style.width = '100%';
 		this.waveformCanvas.style.height = '100%';
+		this.fpsLimit = options.fpsLimit;
 	}
 
 	private call<FN extends keyof RendererMethods>(fn: FN, args: Parameters<RendererMethods[FN]>, options?: StructuredSerializeOptions | Transferable[]): void {
@@ -146,6 +149,7 @@ export class Engine {
 			options: {
 				resolution,
 				enableFloat32Filtering: this.enableFloat32Filtering,
+				fpsLimit: this.fpsLimit,
 				enableStats: this.enableStats,
 				assets: this.assets,
 				macros: this.macros,
@@ -320,6 +324,11 @@ export class Engine {
 		//canvas.value!.toBlob(async blob => {
 		//	api.saveFile(path, await blob.arrayBuffer());
 		//});
+	}
+
+	public changeFpsLimit(newFpsLimit: number | null) {
+		this.fpsLimit = newFpsLimit;
+		this.call('changeFpsLimit', [this.fpsLimit]);
 	}
 
 	public resize(resolution: {
