@@ -109,7 +109,7 @@ export default implementEffect<typeof definition>({
 				}
 				// Separate uniform slices keep every dispatch's merge width intact until submission.
 				device.queue.writeBuffer(uniforms, 0, values, 0, stride * (maxPasses + 1) * batches.length);
-				const compute = ctx.commandEncoder.beginComputePass();
+				const compute = ctx.createComputePassEncoder(ctx.commandEncoder);
 				for (const [batchIndex, batch] of batches.entries()) {
 					compute.setPipeline(initialize);
 					compute.setBindGroup(0, inputGroups[batchIndex].initializeGroup);

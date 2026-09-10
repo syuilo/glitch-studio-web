@@ -102,14 +102,13 @@ export default implementEffect<typeof definition>({
 				});
 				device.queue.writeBuffer(uniformBuffer, 0, uniformValues.arrayBuffer);
 				if (strength > 0) {
-					// Internal passes bypass the renderer's limited timestamp query pool.
-					draw(ctx.commandEncoder.beginRenderPass(downPasses[0]), prefilterPipeline, prefilterGroup);
+					draw(ctx.createPassEncoder(ctx.commandEncoder, downPasses[0]), prefilterPipeline, prefilterGroup);
 					if (radius > 0) {
 						for (let i = 1; i < levelCount; i++) {
-							draw(ctx.commandEncoder.beginRenderPass(downPasses[i]), downsamplePipeline, downGroups[i - 1]);
+							draw(ctx.createPassEncoder(ctx.commandEncoder, downPasses[i]), downsamplePipeline, downGroups[i - 1]);
 						}
 						for (let i = levelCount - 2; i >= 0; i--) {
-							const pass = ctx.commandEncoder.beginRenderPass(upPasses[i]);
+							const pass = ctx.createPassEncoder(ctx.commandEncoder, upPasses[i]);
 							// Normalized weights preserve brightness while shifting energy
 							// toward coarser scales as radius increases.
 							pass.setBlendConstant([radius, radius, radius, radius]);

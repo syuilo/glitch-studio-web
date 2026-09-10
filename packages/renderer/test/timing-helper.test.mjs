@@ -5,7 +5,7 @@ globalThis.GPUQueue = class { submit() {} };
 globalThis.GPUBufferUsage = { QUERY_RESOLVE: 1, COPY_SRC: 2, COPY_DST: 4, MAP_READ: 8 };
 globalThis.GPUMapMode = { READ: 1 };
 
-const { default: TimingHelper } = await import('../src/engine/TimingHelper.ts');
+const { default: TimingHelper } = await import('../src/TimingHelper.ts');
 
 test('timing handles frames without measured passes and resumes measurement', async () => {
 	const device = {

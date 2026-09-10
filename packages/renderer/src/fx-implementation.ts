@@ -6,6 +6,7 @@ export type EffectInstance<Options extends EffectOptionsSchema = any> = {
 		timeDelta: number;
 		commandEncoder: GPUCommandEncoder;
 		createPassEncoder: (commandEncoder: GPUCommandEncoder, descriptor?: GPURenderPassDescriptor) => GPURenderPassEncoder;
+		createComputePassEncoder: (commandEncoder: GPUCommandEncoder, descriptor?: GPUComputePassDescriptor) => GPUComputePassEncoder;
 		params: GetEffectOptionsSchemaValues<Options>;
 	}) => void;
 	dispose: () => void;

@@ -10,7 +10,7 @@ function assert(cond, msg = '') {
 // we try to read the result before the command buffer has been executed.
 const s_unsubmittedCommandBuffer = new Set();
 
-const MAX_PASSES = 16;
+const PASSES_PER_QUERY_SET = 16;
 
 /* global GPUQueue */
 GPUQueue.prototype.submit = (function(origFn) {
@@ -24,29 +24,18 @@ GPUQueue.prototype.submit = (function(origFn) {
 export default class TimingHelper {
 	#canTimestamp;
 	#device;
-	#querySet;
-	#resolveBuffer;
+	#queryBatches: { querySet: GPUQuerySet; resolveBuffer: GPUBuffer; }[] = [];
 	#resultBuffer;
 	#commandBuffer;
 	#commandEncoder;
 	#passCount = 0;
-	#resultBuffers = [];
+	#resultBuffers: GPUBuffer[] = [];
 	// state can be 'free', 'recording', 'need finish', 'wait for result'
 	#state = 'free';
 
 	constructor(device) {
 		this.#device = device;
 		this.#canTimestamp = device.features.has('timestamp-query');
-		if (this.#canTimestamp) {
-			this.#querySet = device.createQuerySet({
-				type: 'timestamp',
-				count: MAX_PASSES * 2,
-			});
-			this.#resolveBuffer = device.createBuffer({
-				size: this.#querySet.count * 8,
-				usage: GPUBufferUsage.QUERY_RESOLVE | GPUBufferUsage.COPY_SRC,
-			});
-		}
 	}
 
 	#beginTimestampPass(encoder, fnName, descriptor) {
@@ -70,14 +59,22 @@ export default class TimingHelper {
 				assert(this.#commandEncoder === encoder, 'all measured passes must use the same command encoder');
 			}
 
-			assert(this.#passCount < MAX_PASSES, `cannot measure more than ${MAX_PASSES} passes per command encoder`);
-			const beginningOfPassWriteIndex = this.#passCount * 2;
+			const batchIndex = Math.floor(this.#passCount / PASSES_PER_QUERY_SET);
+			if (!this.#queryBatches[batchIndex]) {
+				const querySet = this.#device.createQuerySet({ type: 'timestamp', count: PASSES_PER_QUERY_SET * 2 });
+				const resolveBuffer = this.#device.createBuffer({
+					size: PASSES_PER_QUERY_SET * 2 * 8,
+					usage: GPUBufferUsage.QUERY_RESOLVE | GPUBufferUsage.COPY_SRC,
+				});
+				this.#queryBatches.push({ querySet, resolveBuffer });
+			}
+			const beginningOfPassWriteIndex = (this.#passCount % PASSES_PER_QUERY_SET) * 2;
 			this.#passCount++;
 
 			return encoder[fnName]({
 				...descriptor,
 				timestampWrites: {
-					querySet: this.#querySet,
+					querySet: this.#queryBatches[batchIndex].querySet,
 					beginningOfPassWriteIndex,
 					endOfPassWriteIndex: beginningOfPassWriteIndex + 1,
 				},
@@ -116,14 +113,22 @@ export default class TimingHelper {
 		assert(this.#commandEncoder === encoder, 'all measured passes must use the same command encoder');
 		this.#state = 'need finish';
 
-		this.#resultBuffer = this.#resultBuffers.pop() || this.#device.createBuffer({
-			size: this.#resolveBuffer.size,
+		const batchCount = Math.ceil(this.#passCount / PASSES_PER_QUERY_SET);
+		const resultSize = batchCount * PASSES_PER_QUERY_SET * 2 * 8;
+		const bufferIndex = this.#resultBuffers.findIndex(buffer => buffer.size >= resultSize);
+		this.#resultBuffer = bufferIndex >= 0 ? this.#resultBuffers.splice(bufferIndex, 1)[0] : this.#device.createBuffer({
+			size: resultSize,
 			usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
 		});
 
-		const queryCount = this.#passCount * 2;
-		encoder.resolveQuerySet(this.#querySet, 0, queryCount, this.#resolveBuffer, 0);
-		encoder.copyBufferToBuffer(this.#resolveBuffer, 0, this.#resultBuffer, 0, queryCount * 8);
+		// Each resolve starts at offset zero (WebGPU requires 256-byte alignment).
+		// Collect every batch into one readback buffer, including a partial final batch.
+		for (let i = 0; i < batchCount; i++) {
+			const { querySet, resolveBuffer } = this.#queryBatches[i];
+			const queryCount = Math.min(PASSES_PER_QUERY_SET, this.#passCount - i * PASSES_PER_QUERY_SET) * 2;
+			encoder.resolveQuerySet(querySet, 0, queryCount, resolveBuffer, 0);
+			encoder.copyBufferToBuffer(resolveBuffer, 0, this.#resultBuffer, i * PASSES_PER_QUERY_SET * 2 * 8, queryCount * 8);
+		}
 	}
 
 	async getResult() {

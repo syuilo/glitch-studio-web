@@ -95,7 +95,7 @@ export default implementEffect<typeof definition>({
 				ctx.commandEncoder.clearBuffer(maximum);
 				// Rebuild every frame: animated nodes can change without changing textures.
 				// No history or CPU readback; seeking always reproduces the same gradient.
-				const compute = ctx.commandEncoder.beginComputePass();
+				const compute = ctx.createComputePassEncoder(ctx.commandEncoder);
 				compute.setBindGroup(0, computeGroup);
 				const dispatch = (step: GPUComputePipeline) => {
 					compute.setPipeline(step);

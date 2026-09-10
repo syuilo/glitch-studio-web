@@ -413,6 +413,9 @@ export class Renderer {
 				} satisfies GPURenderPassDescriptor;
 				return this.enableStats ? this.timingHelper.beginRenderPass(commandEncoder, _descriptor) : commandEncoder.beginRenderPass(_descriptor);
 			},
+			createComputePassEncoder: (commandEncoder, descriptor) => {
+				return this.enableStats ? this.timingHelper.beginComputePass(commandEncoder, descriptor) : commandEncoder.beginComputePass(descriptor);
+			},
 		});
 
 		return node.id;
