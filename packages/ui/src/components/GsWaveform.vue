@@ -1,4 +1,5 @@
 <template>
+<GsDetachableView title="Waveform">
 <div :class="$style.root">
 	<!--
 	<div :class="$style.header">
@@ -10,10 +11,12 @@
 		<div ref="canvasContainer" :class="$style.canvas"></div>
 	</div>
 </div>
+</GsDetachableView>
 </template>
 
 <script lang="ts" setup>
 import { onBeforeUnmount, onMounted, useTemplateRef } from 'vue';
+import GsDetachableView from './GsDetachableView.vue';
 import { engine } from '@/app.ts';
 import { i18n } from '@/i18n.ts';
 

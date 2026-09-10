@@ -1,11 +1,14 @@
 <template>
+<GsDetachableView title="Histogram">
 <div :class="$style.root">
 	<div ref="canvasContainer" :class="$style.canvas"></div>
 </div>
+</GsDetachableView>
 </template>
 
 <script lang="ts" setup>
 import { onBeforeUnmount, onMounted, useTemplateRef } from 'vue';
+import GsDetachableView from './GsDetachableView.vue';
 import { engine } from '@/app.ts';
 
 const canvasContainer = useTemplateRef('canvasContainer');
