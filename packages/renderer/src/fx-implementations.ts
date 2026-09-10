@@ -3,6 +3,7 @@ import blur from './fx-implementations/blur/main.ts';
 import channelShift from './fx-implementations/channelShift/main.ts';
 import chromaticAberration from './fx-implementations/chromaticAberration/main.ts';
 import fill from './fx-implementations/fill/main.ts';
+import frameDifference from './fx-implementations/frameDifference/main.ts';
 import gradient from './fx-implementations/gradient/main.ts';
 import histogram from './fx-implementations/histogram/main.ts';
 import image from './fx-implementations/image/main.ts';
@@ -30,6 +31,7 @@ const _fxImplementations = {
 	channelShift,
 	chromaticAberration,
 	fill,
+	frameDifference,
 	gradient,
 	histogram,
 	image,
