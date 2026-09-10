@@ -19,6 +19,7 @@ import tearings from './fx-implementations/tearings/main.ts';
 import test from './fx-implementations/test/main.ts';
 import video from './fx-implementations/video/main.ts';
 import water from './fx-implementations/water/main.ts';
+import pointerTrail from './fx-implementations/pointerTrail/main.ts';
 import type { EffectImplementation } from './fx-implementation.ts';
 
 const _fxImplementations = {
@@ -43,6 +44,7 @@ const _fxImplementations = {
 	test,
 	video,
 	water,
+	pointerTrail,
 } as Record<string, EffectImplementation<any>>;
 
 const fxImplementations = {} as typeof _fxImplementations;

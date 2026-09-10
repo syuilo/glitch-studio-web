@@ -4,7 +4,7 @@
 		<div :class="$style.zoom">ZOOM: {{ Math.round(zoom * 100) }}%</div>
 	</template>
 	<template #default="{ detached }">
-		<div :class="$style.containerContainer" @wheel="onViewWheel" @click="onViewClick(detached)" @mousemove="onMousemove">
+		<div ref="containerContainer" :class="$style.containerContainer" @wheel="onViewWheel" @click="onViewClick(detached)" @mousemove="onMousemove">
 			<div ref="canvasContainer" :class="$style.canvasContainer" :style="{ scale: zoom }"></div>
 		</div>
 	</template>
@@ -19,6 +19,7 @@ import * as api from '@/api.ts';
 import { appContext, engine, rendererEnv, resolutionFactor } from '@/app.ts';
 
 const canvasContainer = useTemplateRef('canvasContainer');
+const containerContainer = useTemplateRef('containerContainer');
 const ZOOM_STEP = 1.25;
 const zoom = ref(1 / ZOOM_STEP / ZOOM_STEP / ZOOM_STEP);
 
@@ -77,9 +78,12 @@ async function onViewClick(detached: boolean) {
 }
 
 function onMousemove(ev: MouseEvent) {
-	//const rect = canvas.value!.getBoundingClientRect();
-	//rendererEnv.mouseX = ((ev.clientX - rect.left) / rect.width) - 0.5;
-	//rendererEnv.mouseY = ((ev.clientY - rect.top) / rect.height) - 0.5;
+	if (canvasContainer.value == null) return;
+	const rect = canvasContainer.value.getBoundingClientRect();
+	engine.updatePointerPosition({
+		x: (((ev.clientX - rect.left) / rect.width) - 0.5) * 2,
+		y: -(((ev.clientY - rect.top) / rect.height) - 0.5) * 2,
+	});
 }
 
 function onViewWheel(ev: WheelEvent) {

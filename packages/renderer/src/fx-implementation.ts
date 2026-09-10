@@ -4,6 +4,8 @@ export type EffectInstance<Options extends EffectOptionsSchema = any> = {
 	render: (ctx: {
 		time: number;
 		timeDelta: number;
+		pointerPosition: { x: number; y: number; };
+		pointerVector: { x: number; y: number; };
 		commandEncoder: GPUCommandEncoder;
 		createPassEncoder: (commandEncoder: GPUCommandEncoder, descriptor?: GPURenderPassDescriptor) => GPURenderPassEncoder;
 		createComputePassEncoder: (commandEncoder: GPUCommandEncoder, descriptor?: GPUComputePassDescriptor) => GPUComputePassEncoder;

@@ -310,6 +310,10 @@ export class Engine {
 		await this.updateNodes(this.nodes);
 	}
 
+	public async updatePointerPosition(newPointerPosition: { x: number; y: number }) {
+		this.call('updatePointerPosition', [newPointerPosition]);
+	}
+
 	public saveImage(options: {
 		resolution: {
 			width: number;

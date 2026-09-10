@@ -75,6 +75,9 @@ export class Renderer {
 	private enableFloat32Filtering = false;
 	private evaledNodeParams: Map<GsNode['id'], Record<string, any>> = new Map();
 	private latestTimestamp: number = performance.now();
+	private pointerPosition: { x: number; y: number } = { x: -99999, y: -99999 };
+	private pointerPositionPrev: { x: number; y: number } = { x: -99999, y: -99999 };
+	private lastPointerUpdateTimestamp = 0;
 	private histogramGpuContext: GPUCanvasContext;
 	private waveformGpuContext: GPUCanvasContext;
 	private gpuHistogram: GpuHistogram;
@@ -402,6 +405,11 @@ export class Renderer {
 		effectInstance.render({
 			time: performance.now() / 1000,
 			timeDelta: 0,
+			pointerPosition: this.pointerPosition,
+			pointerVector: {
+				x: this.pointerPositionPrev.x === -99999 ? 0 : this.pointerPosition.x - this.pointerPositionPrev.x,
+				y: this.pointerPositionPrev.y === -99999 ? 0 : this.pointerPosition.y - this.pointerPositionPrev.y,
+			},
 			params: paramsWithOuts,
 			commandEncoder: commandEncoder,
 			createPassEncoder: (commandEncoder, descriptor) => {
@@ -571,6 +579,11 @@ export class Renderer {
 				this.assetTextures.set(asset.id, tex);
 			}
 		}
+	}
+
+	public updatePointerPosition(newPointerPosition: { x: number; y: number }) {
+		this.pointerPosition = newPointerPosition;
+		this.lastPointerUpdateTimestamp = performance.now();
 	}
 
 	private fpsLimit: number | null;
