@@ -1,6 +1,5 @@
 import { createTextureFromSource, makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
 import * as AiScript from '@syuilo/aiscript';
-import { deepClone } from '@glitch/shared/utility/deep-clone.ts';
 import { evalAutomationValue, genEmptyValue } from '@glitch/shared/utility/misc.ts';
 import { fxDefinitions } from '@glitch/shared/fx-definitions.ts';
 import defaultVertexShaderCode from './vertex.wgsl?raw';
@@ -494,6 +493,7 @@ export class Renderer {
 		}
 	}
 
+	// (非workerで)呼び出すときはnewNodesを独立した参照にすること！ パフォーマンス上の理由でこちら側ではdeepCloneしません
 	public updateNodes(newNodes: GsNode[]) {
 		const oldFxNodes = getFxNodes(this.nodes);
 		const newFxNodes = getFxNodes(newNodes);
@@ -524,20 +524,23 @@ export class Renderer {
 			}
 		}
 
-		this.nodes = deepClone(newNodes);
+		this.nodes = newNodes;
 	}
 
+	// (非workerで)呼び出すときはnewAssetsを独立した参照にすること！ パフォーマンス上の理由でこちら側ではdeepCloneしません
 	public updateAssets(newAssets: Asset[]) {
-		this.assets = deepClone(newAssets);
+		this.assets = newAssets;
 		this.bakeAssets();
 	}
 
+	// (非workerで)呼び出すときはnewMacrosを独立した参照にすること！ パフォーマンス上の理由でこちら側ではdeepCloneしません
 	public updateMacros(newMacros: Macro[]) {
-		this.macros = deepClone(newMacros);
+		this.macros = newMacros;
 	}
 
+	// (非workerで)呼び出すときはnewAutomationsを独立した参照にすること！ パフォーマンス上の理由でこちら側ではdeepCloneしません
 	public updateAutomations(newAutomations: GsAutomation[]) {
-		this.automations = deepClone(newAutomations);
+		this.automations = newAutomations;
 	}
 
 	public updateVideoFrame(nodeId: GsFxNode['id'], videoFrame: VideoFrame | null) {
