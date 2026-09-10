@@ -177,9 +177,10 @@ export class Engine {
 					const { stats } = event.data;
 					this.fpsDisplay.value = stats.fpsAverage;
 					if (this.enableStats) {
-						this.gpuAverageDisplayFast.value = stats.gpuAverageFast;
-						this.gpuAverageDisplayMedium.value = stats.gpuAverageMedium;
-						this.gpuAverageDisplaySlow.value = stats.gpuAverageSlow;
+						// テクスチャのコピーとか全ての処理が計測できているわけではなく、実際よりも少し小さい値になっていると思われるので、少し盛っておく
+						this.gpuAverageDisplayFast.value = stats.gpuAverageFast * 1.2;
+						this.gpuAverageDisplayMedium.value = stats.gpuAverageMedium * 1.2;
+						this.gpuAverageDisplaySlow.value = stats.gpuAverageSlow * 1.2;
 					}
 					break;
 				}
