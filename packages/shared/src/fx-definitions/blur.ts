@@ -6,11 +6,11 @@ export default defineEffect({
 	category: 'effect',
 	paramDefs: {
 		input: { type: 'node', label: 'Input', primary: true },
-		amount: { type: 'node', label: 'Amount' },
+		amount: { type: 'scalarField', label: 'Amount' },
 		samples: { type: 'range', label: 'Samples', min: 4, max: 256, step: 1 },
 	},
 	getDefaultParams: () => ({
-		amount: { type: 'literal', value: null },
+		amount: { type: 'literal', value: { type: 'const', value: 0.25 } },
 		samples: { type: 'literal', value: 16 },
 	}),
 });

@@ -10,6 +10,7 @@ import { NonNegativeRollingAverage } from './NonNegativeRollingAverage.ts';
 import { GpuHistogram } from './GpuHistogram.ts';
 import { GpuWaveform } from './GpuWaveform.ts';
 import { GpuMemoryTracker } from './GpuMemoryTracker.ts';
+import { float32ToFloat16Bits } from './float32ToFloat16Bits.ts';
 import type { Asset, FxParamValue, Macro, GsAutomation, GsFxNode, GsNode, GsGroupNode } from '@glitch/shared/types.ts';
 import type { EffectInstance } from './fx-implementation.ts';
 
@@ -56,6 +57,7 @@ export class Renderer {
 	private resolution: { width: number; height: number; };
 	private defaultVertexShaderModule: GPUShaderModule;
 	private fallbackTexture: GPUTexture;
+	private fallbackScalarFieldTexture: GPUTexture;
 	private enableStats = true;
 	private nodes: GsNode[] = [];
 	private assets: Asset[] = [];
@@ -64,6 +66,7 @@ export class Renderer {
 	private assetTextures: Map<string, GPUTexture> = new Map();
 	private videoFrames: Map<GsFxNode['id'], VideoFrame> = new Map();
 	private effectInstances: Map<GsFxNode['id'], EffectInstance | null> = new Map();
+	private effectScalarFieldTextures: Map<GsFxNode['id'], Record<string, GPUTexture>> = new Map();
 	private effectOuts: Map<GsFxNode['id'], {
 		texture: GPUTexture;
 		textureView: GPUTextureView;
@@ -147,6 +150,23 @@ export class Renderer {
 			format: navigator.gpu.getPreferredCanvasFormat(),
 			usage: GPUTextureUsage.TEXTURE_BINDING,
 		});
+
+		this.fallbackScalarFieldTexture = this.gpuDevice.createTexture({
+			size: [1, 1],
+			format: this.enableFloat32Filtering ? 'r32float' : 'r16float',
+			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_DST,
+		});
+
+		const pixelData = this.enableFloat32Filtering
+			? new Float32Array([0])
+			: new Uint16Array([float32ToFloat16Bits(0)]);
+
+		this.gpuDevice.queue.writeTexture(
+			{ texture: this.fallbackScalarFieldTexture },
+			pixelData,
+			{ bytesPerRow: pixelData.byteLength, rowsPerImage: 1 },
+			{ width: 1, height: 1 },
+		);
 
 		this.defaultVertexShaderModule = this.gpuDevice.createShaderModule({
 			code: defaultVertexShaderCode,
@@ -337,11 +357,55 @@ export class Renderer {
 							key += `${k}=${targetNodeCacheKey};`;
 						}
 					}
+				} else if (paramDefs[k].type === 'scalarField') {
+					if (v.type === 'const') {
+						// do nothing
+					} else if (v.type === 'node') {
+						const targetNode = this.findNode(v.value);
+						if (targetNode) {
+							const targetNodeCacheKey = this.evalCacheKey(targetNode, [...visited, node.id]);
+							if (targetNodeCacheKey == null) return null;
+							key += `${k}=${targetNodeCacheKey};`;
+						}
+					}
 				}
 			}
 		}
 
 		return key;
+	}
+
+	private resolveParams(node: GsFxNode, params: Record<string, any>): Record<string, any> {
+		const resolvedParams = {};
+		for (const [k, v] of Object.entries(params)) {
+			const typeDef = fxDefinitions[node.fx].paramDefs[k].type;
+			if (typeDef === 'node') {
+				resolvedParams[k] = v == null ? this.fallbackTexture : this.effectOuts.get(getActualOutputNodeId(this.findNode(v)!)!)!.texture;
+			} else if (typeDef === 'image') {
+				resolvedParams[k] = this.assetTextures.get(v)!;
+			} else if (typeDef === 'video') {
+				resolvedParams[k] = this.videoFrames.get(node.id)!;
+			} else if (typeDef === 'scalarField') {
+				if (v.type === 'const') {
+					resolvedParams[k] = this.effectScalarFieldTextures.get(node.id)![k];
+					const pixelData = this.enableFloat32Filtering
+						? new Float32Array([v.value ?? 0])
+						: new Uint16Array([float32ToFloat16Bits(v.value ?? 0)]);
+
+					this.gpuDevice.queue.writeTexture(
+						{ texture: resolvedParams[k] },
+						pixelData,
+						{ bytesPerRow: pixelData.byteLength, rowsPerImage: 1 },
+						{ width: 1, height: 1 },
+					);
+				} else if (v.type === 'node') {
+					resolvedParams[k] = v.value == null ? this.fallbackScalarFieldTexture : this.effectOuts.get(getActualOutputNodeId(this.findNode(v.value)!)!)!.texture;
+				}
+			} else {
+				resolvedParams[k] = v;
+			}
+		}
+		return resolvedParams;
 	}
 
 	private renderNode(node: GsNode, commandEncoder: GPUCommandEncoder, context: { visited: Set<GsNode['id']>; rendered: Set<GsNode['id']>; }): void {
@@ -396,20 +460,30 @@ export class Renderer {
 		//		}
 		//	}
 		//}
+		for (const [k, _] of Object.entries(fxDefinitions[node.fx].paramDefs).filter(([, v]) => v.type === 'scalarField')) {
+			const v = params[k];
+			if (v == null) {
+				continue;
+			}
+			if (v.type === 'node') {
+				const targetNode = this.findNode(v.value);
+				if (targetNode) {
+					this.renderNode(targetNode, commandEncoder, {
+						visited: new Set([...context.visited, node.id]),
+						rendered: context.rendered,
+					});
+				}
+			}
+		}
 
-		const paramsWithOuts = Object.fromEntries(Object.entries(params).map(([k, v]) =>
-			[k,
-				fxDefinitions[node.fx].paramDefs[k].type === 'node' ? params[k] == null ? this.fallbackTexture : this.effectOuts.get(getActualOutputNodeId(this.findNode(params[k])!)!)!.texture :
-				fxDefinitions[node.fx].paramDefs[k].type === 'image' ? this.assetTextures.get(params[k])! :
-				fxDefinitions[node.fx].paramDefs[k].type === 'video' ? this.videoFrames.get(node.id)! :
-				v]));
+		const resolvedParams = this.resolveParams(node, params);
 
 		let effectInstance = this.effectInstances.get(node.id);
 		if (effectInstance == null) {
 			effectInstance = effect.init({
 				resolution: { width: this.resolution.width, height: this.resolution.height },
 				wgpu: { device: this.gpuDevice, context: this.gpuContext, defaultVertexShaderModule: this.defaultVertexShaderModule, enableFloat32Filtering: this.enableFloat32Filtering },
-				params: paramsWithOuts,
+				params: resolvedParams,
 				fallbackTexture: this.fallbackTexture,
 			});
 			this.effectInstances.set(node.id, effectInstance);
@@ -433,7 +507,7 @@ export class Renderer {
 				x: this.pointerPositionPrev.x === -99999 ? 0 : this.pointerPosition.x - this.pointerPositionPrev.x,
 				y: this.pointerPositionPrev.y === -99999 ? 0 : this.pointerPosition.y - this.pointerPositionPrev.y,
 			},
-			params: paramsWithOuts,
+			params: resolvedParams,
 			previousFrameTexture,
 			previousFrameTextureView,
 			commandEncoder: commandEncoder,
@@ -575,6 +649,19 @@ export class Renderer {
 				previousFrameTexture: previousFrameTexture,
 				previousFrameTextureView: previousFrameTextureView,
 			});
+			const paramDefs = fxDefinitions[node.fx].paramDefs;
+			const scalarFieldTextures: Record<string, GPUTexture> = {};
+			for (const k in paramDefs) {
+				if (paramDefs[k].type === 'scalarField') {
+					const tex = this.gpuDevice.createTexture({
+						size: [1, 1],
+						format: this.enableFloat32Filtering ? 'r32float' : 'r16float',
+						usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_DST,
+					});
+					scalarFieldTextures[k] = tex;
+				}
+			}
+			this.effectScalarFieldTextures.set(node.id, scalarFieldTextures);
 		}
 
 		for (const node of removedNodes) {
@@ -590,6 +677,13 @@ export class Renderer {
 			if (instance) {
 				instance.dispose();
 				this.effectInstances.delete(node.id);
+			}
+			const scalarFieldTextures = this.effectScalarFieldTextures.get(node.id);
+			if (scalarFieldTextures) {
+				for (const k in scalarFieldTextures) {
+					scalarFieldTextures[k].destroy();
+				}
+				this.effectScalarFieldTextures.delete(node.id);
 			}
 		}
 

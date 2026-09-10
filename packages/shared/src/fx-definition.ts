@@ -1,4 +1,4 @@
-type NumberOptionSchema = {
+export type NumberOptionSchema = {
 	type: 'number';
 	label: string;
 	min?: number;
@@ -6,17 +6,17 @@ type NumberOptionSchema = {
 	step?: number;
 };
 
-type BooleanOptionSchema = {
+export type BooleanOptionSchema = {
 	type: 'bool';
 	label: string;
 };
 
-type ColorOptionSchema = {
+export type ColorOptionSchema = {
 	type: 'color';
 	label: string;
 };
 
-type VectorOptionSchema = {
+export type VectorOptionSchema = {
 	type: 'vector';
 	label: string;
 	min?: number;
@@ -24,22 +24,22 @@ type VectorOptionSchema = {
 	step?: number;
 };
 
-type SignalOptionSchema = {
+export type SignalOptionSchema = {
 	type: 'signal';
 	label: string;
 };
 
-type BlendModeOptionSchema = {
+export type BlendModeOptionSchema = {
 	type: 'blendMode';
 	label: string;
 };
 
-type SeedOptionSchema = {
+export type SeedOptionSchema = {
 	type: 'seed';
 	label: string;
 };
 
-type EnumOptionSchema = {
+export type EnumOptionSchema = {
 	type: 'enum';
 	label: string;
 	options: readonly {
@@ -48,7 +48,7 @@ type EnumOptionSchema = {
 	}[];
 };
 
-type RangeOptionSchema = {
+export type RangeOptionSchema = {
 	type: 'range';
 	label: string;
 	min: number;
@@ -56,23 +56,42 @@ type RangeOptionSchema = {
 	step?: number;
 };
 
-type ImageOptionSchema = {
+export type ImageOptionSchema = {
 	type: 'image';
 	label: string;
 };
 
-type VideoOptionSchema = {
+export type VideoOptionSchema = {
 	type: 'video';
 	label: string;
 };
 
-type NodeOptionSchema = {
+export type NodeOptionSchema = {
 	type: 'node';
 	label: string;
 	primary?: boolean;
 };
 
-export type EffectOptionsSchema = Record<string, NumberOptionSchema | BooleanOptionSchema | ColorOptionSchema | VectorOptionSchema | SignalOptionSchema | BlendModeOptionSchema | SeedOptionSchema | EnumOptionSchema | RangeOptionSchema | ImageOptionSchema | VideoOptionSchema | NodeOptionSchema>;
+export type ScalarFieldOptionSchema = {
+	type: 'scalarField';
+	label: string;
+};
+
+export type EffectOptionsSchema = Record<string,
+	NumberOptionSchema |
+	BooleanOptionSchema |
+	ColorOptionSchema |
+	VectorOptionSchema |
+	SignalOptionSchema |
+	BlendModeOptionSchema |
+	SeedOptionSchema |
+	EnumOptionSchema |
+	RangeOptionSchema |
+	ImageOptionSchema |
+	VideoOptionSchema |
+	NodeOptionSchema |
+	ScalarFieldOptionSchema
+>;
 
 // A type parameter distributes the conditional over unions of option schemas.
 type EffectOptionValue<T extends EffectOptionsSchema[string]> =
@@ -85,9 +104,10 @@ type EffectOptionValue<T extends EffectOptionsSchema[string]> =
 	T extends SeedOptionSchema ? number :
 	T extends EnumOptionSchema ? T['options'][number]['value'] :
 	T extends RangeOptionSchema ? number :
-	T extends ImageOptionSchema ? GPUTexture | null :
-	T extends VideoOptionSchema ? VideoFrame | null :
-	T extends NodeOptionSchema ? GPUTexture | null :
+	T extends ImageOptionSchema ? null :
+	T extends VideoOptionSchema ? null :
+	T extends NodeOptionSchema ? null :
+	T extends ScalarFieldOptionSchema ? { type: 'node', value: string | null } | { type: 'const', value: number } :
 	never;
 
 export type GetEffectOptionsSchemaValues<T extends EffectOptionsSchema> = {

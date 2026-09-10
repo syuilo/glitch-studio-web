@@ -140,6 +140,50 @@
 	<div v-else-if="type === 'nodes'">
 		<XNodesInput :modelValue="value" :node="node" :group="group" :name="name" @update:modelValue="v => changeValue(v)"/>
 	</div>
+	<div v-else-if="type === 'scalarField'" style="display: flex;">
+		<div ref="portEl">・</div>
+		<GsSelect
+			small
+			:modelValue="value.type"
+			:items="[
+				{ label: 'Const', value: 'const' },
+				{ label: 'Node', value: 'node' },
+			]"
+			@update:modelValue="v => changeValue({ type: v, value: null })"
+		/>
+		<GsSelect
+			v-if="value.type === 'node'"
+			small
+			:modelValue="value.value"
+			:items="[
+				{ label: i18n.ts.None, value: null },
+				...(group && group.nodes.length > 0 ? [{
+					type: 'group' as const,
+					label: 'In group',
+					items: group.nodes.filter(x => x.id !== props.node.id).map(node => ({
+						label: `${node.type === 'fx' ? fxDefinitions[node.fx].displayName : node.name} [${node.id}]`,
+						value: node.id,
+					})),
+				}] : []),
+				...(appContext.state.nodes.value.length > 0 ? [{
+					type: 'group' as const,
+					label: 'Nodes',
+					items: appContext.state.nodes.value.filter(x => x.id !== props.node.id).map(node => ({
+						label: `${node.type === 'fx' ? fxDefinitions[node.fx].displayName : node.name} [${node.id}]`,
+						value: node.id,
+					})),
+				}] : []),
+			]"
+			@update:modelValue="v => changeValue({ type: 'node', value: v })"
+		/>
+		<GsInput
+			v-if="value.type === 'const'"
+			small
+			type="number"
+			:modelValue="value.value"
+			@update:modelValue="v => changeValue({ type: 'const', value: v })"
+		/>
+	</div>
 	<div v-else-if="type === 'image'">
 		<GsSelect
 			small
