@@ -66,6 +66,7 @@ export default implementEffect<typeof definition>({
 					aspectRatio: resolution.width / resolution.height,
 					timeDelta: ctx.timeDelta,
 					radius: ctx.params.radius,
+					strength: ctx.params.strength,
 					halfLife: Math.max(1, ctx.params.halfLife),
 					pointerPosition: [ctx.pointerPosition.x, ctx.pointerPosition.y],
 					pointerVector: [ctx.pointerVector.x, ctx.pointerVector.y],
