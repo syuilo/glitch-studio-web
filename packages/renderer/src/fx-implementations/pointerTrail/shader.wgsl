@@ -1,6 +1,8 @@
 struct Uniforms {
 	aspectRatio: f32,
 	timeDelta: f32,
+	radius: f32,
+	halfLife: f32,
 	pointerPosition: vec2f,
 	pointerVector: vec2f,
 };
@@ -26,7 +28,7 @@ fn getPointerForceVector(uv: vec2f) -> vec2f {
 	}
 
 	var v = vec2f(0.0);
-	let radius = 0.3;
+	let radius = uniforms.radius;
 
 	let pos = scaleUvToCoverGivenAspectRatio(uniforms.pointerPosition, uniforms.aspectRatio);
 	let d = distance(uv, pos);
@@ -51,7 +53,7 @@ fn fs(fragData: FragmentIn) -> @location(0) vec2f {
 
 	let uv = scaleUvToCoverGivenAspectRatio(fragData.uv, uniforms.aspectRatio);
 	var before = textureLoad(sourceTexture, coord, 0).rg;
-	before *= exp2(-uniforms.timeDelta / 300.0);
+	before *= exp2(-uniforms.timeDelta / uniforms.halfLife);
 	let v = getPointerForceVector(uv) * 0.3;
 	return before + v;
 }
