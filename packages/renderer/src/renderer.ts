@@ -556,6 +556,10 @@ export class Renderer {
 
 		this.timeDelta = args.time - this.latestTimestamp;
 
+		if (this.lastPointerUpdateTimestamp + 30 < performance.now()) {
+			this.pointerPosition = { x: -99999, y: -99999 };
+		}
+
 		this.evalNodeParams(this.nodes, {
 			TIME: args.time / 1000, // ms to seconds
 		});
