@@ -493,6 +493,7 @@ const updateMacroTypeOptionCommandDef = defineCommand<{ groupId?: GsGroupNode['i
 	},
 });
 
+// TODO: 別のtypeの設定値を失わない(内部的には持ったまま)ようにする
 const changeParamValueTypeCommandDef = defineCommand<{ nodeId: GsNode['id']; param: string; type: 'literal' | 'expression' | 'automation' | 'node' }>({
 	label: 'Change param value type',
 	create: (payload) => {
