@@ -9,6 +9,8 @@ import histogram from './fx-definitions/histogram.ts';
 import image from './fx-definitions/image.ts';
 import liquidMetal from './fx-definitions/liquidMetal.ts';
 import multiply from './fx-definitions/multiply.ts';
+import opticalFlow from './fx-definitions/opticalFlow.ts';
+import vectorDisplacement from './fx-definitions/vectorDisplacement.ts';
 import pixelSort from './fx-definitions/pixelSort.ts';
 import quadtreeFilter from './fx-definitions/quadtreeFilter.ts';
 import rainDropsOnWindow1 from './fx-definitions/rainDropsOnWindow1.ts';
@@ -38,6 +40,8 @@ const _fxDefinitions = {
 	image,
 	liquidMetal,
 	multiply,
+	opticalFlow,
+	vectorDisplacement,
 	pixelSort,
 	quadtreeFilter,
 	rainDropsOnWindow1,

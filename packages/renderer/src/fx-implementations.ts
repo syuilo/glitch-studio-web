@@ -9,6 +9,8 @@ import histogram from './fx-implementations/histogram/main.ts';
 import image from './fx-implementations/image/main.ts';
 import liquidMetal from './fx-implementations/liquidMetal/main.ts';
 import multiply from './fx-implementations/multiply/main.ts';
+import opticalFlow from './fx-implementations/opticalFlow/main.ts';
+import vectorDisplacement from './fx-implementations/vectorDisplacement/main.ts';
 import pixelSort from './fx-implementations/pixelSort/main.ts';
 import quadtreeFilter from './fx-implementations/quadtreeFilter/main.ts';
 import rainDropsOnWindow1 from './fx-implementations/rainDropsOnWindow1/main.ts';
@@ -37,6 +39,8 @@ const _fxImplementations = {
 	image,
 	liquidMetal,
 	multiply,
+	opticalFlow,
+	vectorDisplacement,
 	pixelSort,
 	quadtreeFilter,
 	rainDropsOnWindow1,
