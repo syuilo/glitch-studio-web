@@ -7,6 +7,10 @@ import type { Asset, GsAutomation, GsFxNode, GsNode, Macro } from '@glitch/share
 import type { Renderer } from '@glitch/renderer/renderer.ts';
 import * as ui from '@/ui.ts';
 
+type RendererMethods = {
+	[K in keyof Renderer as Renderer[K] extends (...args: never[]) => unknown ? K : never]: Renderer[K];
+};
+
 function getFxNodes(nodes: GsNode[]): GsFxNode[] {
 	return nodes.flatMap(node => node.type === 'group' ? getFxNodes(node.nodes) : [node]);
 }
@@ -79,12 +83,12 @@ export class Engine {
 		this.waveformCanvas.style.height = '100%';
 	}
 
-	private call<FN extends keyof Renderer>(fn: FN, args: Parameters<Renderer[FN]> = [] as any, options?: StructuredSerializeOptions | Transferable[]): void {
+	private call<FN extends keyof RendererMethods>(fn: FN, args: Parameters<RendererMethods[FN]>, options?: StructuredSerializeOptions | Transferable[]): void {
 		if (!this.isReady.value) {
 			throw new Error('Renderer is not initialized');
 		}
 		if (this.rendererWorker != null) {
-			this.rendererWorker.postMessage({ type: 'call', fn, args }, options);
+			this.rendererWorker.postMessage({ type: 'call', fn, args }, Array.isArray(options) ? { transfer: options } : options);
 		//} else if (this.renderer != null) {
 		//	this.renderer[fn](...args);
 		} else {
