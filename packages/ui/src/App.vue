@@ -9,6 +9,7 @@
 
 <div :class="$style.root">
 	<div :class="$style.header">
+		<button class="_button" @click="exportToWebp">export</button>
 		<button class="_button" @click="showAbout">about</button>
 	</div>
 	<div :class="$style.body">
@@ -94,6 +95,19 @@ async function importPreset() {
 		*/
 }
 
+function exportToWebp() {
+	engine.canvas.toBlob((blob) => {
+		const url = URL.createObjectURL(blob);
+
+		const link = window.document.createElement('a');
+		link.href = url;
+		link.download = `$${Date.now()}.webp`;
+		link.click();
+
+		URL.revokeObjectURL(url);
+	}, 'image/webp', 1);
+}
+
 function showAbout() {
 	const { dispose } = ui.popup(GsAboutDialog, {}, {
 		closed: () => dispose(),
@@ -170,6 +184,7 @@ onMounted(() => {
 	height: 32px;
 	line-height: 32px;
 	background: var(--THEME-workspacePanelBody);
+	gap: 16px;
 }
 
 .body {
