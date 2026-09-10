@@ -10,10 +10,7 @@
 		"strictFunctionTypes": true,
 		"noImplicitReturns": true,
 		"verbatimModuleSyntax": true,
-		"rootDir": "..",
-		"paths": {
-			"@/*": ["./*"]
-		}
+		"rootDir": ".."
 	},
 	"include": [
 		"@types/**/*.ts",
