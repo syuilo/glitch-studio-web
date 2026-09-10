@@ -4,6 +4,7 @@ import channelShift from './fx-definitions/channelShift.ts';
 import chromaticAberration from './fx-definitions/chromaticAberration.ts';
 import fill from './fx-definitions/fill.ts';
 import gradient from './fx-definitions/gradient.ts';
+import histogram from './fx-definitions/histogram.ts';
 import image from './fx-definitions/image.ts';
 import liquidMetal from './fx-definitions/liquidMetal.ts';
 import multiply from './fx-definitions/multiply.ts';
@@ -31,6 +32,7 @@ const _fxDefinitions = {
 	chromaticAberration,
 	fill,
 	gradient,
+	histogram,
 	image,
 	liquidMetal,
 	multiply,

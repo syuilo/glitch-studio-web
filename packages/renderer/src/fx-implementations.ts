@@ -4,6 +4,7 @@ import channelShift from './fx-implementations/channelShift/main.ts';
 import chromaticAberration from './fx-implementations/chromaticAberration/main.ts';
 import fill from './fx-implementations/fill/main.ts';
 import gradient from './fx-implementations/gradient/main.ts';
+import histogram from './fx-implementations/histogram/main.ts';
 import image from './fx-implementations/image/main.ts';
 import liquidMetal from './fx-implementations/liquidMetal/main.ts';
 import multiply from './fx-implementations/multiply/main.ts';
@@ -30,6 +31,7 @@ const _fxImplementations = {
 	chromaticAberration,
 	fill,
 	gradient,
+	histogram,
 	image,
 	liquidMetal,
 	multiply,
