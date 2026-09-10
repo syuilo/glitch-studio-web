@@ -6,6 +6,7 @@ export type EffectInstance<Options extends EffectOptionsSchema = any> = {
 		timeDelta: number;
 		pointerPosition: { x: number; y: number; };
 		pointerVector: { x: number; y: number; };
+		previousFrameTexture?: GPUTexture;
 		commandEncoder: GPUCommandEncoder;
 		createPassEncoder: (commandEncoder: GPUCommandEncoder, descriptor?: GPURenderPassDescriptor) => GPURenderPassEncoder;
 		createComputePassEncoder: (commandEncoder: GPUCommandEncoder, descriptor?: GPUComputePassDescriptor) => GPUComputePassEncoder;
@@ -16,6 +17,7 @@ export type EffectInstance<Options extends EffectOptionsSchema = any> = {
 
 export type EffectImplementation<Definition extends Pick<EffectDefinition, 'paramDefs'> = EffectDefinition, Options extends EffectOptionsSchema = Definition['paramDefs']> = {
 	disableCache?: boolean;
+	needsPreviousFrame?: boolean;
 	getOut: (args: {
 		resolution: { width: number; height: number; },
 		wgpu: {

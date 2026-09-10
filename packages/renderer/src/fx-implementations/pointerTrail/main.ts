@@ -5,6 +5,7 @@ import type definition from '@glitch/shared/fx-definitions/pointerTrail.ts';
 
 export default implementEffect<typeof definition>({
 	disableCache: true,
+	needsPreviousFrame: true,
 	getOut: ({ wgpu, resolution }) => {
 		const out = wgpu.device.createTexture({
 			size: resolution,
@@ -43,15 +44,24 @@ export default implementEffect<typeof definition>({
 			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
 		});
 
-		const bindGroup = wgpu.device.createBindGroup({
-			layout: pipeline.getBindGroupLayout(0),
-			entries: [
-				{ binding: 1, resource: { buffer: uniformBuffer } },
-			],
-		});
+		const bindGroups = new Map<GPUTexture, GPUBindGroup>();
 
 		return {
 			render: (ctx) => {
+				const previous = ctx.previousFrameTexture!;
+				let bindGroup = bindGroups.get(previous);
+
+				if (!bindGroup) {
+					bindGroup = wgpu.device.createBindGroup({
+						layout: pipeline.getBindGroupLayout(0),
+						entries: [
+							{ binding: 1, resource: { buffer: uniformBuffer } },
+							{ binding: 2, resource: previous.createView() },
+						],
+					});
+					bindGroups.set(previous, bindGroup);
+				}
+
 				uniformValues.set({
 					aspectRatio: resolution.width / resolution.height,
 					timeDelta: ctx.timeDelta,

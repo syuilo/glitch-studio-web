@@ -64,7 +64,12 @@ export class Renderer {
 	private assetTextures: Map<string, GPUTexture> = new Map();
 	private videoFrames: Map<GsFxNode['id'], VideoFrame> = new Map();
 	private effectInstances: Map<GsFxNode['id'], EffectInstance | null> = new Map();
-	private effectOuts: Map<GsFxNode['id'], GPUTexture> = new Map();
+	private effectOuts: Map<GsFxNode['id'], {
+		texture: GPUTexture;
+		textureView: GPUTextureView;
+		previousFrameTexture?: GPUTexture;
+		previousFrameTextureView?: GPUTextureView;
+	}> = new Map();
 	private effectCacheKeys: Map<GsFxNode['id'], string> = new Map();
 	private timingHelper: TimingHelper;
 	private finalRenderPipeline: GPURenderPipeline;
@@ -387,7 +392,7 @@ export class Renderer {
 
 		const paramsWithOuts = Object.fromEntries(Object.entries(params).map(([k, v]) =>
 			[k,
-				fxDefinitions[node.fx].paramDefs[k].type === 'node' ? params[k] == null ? this.fallbackTexture : this.effectOuts.get(getActualOutputNodeId(this.findNode(params[k])!)!)! :
+				fxDefinitions[node.fx].paramDefs[k].type === 'node' ? params[k] == null ? this.fallbackTexture : this.effectOuts.get(getActualOutputNodeId(this.findNode(params[k])!)!)!.texture :
 				fxDefinitions[node.fx].paramDefs[k].type === 'image' ? this.assetTextures.get(params[k])! :
 				fxDefinitions[node.fx].paramDefs[k].type === 'video' ? this.videoFrames.get(node.id)! :
 				v]));
@@ -403,6 +408,14 @@ export class Renderer {
 			this.effectInstances.set(node.id, effectInstance);
 		}
 
+		const effectOut = this.effectOuts.get(node.id)!;
+
+		const outputTexture = effect.needsPreviousFrame ? effectOut.previousFrameTexture : effectOut.texture;
+		const outputTextureView = effect.needsPreviousFrame ? effectOut.previousFrameTextureView : effectOut.textureView;
+
+		const previousFrameTexture = effectOut.previousFrameTexture;
+		const previousFrameTextureView = effectOut.previousFrameTextureView;
+
 		effectInstance.render({
 			time: performance.now() / 1000,
 			timeDelta: this.timeDelta,
@@ -412,11 +425,12 @@ export class Renderer {
 				y: this.pointerPositionPrev.y === -99999 ? 0 : this.pointerPosition.y - this.pointerPositionPrev.y,
 			},
 			params: paramsWithOuts,
+			previousFrameTexture,
 			commandEncoder: commandEncoder,
 			createPassEncoder: (commandEncoder, descriptor) => {
 				const _descriptor = descriptor ?? {
 					colorAttachments: [{
-						view: this.effectOuts.get(node.id)!.createView(), // TODO: cache view
+						view: outputTextureView,
 						clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
 						loadOp: 'clear',
 						storeOp: 'store',
@@ -428,6 +442,13 @@ export class Renderer {
 				return this.enableStats ? this.timingHelper.beginComputePass(commandEncoder, descriptor) : commandEncoder.beginComputePass(descriptor);
 			},
 		});
+
+		if (effect.needsPreviousFrame) {
+			effectOut.previousFrameTexture = outputTexture;
+			effectOut.previousFrameTextureView = outputTextureView;
+			effectOut.texture = previousFrameTexture!;
+			effectOut.textureView = previousFrameTextureView!;
+		}
 
 		return node.id;
 	}
@@ -457,8 +478,8 @@ export class Renderer {
 		if (actualOutputNodeId == null) return;
 		const out = this.effectOuts.get(actualOutputNodeId);
 		if (out == null) return;
-		if (this.finalRenderBindGroup == null || this.finalRenderInputTexture !== out) {
-			this.finalRenderInputTexture = out;
+		if (this.finalRenderBindGroup == null || this.finalRenderInputTexture !== out.texture) {
+			this.finalRenderInputTexture = out.texture;
 			this.finalRenderBindGroup = this.gpuDevice.createBindGroup({
 				layout: this.finalRenderPipeline.getBindGroupLayout(0),
 				entries: [
@@ -518,17 +539,35 @@ export class Renderer {
 
 		for (const node of addedNodes) {
 			const effect = fxImplementations[node.fx];
-			const out = effect.getOut({
+			const outTexture = effect.getOut({
 				wgpu: { device: this.gpuDevice, enableFloat32Filtering: this.enableFloat32Filtering },
 				resolution: { width: this.resolution.width, height: this.resolution.height },
 			});
-			this.effectOuts.set(node.id, out);
+			const outTextureView = outTexture.createView();
+			let previousFrameTexture;
+			let previousFrameTextureView;
+			if (effect.needsPreviousFrame) {
+				previousFrameTexture = effect.getOut({
+					wgpu: { device: this.gpuDevice, enableFloat32Filtering: this.enableFloat32Filtering },
+					resolution: { width: this.resolution.width, height: this.resolution.height },
+				});
+				previousFrameTextureView = previousFrameTexture.createView();
+			}
+			this.effectOuts.set(node.id, {
+				texture: outTexture,
+				textureView: outTextureView,
+				previousFrameTexture: previousFrameTexture,
+				previousFrameTextureView: previousFrameTextureView,
+			});
 		}
 
 		for (const node of removedNodes) {
 			const out = this.effectOuts.get(node.id);
 			if (out) {
-				out.destroy();
+				out.texture.destroy();
+				if (out.previousFrameTexture) {
+					out.previousFrameTexture.destroy();
+				}
 				this.effectOuts.delete(node.id);
 			}
 			const instance = this.effectInstances.get(node.id);
@@ -641,7 +680,10 @@ export class Renderer {
 		this.effectInstances.clear();
 
 		for (const out of this.effectOuts.values()) {
-			out.destroy();
+			out.texture.destroy();
+			if (out.previousFrameTexture) {
+				out.previousFrameTexture.destroy();
+			}
 		}
 		this.effectOuts.clear();
 
@@ -664,7 +706,10 @@ export class Renderer {
 		this.effectInstances.clear();
 
 		for (const out of this.effectOuts.values()) {
-			out.destroy();
+			out.texture.destroy();
+			if (out.previousFrameTexture) {
+				out.previousFrameTexture.destroy();
+			}
 		}
 		this.effectOuts.clear();
 
