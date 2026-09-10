@@ -4,6 +4,7 @@ export type NumberOptionSchema = {
 	min?: number;
 	max?: number;
 	step?: number;
+	canNode?: boolean;
 };
 
 export type BooleanOptionSchema = {
@@ -22,6 +23,7 @@ export type VectorOptionSchema = {
 	min?: number;
 	max?: number;
 	step?: number;
+	canNode?: boolean;
 };
 
 export type SignalOptionSchema = {
@@ -54,6 +56,7 @@ export type RangeOptionSchema = {
 	min: number;
 	max: number;
 	step?: number;
+	canNode?: boolean;
 };
 
 export type ImageOptionSchema = {
@@ -72,11 +75,6 @@ export type NodeOptionSchema = {
 	primary?: boolean;
 };
 
-export type ScalarFieldOptionSchema = {
-	type: 'scalarField';
-	label: string;
-};
-
 export type EffectOptionsSchema = Record<string,
 	NumberOptionSchema |
 	BooleanOptionSchema |
@@ -89,8 +87,7 @@ export type EffectOptionsSchema = Record<string,
 	RangeOptionSchema |
 	ImageOptionSchema |
 	VideoOptionSchema |
-	NodeOptionSchema |
-	ScalarFieldOptionSchema
+	NodeOptionSchema
 >;
 
 // A type parameter distributes the conditional over unions of option schemas.
@@ -107,7 +104,6 @@ type EffectOptionValue<T extends EffectOptionsSchema[string]> =
 	T extends ImageOptionSchema ? null :
 	T extends VideoOptionSchema ? null :
 	T extends NodeOptionSchema ? null :
-	T extends ScalarFieldOptionSchema ? { type: 'node', value: string | null } | { type: 'const', value: number } :
 	never;
 
 export type GetEffectOptionsSchemaValues<T extends EffectOptionsSchema> = {
@@ -116,8 +112,9 @@ export type GetEffectOptionsSchemaValues<T extends EffectOptionsSchema> = {
 
 type EffectOptionsSchemaDefaultValue<T extends EffectOptionsSchema, K extends keyof T> =
 	{ type: 'literal'; value: GetEffectOptionsSchemaValues<T>[K] } |
-	{ type: 'expression'; value: string } |
-	{ type: 'automation'; value: string };
+	{ type: 'expression'; expression: string } |
+	{ type: 'automation'; automationId: string | null } |
+	{ type: 'node'; nodeId: string | null };
 
 type EffectOptionsSchemaDefaultValues<T extends EffectOptionsSchema> = {
 	[K in keyof T as T[K] extends NodeOptionSchema ? never : K]: EffectOptionsSchemaDefaultValue<T, K>;

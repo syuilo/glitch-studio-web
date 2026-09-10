@@ -14,7 +14,8 @@
 			<label :class="[$style.paramLabel, { [$style.expression]: isExpression(param) }]" @click="changeValueType(param, $event)">{{ paramDefs[param].label }}</label>
 			<div :class="$style.paramBody">
 				<GsInput v-if="isExpression(param)" type="text" :modelValue="getParam(param)" @update:modelValue="updateParamAsExpression(param, $event)"/>
-				<GsButton v-else-if="isAutomation(param)" @click="selectAutomation(param, $event)">{{ node.params[param].value ? appContext.state.automations.value.find(a => a.id === node.params[param].value).name : '(none)' }}</GsButton>
+				<GsButton v-else-if="isAutomation(param)" @click="selectAutomation(param, $event)">{{ node.params[param].automationId ? appContext.state.automations.value.find(a => a.id === node.params[param].automationId).name : '(none)' }}</GsButton>
+				<GsButton v-else-if="isNode(param)" @click="selectNode(param, $event)">{{ node.params[param].nodeId ? appContext.state.nodes.value.find(n => n.id === node.params[param].nodeId).id : '(none)' }}</GsButton>
 				<GsEffectParamControl
 					v-else
 					:type="paramDefs[param].type"
@@ -46,7 +47,7 @@ import { genId } from '@glitch/shared/utility/id.ts';
 import GsEffectParamControl from './GsEffectParamControl.vue';
 import GsButton from './common/GsButton.vue';
 import GsInput from './common/GsInput.vue';
-import type { GsAutomation, GsFxNode, GsGroupNode } from '@glitch/shared/types.ts';
+import type { GsAutomation, GsFxNode, GsGroupNode, GsNode } from '@glitch/shared/types.ts';
 import { i18n } from '@/i18n.ts';
 import { appContext, wireMap } from '@/app.ts';
 import * as ui from '@/ui.ts';
@@ -62,16 +63,6 @@ const expanded = ref(true);
 const outPortEl = shallowRef<HTMLElement>();
 const allInPortEl = shallowRef<HTMLElement>();
 
-/*
-this.$root.$on('expandAllFx', () => {
-			this.expanded = true;
-		});
-
-		this.$root.$on('collapseAllFx', () => {
-			this.expanded = false;
-		});
-*/
-
 function isExpression(param: string) {
 	return props.node.params[param].type === 'expression';
 }
@@ -80,8 +71,20 @@ function isAutomation(param: string) {
 	return props.node.params[param].type === 'automation';
 }
 
+function isNode(param: string) {
+	return props.node.params[param].type === 'node';
+}
+
 function getParam(param: string) {
-	return props.node.params[param].value;
+	if (isExpression(param)) {
+		return props.node.params[param].expression;
+	} else if (isAutomation(param)) {
+		return props.node.params[param].automationId;
+	} else if (isNode(param)) {
+		return props.node.params[param].nodeId;
+	} else {
+		return props.node.params[param].value;
+	}
 }
 
 async function selectAutomation(param: string, ev: MouseEvent) {
@@ -106,6 +109,28 @@ async function selectAutomation(param: string, ev: MouseEvent) {
 	});
 }
 
+async function selectNode(param: string, ev: MouseEvent) {
+	const n = await new Promise<GsNode | null>((res) => {
+		ui.popupMenu([{
+			text: '(none)',
+			action: () => {
+				res(null);
+			},
+		}, ...(appContext.state.nodes.value.map(n => ({
+			text: n.id,
+			action: () => {
+				res(n);
+			},
+		})))], ev.currentTarget ?? ev.target);
+	});
+
+	appContext.commit('updateParamAsNode', {
+		nodeId: props.node.id,
+		param: param,
+		value: n?.id ?? null,
+	});
+}
+
 async function changeValueType(param: string, ev: MouseEvent) {
 	const type = await new Promise((res) => {
 		ui.popupMenu([{
@@ -122,6 +147,11 @@ async function changeValueType(param: string, ev: MouseEvent) {
 			text: 'Expression',
 			action: () => {
 				res('expression');
+			},
+		}, { // TODO: 対応している場合のみ
+			text: 'Node',
+			action: () => {
+				res('node');
 			},
 		}], ev.currentTarget ?? ev.target);
 	});

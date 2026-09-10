@@ -233,13 +233,14 @@ export class Renderer {
 
 		// Mixin (global) macros
 		// TODO: automation support
+		// TODO: node support
 		const macroScope = {} as Record<string, any>;
 		for (const macro of this.macros) {
 			macroScope[macro.name] =
 				macro.value.type === 'literal'
 					? macro.value.value
-					: macro.value.value
-						? evaluateExpression(macro.value.value, scope)
+					: macro.value.expression
+						? evaluateExpression(macro.value.expression, scope)
 						: genEmptyValue(macro);
 
 			if (macro.type === 'image') {
@@ -280,25 +281,44 @@ export class Renderer {
 				evaluatedParams[k] =
 					v.type === 'literal'
 						? v.value
-						: v.type === 'expression' && v.value
-							? evaluateExpression(v.value, mixedScope)
-							: v.type === 'automation' && v.value
-								? evalAutomationValue(this.automations.find(a => a.id === v.value)!, this.frame)
-								: genEmptyValue(paramDefs[k]);
+						: v.type === 'expression' && v.expression
+							? evaluateExpression(v.expression, mixedScope)
+							: v.type === 'automation' && v.automationId
+								? evalAutomationValue(this.automations.find(a => a.id === v.automationId)!, this.frame)
+								: v.type === 'node' && v.nodeId
+									? v.nodeId
+									: genEmptyValue(paramDefs[k]);
 			}
 
 			this.evaledNodeParams.set(node.id, evaluatedParams);
+
+			for (const [k, v] of Object.entries(evaluatedParams)) {
+				if (paramDefs[k].canNode && node.params[k].type !== 'node') {
+					const tex = this.effectScalarFieldTextures.get(node.id)![k];
+					const pixelData = this.enableFloat32Filtering
+						? new Float32Array([v ?? 0])
+						: new Uint16Array([float32ToFloat16Bits(v ?? 0)]);
+
+					this.gpuDevice.queue.writeTexture(
+						{ texture: tex },
+						pixelData,
+						{ bytesPerRow: pixelData.byteLength, rowsPerImage: 1 },
+						{ width: 1, height: 1 },
+					);
+				}
+			}
 		}
 
 		for (const node of nodes.filter((n): n is GsGroupNode => n.type === 'group')) {
 			const groupMacroValues = {} as Record<string, any>;
 			// TODO: automation support
+			// TODO: node support
 			for (const macro of node.macros) {
 				groupMacroValues[macro.name] =
 					macro.value.type === 'literal'
 						? macro.value.value
-						: macro.value.value
-							? evaluateExpression(macro.value.value, scope)
+						: macro.value.expression
+							? evaluateExpression(macro.value.expression, scope)
 							: genEmptyValue(macro);
 
 				if (macro.type === 'image') {
@@ -357,11 +377,9 @@ export class Renderer {
 							key += `${k}=${targetNodeCacheKey};`;
 						}
 					}
-				} else if (paramDefs[k].type === 'scalarField') {
-					if (v.type === 'const') {
-						// do nothing
-					} else if (v.type === 'node') {
-						const targetNode = this.findNode(v.value);
+				} else if (paramDefs[k].canNode && node.params[k].type === 'node') {
+					if (v) {
+						const targetNode = this.findNode(v);
 						if (targetNode) {
 							const targetNodeCacheKey = this.evalCacheKey(targetNode, [...visited, node.id]);
 							if (targetNodeCacheKey == null) return null;
@@ -385,24 +403,12 @@ export class Renderer {
 				resolvedParams[k] = this.assetTextures.get(v)!;
 			} else if (typeDef === 'video') {
 				resolvedParams[k] = this.videoFrames.get(node.id)!;
-			} else if (typeDef === 'scalarField') {
-				if (v.type === 'const') { // この関数内でテクスチャの書き込みを発生させるのはなんか設計が微妙な気がするから別のステップでやるようにする？ evalNodeParamsの中とか...
-					resolvedParams[k] = this.effectScalarFieldTextures.get(node.id)![k];
-					const pixelData = this.enableFloat32Filtering
-						? new Float32Array([v.value ?? 0])
-						: new Uint16Array([float32ToFloat16Bits(v.value ?? 0)]);
-
-					this.gpuDevice.queue.writeTexture(
-						{ texture: resolvedParams[k] },
-						pixelData,
-						{ bytesPerRow: pixelData.byteLength, rowsPerImage: 1 },
-						{ width: 1, height: 1 },
-					);
-				} else if (v.type === 'node') {
-					resolvedParams[k] = v.value == null ? this.fallbackScalarFieldTexture : this.effectOuts.get(getActualOutputNodeId(this.findNode(v.value)!)!)!.texture;
-				}
 			} else {
-				resolvedParams[k] = v;
+				if (fxDefinitions[node.fx].paramDefs[k].canNode) {
+					resolvedParams[k] = v == null ? this.fallbackScalarFieldTexture : node.params[k].type === 'node' ? this.effectOuts.get(getActualOutputNodeId(this.findNode(v)!)!)!.texture : this.effectScalarFieldTextures.get(node.id)![k];
+				} else {
+					resolvedParams[k] = v;
+				}
 			}
 		}
 		return resolvedParams;
@@ -460,19 +466,17 @@ export class Renderer {
 		//		}
 		//	}
 		//}
-		for (const [k, _] of Object.entries(fxDefinitions[node.fx].paramDefs).filter(([, v]) => v.type === 'scalarField')) {
+		for (const [k, _] of Object.entries(fxDefinitions[node.fx].paramDefs).filter(([, v]) => v.canNode)) {
 			const v = params[k];
 			if (v == null) {
 				continue;
 			}
-			if (v.type === 'node') {
-				const targetNode = this.findNode(v.value);
-				if (targetNode) {
-					this.renderNode(targetNode, commandEncoder, {
-						visited: new Set([...context.visited, node.id]),
-						rendered: context.rendered,
-					});
-				}
+			const targetNode = this.findNode(v);
+			if (targetNode) {
+				this.renderNode(targetNode, commandEncoder, {
+					visited: new Set([...context.visited, node.id]),
+					rendered: context.rendered,
+				});
 			}
 		}
 
@@ -652,7 +656,7 @@ export class Renderer {
 			const paramDefs = fxDefinitions[node.fx].paramDefs;
 			const scalarFieldTextures: Record<string, GPUTexture> = {};
 			for (const k in paramDefs) {
-				if (paramDefs[k].type === 'scalarField') {
+				if (paramDefs[k].canNode) {
 					const tex = this.gpuDevice.createTexture({
 						size: [1, 1],
 						format: this.enableFloat32Filtering ? 'r32float' : 'r16float',

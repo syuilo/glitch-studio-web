@@ -1,14 +1,17 @@
-export type FxParamDataType = 'number' | 'range' | 'range2' | 'enum' | 'bool' | 'blendMode' | 'signal' | 'xy' | 'wh' | 'color' | 'vector' | 'seed' | 'time' | 'image' | 'video' | 'node' | 'nodes' | 'scalarField';
+export type FxParamDataType = 'number' | 'range' | 'range2' | 'enum' | 'bool' | 'blendMode' | 'signal' | 'xy' | 'wh' | 'color' | 'vector' | 'seed' | 'time' | 'image' | 'video' | 'node' | 'nodes';
 
 export type FxParamValue = {
 	type: 'literal';
-	value: any;
+	value: any; // TODO: literalにリネーム
 } | {
 	type: 'expression';
-	value: string;
+	expression: string;
 } | {
 	type: 'automation';
-	value: string | null;
+	automationId: string | null;
+} | {
+	type: 'node';
+	nodeId: string | null;
 };
 
 export type Macro = {

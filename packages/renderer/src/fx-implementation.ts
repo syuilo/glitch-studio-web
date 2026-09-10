@@ -1,6 +1,7 @@
-import type { BlendModeOptionSchema, BooleanOptionSchema, ColorOptionSchema, EffectDefinition, EffectOptionsSchema, EnumOptionSchema, ImageOptionSchema, NodeOptionSchema, NumberOptionSchema, RangeOptionSchema, ScalarFieldOptionSchema, SeedOptionSchema, SignalOptionSchema, VectorOptionSchema, VideoOptionSchema } from '@glitch/shared/fx-definition.ts';
+import type { BlendModeOptionSchema, BooleanOptionSchema, ColorOptionSchema, EffectDefinition, EffectOptionsSchema, EnumOptionSchema, ImageOptionSchema, NodeOptionSchema, NumberOptionSchema, RangeOptionSchema, SeedOptionSchema, SignalOptionSchema, VectorOptionSchema, VideoOptionSchema } from '@glitch/shared/fx-definition.ts';
 
 type RuntimeEffectOptionValue<T extends EffectOptionsSchema[string]> =
+	T extends { canNode: true } ? GPUTexture :
 	T extends NumberOptionSchema ? number :
 	T extends BooleanOptionSchema ? boolean :
 	T extends ColorOptionSchema ? Readonly<[number, number, number]> :
@@ -13,7 +14,6 @@ type RuntimeEffectOptionValue<T extends EffectOptionsSchema[string]> =
 	T extends ImageOptionSchema ? GPUTexture | null :
 	T extends VideoOptionSchema ? VideoFrame | null :
 	T extends NodeOptionSchema ? GPUTexture | null :
-	T extends ScalarFieldOptionSchema ? GPUTexture :
 	never;
 
 export type GetRuntimeEffectOptionsSchemaValues<T extends EffectOptionsSchema> = {

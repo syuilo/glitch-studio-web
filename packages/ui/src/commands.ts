@@ -71,7 +71,7 @@ const addFxNodeCommandDef = defineCommand<{ id: string; fx: string; params?: Rec
 					} else if (v.type === 'seed') {
 						params[k] = { type: 'literal', value: Math.floor(Math.random() * 16384) };
 					} else if (v.type === 'time') {
-						params[k] = { type: 'expression', value: 'TIME' };
+						params[k] = { type: 'expression', expression: 'TIME' };
 					} else if (v.type === 'node' && v.primary) {
 						if ((group ? group.nodes : state.nodes.value).length > 0) {
 							params[k] = { type: 'literal', value: (group ? group.nodes : state.nodes.value).at(-1)!.id };
@@ -371,7 +371,7 @@ const toggleMacroValueTypeCommandDef = defineCommand<{ groupId?: GsGroupNode['id
 				if (isLiteral) {
 					macro.value = {
 						type: 'expression',
-						value: '',
+						expression: '',
 					};
 				} else {
 					macro.value = {
@@ -415,7 +415,7 @@ const updateMacroAsExpressionCommandDef = defineCommand<{ groupId?: GsGroupNode[
 				const macro = (group ? group.macros : state.macros.value).find(macro => macro.id === payload.macroId)!;
 				macro.value = {
 					type: 'expression',
-					value: payload.value,
+					expression: payload.value,
 				};
 			},
 			undo(state) {
@@ -493,7 +493,7 @@ const updateMacroTypeOptionCommandDef = defineCommand<{ groupId?: GsGroupNode['i
 	},
 });
 
-const changeParamValueTypeCommandDef = defineCommand<{ nodeId: GsNode['id']; param: string; type: 'literal' | 'expression' | 'automation' }>({
+const changeParamValueTypeCommandDef = defineCommand<{ nodeId: GsNode['id']; param: string; type: 'literal' | 'expression' | 'automation' | 'node' }>({
 	label: 'Change param value type',
 	create: (payload) => {
 		return {
@@ -505,7 +505,7 @@ const changeParamValueTypeCommandDef = defineCommand<{ nodeId: GsNode['id']; par
 				if (payload.type === 'expression') {
 					node.params[payload.param] = {
 						type: 'expression',
-						value: currentValue.type === 'literal' ? AiSON.stringify(currentValue.value) : defaultValue.type === 'literal' ? AiSON.stringify(defaultValue.value) : AiSON.stringify(emptyValue),
+						expression: currentValue.type === 'literal' ? AiSON.stringify(currentValue.value) : defaultValue.type === 'literal' ? AiSON.stringify(defaultValue.value) : AiSON.stringify(emptyValue),
 					};
 				} else if (payload.type === 'literal') {
 					node.params[payload.param] = {
@@ -515,7 +515,12 @@ const changeParamValueTypeCommandDef = defineCommand<{ nodeId: GsNode['id']; par
 				} else if (payload.type === 'automation') {
 					node.params[payload.param] = {
 						type: 'automation',
-						value: null,
+						automationId: null,
+					};
+				} else if (payload.type === 'node') {
+					node.params[payload.param] = {
+						type: 'node',
+						nodeId: null,
 					};
 				}
 			},
@@ -555,7 +560,7 @@ const updateParamAsExpressionCommandDef = defineCommand<{ nodeId: GsNode['id']; 
 				const node = stateUtility.findNode(state, payload.nodeId) as GsFxNode;
 				node.params[payload.param] = {
 					type: 'expression',
-					value: payload.value,
+					expression: payload.value,
 				};
 			},
 			undo(state) {
@@ -573,7 +578,25 @@ const updateParamAsAutomationCommandDef = defineCommand<{ nodeId: GsNode['id']; 
 				const node = stateUtility.findNode(state, payload.nodeId) as GsFxNode;
 				node.params[payload.param] = {
 					type: 'automation',
-					value: payload.value,
+					automationId: payload.value,
+				};
+			},
+			undo(state) {
+				// TODO
+			},
+		};
+	},
+});
+
+const updateParamAsNodeCommandDef = defineCommand<{ nodeId: GsNode['id']; param: string; value: any }>({
+	label: 'Update param as node',
+	create: (payload) => {
+		return {
+			execute(state) {
+				const node = stateUtility.findNode(state, payload.nodeId) as GsFxNode;
+				node.params[payload.param] = {
+					type: 'node',
+					nodeId: payload.value,
 				};
 			},
 			undo(state) {
@@ -606,4 +629,5 @@ export const COMMAND_DEFS = {
 	updateParamAsLiteral: updateParamAsLiteralCommandDef,
 	updateParamAsExpression: updateParamAsExpressionCommandDef,
 	updateParamAsAutomation: updateParamAsAutomationCommandDef,
+	updateParamAsNode: updateParamAsNodeCommandDef,
 };

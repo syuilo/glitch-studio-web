@@ -2,6 +2,10 @@ import { rawBezierEasing } from './bezier.ts';
 import type { FxParamDef, GsAutomation } from '../types.ts';
 
 export function genEmptyValue(paramDef: Omit<FxParamDef, 'default'>): any {
+	if (paramDef.canNode) {
+		return null;
+	}
+
 	if (paramDef.type === 'number') {
 		return 0;
 	} else if (paramDef.type === 'range') {

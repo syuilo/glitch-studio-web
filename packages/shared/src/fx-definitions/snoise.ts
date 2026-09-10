@@ -12,6 +12,6 @@ export default defineEffect({
 	getDefaultParams: () => ({
 		x: { type: 'literal', value: 1 },
 		y: { type: 'literal', value: 1 },
-		time: { type: 'expression', value: 'TIME' },
+		time: { type: 'expression', expression: 'TIME' },
 	}),
 });
