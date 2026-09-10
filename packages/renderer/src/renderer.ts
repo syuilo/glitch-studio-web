@@ -9,6 +9,7 @@ import finalRenderShaderCode from './render.wgsl?raw';
 import { NonNegativeRollingAverage } from './NonNegativeRollingAverage.ts';
 import { GpuHistogram } from './GpuHistogram.ts';
 import { GpuWaveform } from './GpuWaveform.ts';
+import { GpuMemoryTracker } from './GpuMemoryTracker.ts';
 import type { Asset, FxParamValue, Macro, GsAutomation, GsFxNode, GsNode, GsGroupNode } from '@glitch/shared/types.ts';
 import type { EffectInstance } from './fx-implementation.ts';
 
@@ -82,6 +83,7 @@ export class Renderer {
 	public gpuAverageMedium = new NonNegativeRollingAverage(100);
 	public gpuAverageSlow = new NonNegativeRollingAverage(1000);
 	public fpsAverage = new NonNegativeRollingAverage(30);
+	public readonly gpuMemory: GpuMemoryTracker;
 	private frame = 0; // TODO
 
 	constructor(options: {
@@ -106,6 +108,7 @@ export class Renderer {
 		this.enableFloat32Filtering = options.enableFloat32Filtering;
 		this.fpsLimit = options.fpsLimit;
 		this.gpuDevice = options.gpuDevice;
+		this.gpuMemory = new GpuMemoryTracker(this.gpuDevice);
 		this.gpuContext = options.gpuContext;
 		this.histogramGpuContext = options.histogramGpuContext;
 		this.gpuHistogram = new GpuHistogram(

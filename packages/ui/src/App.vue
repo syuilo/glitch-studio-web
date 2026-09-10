@@ -20,13 +20,14 @@
 			<div :class="$style.footerStatsItem">{{ (engine.gpuAverageDisplayFast.value / 1000).toFixed(1) }}ms</div>
 			<div :class="$style.footerStatsItem">{{ (engine.gpuAverageDisplayMedium.value / 1000).toFixed(1) }}ms</div>
 			<div :class="$style.footerStatsItem">{{ (engine.gpuAverageDisplaySlow.value / 1000).toFixed(1) }}ms</div>
+			<div v-if="engine.gpuMemoryUsage.value" v-tooltip="gpuMemoryTooltip" :class="$style.footerMemory">{{ (engine.gpuMemoryUsage.value.total / 1000 ** 2).toFixed(1) }} MB</div>
 		</div>
 	</div>
 </div>
 </template>
 
 <script lang="ts" setup>
-import { nextTick, onMounted, ref, shallowRef, useTemplateRef, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, shallowRef, useTemplateRef, watch } from 'vue';
 import { frame, frameMax, appReady, rendererEnv, saveProject, engine, openProject, resolutionFactor, fpsLimit, appContext } from './app';
 import GsAboutDialog from '@/components/GsAboutDialog.vue';
 import GsDashboardDialog from '@/components/GsDashboardDialog.vue';
@@ -37,6 +38,15 @@ import GsButton from '@/components/common/GsButton.vue';
 import * as ui from '@/ui.ts';
 
 const presetName = '';
+
+const gpuMemoryTooltip = computed(() => {
+	const usage = engine.gpuMemoryUsage.value;
+	if (!usage) return '';
+	return i18n.t('GpuMemoryEstimate', {
+		textures: (usage.textures / 1024 ** 2).toFixed(1),
+		buffers: (usage.buffers / 1024 ** 2).toFixed(1),
+	});
+});
 
 async function saveImage() {
 
@@ -186,6 +196,11 @@ onMounted(() => {
 
 .footerStatsItem {
 	min-width: 4em;
+}
+
+.footerMemory {
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
 }
 
 body > .titlebar.inactive + div {

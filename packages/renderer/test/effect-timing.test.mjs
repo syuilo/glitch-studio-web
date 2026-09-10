@@ -27,6 +27,7 @@ function createDevice(canTimestamp) {
 		};
 	};
 	return {
+		lost: new Promise(() => {}),
 		features: new Set(canTimestamp ? ['timestamp-query'] : []),
 		limits: { minUniformBufferOffsetAlignment: 256, maxStorageBufferBindingSize: 128 * 1024 * 1024, maxBufferSize: 256 * 1024 * 1024, maxTextureDimension2D: 8192 },
 		queue: new GPUQueue(),
@@ -35,7 +36,10 @@ function createDevice(canTimestamp) {
 			size, data: new ArrayBuffer(size),
 			async mapAsync() {}, getMappedRange() { return this.data; }, unmap() {}, destroy() {},
 		}),
-		createTexture: () => ({ width: 64, height: 64, createView() { return {}; }, destroy() {} }),
+		createTexture: ({ size = [64, 64], format = 'bgra8unorm', dimension = '2d', mipLevelCount = 1, sampleCount = 1 } = {}) => {
+			const [width, height = 1, depthOrArrayLayers = 1] = Array.isArray(size) ? size : [size.width, size.height, size.depthOrArrayLayers];
+			return { width, height, depthOrArrayLayers, format, dimension, mipLevelCount, sampleCount, createView() { return {}; }, destroy() {} };
+		},
 		createShaderModule() { return {}; },
 		createComputePipeline() { return { getBindGroupLayout() { return {}; } }; },
 		createRenderPipeline() { return { getBindGroupLayout() { return {}; } }; },
@@ -67,6 +71,41 @@ test('effect GPU statistics include compute and render passes', async t => {
 		const { Renderer } = await server.ssrLoadModule('/src/renderer.ts');
 		const { fxDefinitions } = await server.ssrLoadModule('@glitch/shared/fx-definitions.ts');
 		const { default: TimingHelper } = await server.ssrLoadModule('/src/TimingHelper.ts');
+		await t.test('worker publishes memory every three seconds even when GPU timing is disabled', async t => {
+			const callbacks = new Map();
+			const messages = [];
+			const previousSelf = globalThis.self;
+			const previousOnmessage = globalThis.onmessage;
+			globalThis.self = { postMessage: message => messages.push(message) };
+			globalThis.onmessage = null;
+			t.mock.method(globalThis, 'setInterval', (callback, delay) => { callbacks.set(delay, callback); return 0; });
+			const device = createDevice(false);
+			navigator.gpu.requestAdapter = async () => ({ requestDevice: async () => device });
+			const context = { configure() {}, unconfigure() {}, getCurrentTexture: () => device.createTexture() };
+			const canvas = { getContext: () => context };
+			try {
+				await server.ssrLoadModule('/src/worker.ts');
+				await globalThis.onmessage({ data: { type: 'init', canvas, histogramCanvas: canvas, waveformCanvas: canvas, options: {
+					resolution: { width: 64, height: 64 }, enableStats: false, enableFloat32Filtering: false,
+					fpsLimit: null, assets: [], macros: [], automations: [], nodes: [],
+				} } });
+				const initial = messages.find(message => message.type === 'gpuMemory');
+				assert.ok(initial?.usage.total > 0, 'publish the initial allocation');
+				const buffer = device.createBuffer({ size: 1024 });
+				callbacks.get(3000)();
+				assert.equal(messages.at(-1).usage.total, initial.usage.total + 1024);
+				buffer.destroy();
+				callbacks.get(3000)();
+				assert.deepEqual(messages.at(-1).usage, initial.usage);
+				await globalThis.onmessage({ data: { type: 'call', fn: 'destroy', args: [] } });
+				callbacks.get(3000)();
+				assert.equal(messages.at(-1).usage.total, 0);
+			} finally {
+				globalThis.self = previousSelf;
+				globalThis.onmessage = previousOnmessage;
+				delete navigator.gpu.requestAdapter;
+			}
+		});
 		await t.test('timestamp buffers grow across query sets and ignore stale results on shorter frames', async () => {
 			const device = createDevice(true);
 			const timing = new TimingHelper(device);
@@ -100,9 +139,12 @@ test('effect GPU statistics include compute and render passes', async t => {
 						nodes: makeNodes(),
 					});
 					try {
+						const initialMemory = renderer.gpuMemory.getUsage();
+						assert.ok(initialMemory.total > 0);
 						renderer.render('effect', { time: 1000 });
 						// Wait for timestamp mapping and the statistics callback.
 						await new Promise(resolve => setImmediate(resolve));
+						assert.ok(renderer.gpuMemory.getUsage().buffers > initialMemory.buffers, 'include effect-local working buffers');
 						assert.equal(renderer.gpuAverageFast.get(), enableStats ? canTimestamp ? expected : 0 : NaN);
 						if (enableStats && canTimestamp) {
 							// Reusing cached output records no effect passes, then a parameter change resumes timing.
@@ -118,6 +160,7 @@ test('effect GPU statistics include compute and render passes', async t => {
 						}
 					} finally {
 						renderer.destroy();
+						assert.equal(renderer.gpuMemory.getUsage().total, 0);
 					}
 				});
 			}

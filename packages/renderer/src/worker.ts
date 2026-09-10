@@ -15,6 +15,13 @@ setInterval(() => {
 	} });
 }, 100);
 
+function reportGpuMemory() {
+	if (renderer == null) return;
+	self.postMessage({ type: 'gpuMemory', usage: renderer.gpuMemory.getUsage() });
+}
+
+setInterval(reportGpuMemory, 1000);
+
 onmessage = async (event) => {
 	//console.log('Worker received message:', event.data);
 
@@ -69,6 +76,7 @@ onmessage = async (event) => {
 			//await renderer.init();
 
 			self.postMessage({ type: 'inited' });
+			reportGpuMemory();
 			break;
 		}
 		case 'resize': {

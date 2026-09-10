@@ -66,6 +66,7 @@ export class Engine {
 	public gpuAverageDisplayMedium = ref(0);
 	public gpuAverageDisplaySlow = ref(0);
 	public fpsDisplay = ref(0);
+	public gpuMemoryUsage = ref<ReturnType<Renderer['gpuMemory']['getUsage']> | null>(null);
 	public isReady = ref(false);
 
 	constructor(options: {
@@ -171,6 +172,10 @@ export class Engine {
 					if (this.inFlightVideoFrames.get(nodeId) !== id) break;
 					this.inFlightVideoFrames.delete(nodeId);
 					this.sendPendingVideoFrame(nodeId);
+					break;
+				}
+				case 'gpuMemory': {
+					this.gpuMemoryUsage.value = event.data.usage;
 					break;
 				}
 				case 'stats': {
