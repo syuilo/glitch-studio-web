@@ -17,7 +17,7 @@ export default defineEffect({
 		density: { type: 'literal', value: 0.6 },
 		refraction: { type: 'literal', value: 0.8 },
 		fog: { type: 'literal', value: 0.35 },
-		time: { type: 'expression', value: 'TIME' },
+		time: { type: 'expression', expression: 'TIME' },
 		scale: { type: 'literal', value: 1 },
 		seed: { type: 'literal', value: 0 },
 	}),

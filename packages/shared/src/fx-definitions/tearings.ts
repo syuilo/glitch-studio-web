@@ -28,7 +28,7 @@ export default defineEffect({
 		size: { type: 'literal', value: 20 },
 		angle: { type: 'literal', value: 0 },
 		channelShift: { type: 'literal', value: 0.5 },
-		seed: { type: 'expression', value: 'TIME' },
+		seed: { type: 'expression', expression: 'TIME' },
 		wrap: { type: 'literal', value: 'repeatMirrored' },
 	}),
 });

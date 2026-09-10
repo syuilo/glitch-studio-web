@@ -14,7 +14,7 @@ export default defineEffect({
 	},
 	getDefaultParams: () => ({
 		density: { type: 'literal', value: 0.5 },
-		time: { type: 'expression', value: 'TIME' },
+		time: { type: 'expression', expression: 'TIME' },
 		scale: { type: 'literal', value: 1 },
 		refraction: { type: 'literal', value: 0.6 },
 		seed: { type: 'literal', value: 0 },

@@ -35,7 +35,7 @@ export default defineEffect({
 		distortion: { type: 'literal', value: 0.07 },
 		contour: { type: 'literal', value: 1 },
 		angle: { type: 'literal', value: 70 },
-		time: { type: 'expression', value: 'TIME' },
+		time: { type: 'expression', expression: 'TIME' },
 		speed: { type: 'literal', value: 1 },
 		frame: { type: 'literal', value: 0 },
 	}),

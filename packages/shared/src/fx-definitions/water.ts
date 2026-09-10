@@ -29,7 +29,7 @@ export default defineEffect({
 		waves: { type: 'literal', value: 0.3 },
 		caustic: { type: 'literal', value: 0.1 },
 		size: { type: 'literal', value: 1 },
-		time: { type: 'expression', value: 'TIME' },
+		time: { type: 'expression', expression: 'TIME' },
 		speed: { type: 'literal', value: 1 },
 		frame: { type: 'literal', value: 0 },
 	}),
