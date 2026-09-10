@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-globalThis.GPUQueue = class { submit() {} };
+globalThis.GPUQueue = class { submit(commandBuffers) { Array.from(commandBuffers); } };
 globalThis.GPUBufferUsage = { QUERY_RESOLVE: 1, COPY_SRC: 2, COPY_DST: 4, MAP_READ: 8 };
 globalThis.GPUMapMode = { READ: 1 };
 
@@ -30,12 +30,12 @@ test('timing handles frames without measured passes and resumes measurement', as
 			copyBufferToBuffer() {},
 			finish() { return {}; },
 		};
-		timing.beginRenderPass(encoder).end();
+		timing.beginRenderPass(encoder, { colorAttachments: [] }).end();
 		timing.beginComputePass(encoder).end();
 		await assert.rejects(timing.getResult(), /you must call encoder.finish and submit/);
 		const buffer = encoder.finish();
 		await assert.rejects(timing.getResult(), /you must submit the command buffer/);
-		queue.submit([buffer]);
+		queue.submit(frame === 0 ? [buffer] : (function* () { yield buffer; })());
 		assert.equal(await timing.getResult(), 50);
 		assert.equal(await timing.getResult(), 0);
 		assert.equal(await timing.getResult(), 0);

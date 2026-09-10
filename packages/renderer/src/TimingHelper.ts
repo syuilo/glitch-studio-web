@@ -1,6 +1,6 @@
 // https://webgpufundamentals.org/webgpu/lessons/webgpu-timing.html
 
-function assert(cond, msg = '') {
+function assert(cond: unknown, msg = ''): asserts cond {
 	if (!cond) {
 		throw new Error(msg);
 	}
@@ -8,15 +8,17 @@ function assert(cond, msg = '') {
 
 // We track command buffers so we can generate an error if
 // we try to read the result before the command buffer has been executed.
-const s_unsubmittedCommandBuffer = new Set();
+const s_unsubmittedCommandBuffer = new Set<GPUCommandBuffer>();
 
 const PASSES_PER_QUERY_SET = 16;
 
 /* global GPUQueue */
 GPUQueue.prototype.submit = (function(origFn) {
-	return function(commandBuffers) {
-		origFn.call(this, commandBuffers);
-		commandBuffers.forEach(cb => s_unsubmittedCommandBuffer.delete(cb));
+	return function(this: GPUQueue, commandBuffers: Iterable<GPUCommandBuffer>) {
+		// Snapshot single-use iterables before submit consumes them.
+		const buffers = Array.from(commandBuffers);
+		origFn.call(this, buffers);
+		buffers.forEach(cb => s_unsubmittedCommandBuffer.delete(cb));
 	};
 })(GPUQueue.prototype.submit);
 
@@ -25,31 +27,30 @@ export default class TimingHelper {
 	#canTimestamp;
 	#device;
 	#queryBatches: { querySet: GPUQuerySet; resolveBuffer: GPUBuffer; }[] = [];
-	#resultBuffer;
-	#commandBuffer;
-	#commandEncoder;
+	#resultBuffer: GPUBuffer | undefined;
+	#commandBuffer: GPUCommandBuffer | undefined;
+	#commandEncoder: GPUCommandEncoder | undefined;
 	#passCount = 0;
 	#resultBuffers: GPUBuffer[] = [];
-	// state can be 'free', 'recording', 'need finish', 'wait for result'
-	#state = 'free';
+	#state: 'free' | 'recording' | 'need finish' | 'wait for result' = 'free';
 
-	constructor(device) {
+	constructor(device: GPUDevice) {
 		this.#device = device;
 		this.#canTimestamp = device.features.has('timestamp-query');
 	}
 
-	#beginTimestampPass(encoder, fnName, descriptor) {
+	#withTimestampWrites<T extends GPURenderPassDescriptor | GPUComputePassDescriptor>(encoder: GPUCommandEncoder, descriptor: T): T {
 		if (this.#canTimestamp) {
 			if (this.#state === 'free') {
 				this.#state = 'recording';
 				this.#commandEncoder = encoder;
 
 				const resolve = () => this.#resolveTiming(encoder);
-				const trackCommandBuffer = (cb) => this.#trackCommandBuffer(cb);
+				const trackCommandBuffer = (cb: GPUCommandBuffer) => this.#trackCommandBuffer(cb);
 				encoder.finish = (function(origFn) {
-					return function() {
+					return function(this: GPUCommandEncoder, descriptor?: GPUCommandBufferDescriptor) {
 						resolve();
-						const cb = origFn.call(this);
+						const cb = origFn.call(this, descriptor);
 						trackCommandBuffer(cb);
 						return cb;
 					};
@@ -71,28 +72,28 @@ export default class TimingHelper {
 			const beginningOfPassWriteIndex = (this.#passCount % PASSES_PER_QUERY_SET) * 2;
 			this.#passCount++;
 
-			return encoder[fnName]({
+			return {
 				...descriptor,
 				timestampWrites: {
 					querySet: this.#queryBatches[batchIndex].querySet,
 					beginningOfPassWriteIndex,
 					endOfPassWriteIndex: beginningOfPassWriteIndex + 1,
 				},
-			});
+			};
 		} else {
-			return encoder[fnName](descriptor);
+			return descriptor;
 		}
 	}
 
-	beginRenderPass(encoder, descriptor = {}) {
-		return this.#beginTimestampPass(encoder, 'beginRenderPass', descriptor);
+	beginRenderPass(encoder: GPUCommandEncoder, descriptor: GPURenderPassDescriptor): GPURenderPassEncoder {
+		return encoder.beginRenderPass(this.#withTimestampWrites(encoder, descriptor));
 	}
 
-	beginComputePass(encoder, descriptor = {}) {
-		return this.#beginTimestampPass(encoder, 'beginComputePass', descriptor);
+	beginComputePass(encoder: GPUCommandEncoder, descriptor: GPUComputePassDescriptor = {}): GPUComputePassEncoder {
+		return encoder.beginComputePass(this.#withTimestampWrites(encoder, descriptor));
 	}
 
-	#trackCommandBuffer(cb) {
+	#trackCommandBuffer(cb: GPUCommandBuffer) {
 		if (!this.#canTimestamp) {
 			return;
 		}
@@ -102,7 +103,7 @@ export default class TimingHelper {
 		this.#state = 'wait for result';
 	}
 
-	#resolveTiming(encoder) {
+	#resolveTiming(encoder: GPUCommandEncoder) {
 		if (!this.#canTimestamp) {
 			return;
 		}
@@ -152,6 +153,7 @@ export default class TimingHelper {
 		this.#state = 'free';
 
 		const resultBuffer = this.#resultBuffer;
+		assert(resultBuffer); // internal check
 		await resultBuffer.mapAsync(GPUMapMode.READ);
 		const times = new BigUint64Array(resultBuffer.getMappedRange());
 		let duration = 0n;

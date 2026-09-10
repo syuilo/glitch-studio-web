@@ -3,6 +3,6 @@
 	"compilerOptions": {
 		"skipLibCheck": true
 	},
-	"include": ["fx-implementation.types.ts"],
+	"include": ["*.types.ts"],
 	"exclude": []
 }
