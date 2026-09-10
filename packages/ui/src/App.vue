@@ -96,6 +96,7 @@ async function importPreset() {
 }
 
 function exportToWebp() {
+	// TODO: 元の解像度にリサイズしてからエクスポートする
 	engine.canvas.toBlob((blob) => {
 		const url = URL.createObjectURL(blob);
 
