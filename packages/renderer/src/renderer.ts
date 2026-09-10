@@ -410,11 +410,13 @@ export class Renderer {
 
 		const effectOut = this.effectOuts.get(node.id)!;
 
-		const outputTexture = effect.needsPreviousFrame ? effectOut.previousFrameTexture : effectOut.texture;
-		const outputTextureView = effect.needsPreviousFrame ? effectOut.previousFrameTextureView : effectOut.textureView;
+		// 現在公開されている出力を、前回の結果として読む
+		const previousFrameTexture = effect.needsPreviousFrame ? effectOut.texture : undefined;
+		const previousFrameTextureView = effect.needsPreviousFrame ? effectOut.textureView : undefined;
 
-		const previousFrameTexture = effectOut.previousFrameTexture;
-		const previousFrameTextureView = effectOut.previousFrameTextureView;
+		// もう1枚へ書く
+		const outputTexture = effect.needsPreviousFrame ? effectOut.previousFrameTexture! : effectOut.texture;
+		const outputTextureView = effect.needsPreviousFrame ? effectOut.previousFrameTextureView! : effectOut.textureView;
 
 		effectInstance.render({
 			time: performance.now() / 1000,
@@ -426,6 +428,7 @@ export class Renderer {
 			},
 			params: paramsWithOuts,
 			previousFrameTexture,
+			previousFrameTextureView,
 			commandEncoder: commandEncoder,
 			createPassEncoder: (commandEncoder, descriptor) => {
 				const _descriptor = descriptor ?? {
@@ -444,10 +447,13 @@ export class Renderer {
 		});
 
 		if (effect.needsPreviousFrame) {
-			effectOut.previousFrameTexture = outputTexture;
-			effectOut.previousFrameTextureView = outputTextureView;
-			effectOut.texture = previousFrameTexture!;
-			effectOut.textureView = previousFrameTextureView!;
+			// 今回書いた結果を後段へ公開
+			effectOut.texture = outputTexture;
+			effectOut.textureView = outputTextureView;
+
+			// 今回読んだものを次回の書き込み先として保持
+			effectOut.previousFrameTexture = previousFrameTexture!;
+			effectOut.previousFrameTextureView = previousFrameTextureView!;
 		}
 
 		return node.id;

@@ -44,11 +44,11 @@ export default implementEffect<typeof definition>({
 			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
 		});
 
-		const bindGroups = new Map<GPUTexture, GPUBindGroup>();
+		const bindGroups = new Map<GPUTextureView, GPUBindGroup>();
 
 		return {
 			render: (ctx) => {
-				const previous = ctx.previousFrameTexture!;
+				const previous = ctx.previousFrameTextureView!;
 				let bindGroup = bindGroups.get(previous);
 
 				if (!bindGroup) {
@@ -56,7 +56,7 @@ export default implementEffect<typeof definition>({
 						layout: pipeline.getBindGroupLayout(0),
 						entries: [
 							{ binding: 1, resource: { buffer: uniformBuffer } },
-							{ binding: 2, resource: previous.createView() },
+							{ binding: 2, resource: previous },
 						],
 					});
 					bindGroups.set(previous, bindGroup);

@@ -7,6 +7,7 @@ export type EffectInstance<Options extends EffectOptionsSchema = any> = {
 		pointerPosition: { x: number; y: number; };
 		pointerVector: { x: number; y: number; };
 		previousFrameTexture?: GPUTexture;
+		previousFrameTextureView?: GPUTextureView;
 		commandEncoder: GPUCommandEncoder;
 		createPassEncoder: (commandEncoder: GPUCommandEncoder, descriptor?: GPURenderPassDescriptor) => GPURenderPassEncoder;
 		createComputePassEncoder: (commandEncoder: GPUCommandEncoder, descriptor?: GPUComputePassDescriptor) => GPUComputePassEncoder;
