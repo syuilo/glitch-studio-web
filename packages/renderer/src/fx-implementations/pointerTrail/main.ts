@@ -4,6 +4,7 @@ import code from './shader.wgsl?raw';
 import type definition from '@glitch/shared/fx-definitions/pointerTrail.ts';
 
 export default implementEffect<typeof definition>({
+	disableCache: true,
 	getOut: ({ wgpu, resolution }) => {
 		const out = wgpu.device.createTexture({
 			size: resolution,
