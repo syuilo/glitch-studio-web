@@ -386,7 +386,7 @@ export class Renderer {
 			} else if (typeDef === 'video') {
 				resolvedParams[k] = this.videoFrames.get(node.id)!;
 			} else if (typeDef === 'scalarField') {
-				if (v.type === 'const') {
+				if (v.type === 'const') { // この関数内でテクスチャの書き込みを発生させるのはなんか設計が微妙な気がするから別のステップでやるようにする？
 					resolvedParams[k] = this.effectScalarFieldTextures.get(node.id)![k];
 					const pixelData = this.enableFloat32Filtering
 						? new Float32Array([v.value ?? 0])
