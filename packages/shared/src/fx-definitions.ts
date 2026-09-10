@@ -19,6 +19,7 @@ import tearings from './fx-definitions/tearings.ts';
 import test from './fx-definitions/test.ts';
 import video from './fx-definitions/video.ts';
 import water from './fx-definitions/water.ts';
+import waveform from './fx-definitions/waveform.ts';
 import pointerTrail from './fx-definitions/pointerTrail.ts';
 import type { EffectDefinition } from './fx-definition.ts';
 import type { FxParamDefs } from '@glitch/shared/types.ts';
@@ -45,6 +46,7 @@ const _fxDefinitions = {
 	test,
 	video,
 	water,
+	waveform,
 	pointerTrail,
 } as Record<string, Omit<EffectDefinition<any>, 'paramDefs'> & { paramDefs: FxParamDefs }>;
 
