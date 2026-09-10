@@ -77,8 +77,8 @@ fn estimate(@builtin(position) position: vec4f) -> @location(0) vec2f {
 	let residual = max(0.0, tt + 2.0 * dot(velocity, vec2f(xt, yt))
 		+ xx * velocity.x * velocity.x + 2.0 * xy * velocity.x * velocity.y + yy * velocity.y * velocity.y);
 	let confidence = smoothstep(params.confidence, params.confidence * 4.0, eigenvalue) * exp(-residual / 0.0025);
-	// Signed UV displacement per second: R rightward, G downward.
-	return velocity * params.texelSize / params.seconds * confidence;
+	// Shared vector coordinates per second: R rightward, G upward, two units across each axis.
+	return velocity * params.texelSize * vec2f(2.0, -2.0) / params.seconds * confidence;
 }
 
 @fragment

@@ -8,7 +8,7 @@ export default implementEffect<typeof definition>({
 		format: navigator.gpu.getPreferredCanvasFormat(),
 		usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
 	}),
-	init: ({ wgpu: { device, defaultVertexShaderModule }, params, fallbackTexture }) => {
+	init: ({ wgpu: { device, defaultVertexShaderModule }, resolution, params, fallbackTexture }) => {
 		const module = device.createShaderModule({ code });
 		const pipeline = device.createRenderPipeline({
 			layout: 'auto',
@@ -16,8 +16,9 @@ export default implementEffect<typeof definition>({
 			fragment: { module, targets: [{ format: navigator.gpu.getPreferredCanvasFormat() }] },
 			primitive: { topology: 'triangle-list' },
 		});
-		const uniforms = device.createBuffer({ size: 4, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
-		const values = new Float32Array(1);
+		const uniforms = device.createBuffer({ size: 20, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+		const values = new Float32Array(5);
+		values[4] = resolution.width / resolution.height;
 		const createSampler = (addressMode: GPUAddressMode) => device.createSampler({
 			minFilter: 'linear', magFilter: 'linear', addressModeU: addressMode, addressModeV: addressMode,
 		});
@@ -49,6 +50,9 @@ export default implementEffect<typeof definition>({
 					group = createGroup();
 				}
 				values[0] = vector == null ? 0 : ctx.params.amount;
+				values[1] = (ctx.params.rotation ?? 0) * Math.PI / 180;
+				values[2] = ctx.params.flipX ? -1 : 1;
+				values[3] = ctx.params.flipY ? -1 : 1;
 				device.queue.writeBuffer(uniforms, 0, values);
 				const render = ctx.createPassEncoder(ctx.commandEncoder);
 				if (input != null) {
