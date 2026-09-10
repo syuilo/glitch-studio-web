@@ -65,8 +65,8 @@ export default implementEffect<typeof definition>({
 				uniformValues.set({
 					aspectRatio: resolution.width / resolution.height,
 					timeDelta: ctx.timeDelta,
-					pointerPosition: [ctx.pointerPosition.x, -ctx.pointerPosition.y],
-					pointerVector: [ctx.pointerVector.x, -ctx.pointerVector.y],
+					pointerPosition: [ctx.pointerPosition.x, ctx.pointerPosition.y],
+					pointerVector: [ctx.pointerVector.x, ctx.pointerVector.y],
 				});
 				wgpu.device.queue.writeBuffer(uniformBuffer, 0, uniformValues.arrayBuffer);
 
