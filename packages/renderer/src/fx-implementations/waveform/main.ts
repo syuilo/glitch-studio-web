@@ -16,8 +16,11 @@ export default implementEffect<typeof definition>({
 		let size = getSize(params.resolution ?? 1);
 		const createWaveform = (dimensions: typeof size) => {
 			const byteLength = dimensions.width * dimensions.height * 3 * Uint32Array.BYTES_PER_ELEMENT;
-			if (byteLength > Math.min(device.limits.maxStorageBufferBindingSize, device.limits.maxBufferSize)) {
-				throw new Error('Waveform: the internal resolution exceeds the storage buffer limit');
+			if (!Number.isSafeInteger(byteLength)
+				|| byteLength > Math.min(device.limits.maxStorageBufferBindingSize, device.limits.maxBufferSize)
+				|| Math.ceil(dimensions.width / 16) > device.limits.maxComputeWorkgroupsPerDimension
+				|| Math.ceil(dimensions.height / 16) > device.limits.maxComputeWorkgroupsPerDimension) {
+				return null;
 			}
 			return device.createBuffer({
 				size: byteLength,
@@ -58,13 +61,13 @@ export default implementEffect<typeof definition>({
 			usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
 		});
 		const uniformEntry = { binding: 0, resource: { buffer: uniforms } };
-		const createOutputGroup = () => device.createBindGroup({
+		const createOutputGroup = () => waveform == null ? null : device.createBindGroup({
 			layout: output.getBindGroupLayout(0),
 			entries: [uniformEntry, { binding: 3, resource: { buffer: waveform } }],
 		});
 		let outputGroup = createOutputGroup();
 		let input = params.input;
-		const createInputGroup = () => device.createBindGroup({
+		const createInputGroup = () => waveform == null ? null : device.createBindGroup({
 			layout: computeLayout,
 			entries: [
 				uniformEntry,
@@ -79,15 +82,19 @@ export default implementEffect<typeof definition>({
 				const nextSize = getSize(ctx.params.resolution ?? 1);
 				const resized = size.width !== nextSize.width || size.height !== nextSize.height;
 				if (resized) {
-					const nextWaveform = createWaveform(nextSize);
-					waveform.destroy();
-					waveform = nextWaveform;
+					waveform?.destroy();
+					waveform = createWaveform(nextSize);
 					size = nextSize;
 					outputGroup = createOutputGroup();
 				}
 				if (input !== ctx.params.input || resized) {
 					input = ctx.params.input;
 					inputGroup = createInputGroup();
+				}
+				if (waveform == null || inputGroup == null || outputGroup == null) {
+					// Clear stale output while unsupported, and retry when the internal size changes.
+					ctx.createPassEncoder(ctx.commandEncoder).end();
+					return;
 				}
 				integers[0] = ctx.params.mode === 'luminance' ? 1 : 0;
 				floats[1] = Math.max(0, ctx.params.intensity);
@@ -109,7 +116,7 @@ export default implementEffect<typeof definition>({
 			},
 			dispose: () => {
 				uniforms.destroy();
-				waveform.destroy();
+				waveform?.destroy();
 			},
 		};
 	},
