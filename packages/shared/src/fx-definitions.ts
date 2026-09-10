@@ -1,3 +1,4 @@
+import accumulate from './fx-definitions/accumulate.ts';
 import bloom from './fx-definitions/bloom.ts';
 import blur from './fx-definitions/blur.ts';
 import channelShift from './fx-definitions/channelShift.ts';
@@ -29,6 +30,7 @@ import type { EffectDefinition } from './fx-definition.ts';
 import type { FxParamDefs } from '@glitch/shared/types.ts';
 
 const _fxDefinitions = {
+	accumulate,
 	bloom,
 	blur,
 	channelShift,
