@@ -354,8 +354,10 @@ export class Renderer {
 
 		if (node.type === 'group') {
 			if (node.nodes.length === 0) return;
-			context.visited.add(node.id);
-			return this.renderNode(node.nodes.at(-1)!, commandEncoder, context);
+			return this.renderNode(node.nodes.at(-1)!, commandEncoder, {
+				visited: new Set([...context.visited, node.id]),
+				rendered: context.rendered,
+			});
 		}
 
 		const key = this.evalCacheKey(node);
@@ -377,8 +379,10 @@ export class Renderer {
 			}
 			const targetNode = this.findNode(v);
 			if (targetNode) {
-				context.visited.add(node.id);
-				this.renderNode(targetNode, commandEncoder, context);
+				this.renderNode(targetNode, commandEncoder, {
+					visited: new Set([...context.visited, node.id]),
+					rendered: context.rendered,
+				});
 			}
 		}
 		//for (const [k, _] of Object.entries(fx.paramDefs).filter(([k, v]) => v.type === 'nodes')) {
