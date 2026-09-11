@@ -45,12 +45,26 @@ const error = ref('');
 
 watch(() => props.video, (video, _, onCleanup) => {
 	error.value = '';
+	let animationFrameId: number | null = null;
+	const updateCurrentTime = () => {
+		animationFrameId = null;
+		currentTime.value = video?.currentTime ?? 0;
+		if (video && !video.paused && !video.ended && !video.error) {
+			animationFrameId = requestAnimationFrame(updateCurrentTime);
+		}
+	};
 	const sync = () => {
 		paused.value = video?.paused ?? true;
 		// Keep controls enabled while the frame at the seek destination is loading.
 		ready.value = video != null && video.readyState >= video.HAVE_METADATA && !video.error;
 		currentTime.value = video?.currentTime ?? 0;
 		duration.value = video && Number.isFinite(video.duration) ? video.duration : 0;
+		if (video && !video.paused && !video.ended && !video.error) {
+			if (animationFrameId === null) animationFrameId = requestAnimationFrame(updateCurrentTime);
+		} else if (animationFrameId !== null) {
+			cancelAnimationFrame(animationFrameId);
+			animationFrameId = null;
+		}
 		//volume.value = props.getVolume ? props.getVolume() : video?.muted ? 0 : (video?.volume ?? 0.5);
 	};
 	sync();
@@ -58,6 +72,7 @@ watch(() => props.video, (video, _, onCleanup) => {
 	const events = ['play', 'pause', 'ended', 'timeupdate', 'seeking', 'seeked', 'loadeddata', 'loadedmetadata', 'durationchange', 'volumechange', 'emptied', 'error'] as const;
 	for (const event of events) video.addEventListener(event, sync);
 	onCleanup(() => {
+		if (animationFrameId !== null) cancelAnimationFrame(animationFrameId);
 		for (const event of events) video.removeEventListener(event, sync);
 	});
 }, { immediate: true });
