@@ -17,6 +17,12 @@
 	</div>
 	<div :class="$style.footer">
 		<div @click="openResolutionMenu">{{ appContext.state.resolution.value.width }} x {{ appContext.state.resolution.value.height }} px ({{ resolutionFactor }}x) | {{ Math.round(engine.fpsDisplay.value) }}fps</div>
+		<div :class="$style.previewVolume" title="Preview volume — speakers / headphones only">
+			<i :class="engine.previewVolume.value === 0 ? 'ti ti-volume-off' : 'ti ti-volume'"></i>
+			<span>Preview</span>
+			<input type="range" min="0" max="1" step="0.01" :value="engine.previewVolume.value" @input="setPreviewVolume">
+			<span :class="$style.volumeValue">{{ Math.round(engine.previewVolume.value * 100) }}%</span>
+		</div>
 		<div :class="$style.footerStats">
 			<div :class="$style.footerStatsItem">{{ (engine.gpuAverageDisplayFast.value / 1000).toFixed(1) }}ms</div>
 			<div :class="$style.footerStatsItem">{{ (engine.gpuAverageDisplayMedium.value / 1000).toFixed(1) }}ms</div>
@@ -39,6 +45,10 @@ import GsButton from '@/components/common/GsButton.vue';
 import * as ui from '@/ui.ts';
 
 const presetName = '';
+
+function setPreviewVolume(event: Event) {
+	engine.setPreviewVolume((event.target as HTMLInputElement).valueAsNumber);
+}
 
 const gpuMemoryTooltip = computed(() => {
 	const usage = engine.gpuMemoryUsage.value;
@@ -208,6 +218,27 @@ onMounted(() => {
 	margin-left: auto;
 	display: flex;
 	gap: 8px;
+}
+
+.previewVolume {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0 16px;
+	min-width: 0;
+
+	input {
+		width: 120px;
+		min-width: 40px;
+		margin: 0;
+		accent-color: var(--THEME-accent);
+	}
+}
+
+.volumeValue {
+	min-width: 4ch;
+	text-align: right;
+	font-variant-numeric: tabular-nums;
 }
 
 .footerStatsItem {

@@ -1,8 +1,8 @@
 import { playerAudioSourceId } from '@glitch/shared/audio.ts';
-import type { AudioSourceId } from '@glitch/shared/audio.ts';
+import { ref, shallowReactive } from 'vue';
 import workletUrl from './audio-capture.worklet.js?url';
-import { shallowReactive } from 'vue';
 import { AudioMonitor } from './audio-monitor.ts';
+import type { AudioSourceId } from '@glitch/shared/audio.ts';
 
 const silentLevels = [0, 0] as const;
 
@@ -25,6 +25,8 @@ type PlayerAudio = {
 export class AudioInputs {
 	private context: AudioContext | null = null;
 	private output: GainNode | null = null;
+	private previewGain: GainNode | null = null;
+	public readonly previewVolume = ref(0.5);
 	private monitor: AudioMonitor | null = null;
 	private moduleReady: Promise<void> | null = null;
 	private modules = new WeakMap<BaseAudioContext, Promise<void>>();
@@ -158,7 +160,10 @@ export class AudioInputs {
 		if (!this.output) {
 			// 各Playerの音量調整後を加算するプロジェクト出力。モノラルは左右へ複製する。
 			this.output = new GainNode(context, { channelCount: 2, channelCountMode: 'explicit', channelInterpretation: 'speakers' });
-			this.output.connect(context.destination);
+			// 解析はoutputから分岐する。試聴音量はスピーカーへ向かう経路だけに適用する。
+			this.previewGain = new GainNode(context, { gain: this.previewVolume.value });
+			this.output.connect(this.previewGain);
+			this.previewGain.connect(context.destination);
 		}
 		entry.gain.connect(this.output);
 		entry.media.volume = 1;
@@ -168,6 +173,17 @@ export class AudioInputs {
 	}
 
 	public getVolume(id: string) { return this.players.get(id)?.volume ?? 0.5; }
+
+	public setPreviewVolume(volume: number) {
+		if (!Number.isFinite(volume)) return;
+		this.previewVolume.value = Math.min(1, Math.max(0, volume));
+		if (!this.previewGain) return;
+		const gain = this.previewGain.gain;
+		const now = this.previewGain.context.currentTime;
+		// 操作途中の値から短く補間し、急なゲイン変更によるクリック音を避ける。
+		gain.cancelAndHoldAtTime(now);
+		gain.linearRampToValueAtTime(this.previewVolume.value, now + 0.015);
+	}
 
 	public readMonitor(): AudioMonitor | null {
 		if (!this.context || !this.output) return null;
@@ -208,6 +224,8 @@ export class AudioInputs {
 		this.monitor = null;
 		this.output?.disconnect();
 		this.output = null;
+		this.previewGain?.disconnect();
+		this.previewGain = null;
 		void this.context?.close();
 		this.context = null;
 		this.moduleReady = null;

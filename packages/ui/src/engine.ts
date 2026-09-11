@@ -3,10 +3,10 @@ import { createRendererWorker } from '@glitch/renderer/client.ts';
 import { deepEqual } from '@glitch/shared/utility/deep-equal.ts';
 import { deepClone } from '@glitch/shared/utility/deep-clone.ts';
 import { isVideoFrameAvailable, playVideoAfterFirstFrameIsReady } from './utility/video.ts';
+import { AudioInputs } from './audio-inputs.ts';
 import type { Asset, GsAutomation, GsFxNode, GsNode, Macro, Player } from '@glitch/shared/types.ts';
 import type { Renderer } from '@glitch/renderer/renderer.ts';
 import * as ui from '@/ui.ts';
-import { AudioInputs } from './audio-inputs.ts';
 
 type RendererMethods = {
 	[K in keyof Renderer as Renderer[K] extends (...args: never[]) => unknown ? K : never]: Renderer[K];
@@ -252,7 +252,7 @@ export class Engine {
 				const video = window.document.createElement(asset?.fileDataType.startsWith('audio/') ? 'audio' : 'video');
 				video.loop = true;
 				video.preload = 'auto';
-				video.volume = 0.5;
+				video.volume = 1;
 				this.videoElements.set(player.id, video);
 				if (player.type === 'asset') this.audioInputs.registerPlayer(player.id, video);
 				this.videoLoads.set(player.id, new Promise<void>(resolve => {
@@ -324,6 +324,8 @@ export class Engine {
 	}
 
 	public getPlayerVolume(playerId: Player['id']) { return this.audioInputs.getVolume(playerId); }
+	public get previewVolume() { return this.audioInputs.previewVolume; }
+	public setPreviewVolume(volume: number) { this.audioInputs.setPreviewVolume(volume); }
 	public readAudioMonitor() { return this.audioInputs.readMonitor(); }
 	public getPlayerLevels(playerId: Player['id']) { return this.audioInputs.getPlayerLevels(playerId); }
 	public setPlayerVolume(playerId: Player['id'], volume: number) { this.audioInputs.setVolume(playerId, volume); }
