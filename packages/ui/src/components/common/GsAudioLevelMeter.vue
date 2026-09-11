@@ -15,8 +15,9 @@ withDefaults(defineProps<{
 
 function normalizedLevel(level: number): number {
 	if (!Number.isFinite(level) || level <= 0) return 0;
-	// 小さな音も読めるように、-60〜0 dBFSをメーター全長へ対応させる。
-	return Math.min(1, Math.max(0, (20 * Math.log10(level) + 60) / 60));
+	// 振幅をそのまま長さに対応させる。広いdB範囲を線形配置すると、
+	// 振幅0.5（約-6 dBFS）でもほぼ全点灯になり、強弱を読み取りにくい。
+	return Math.min(1, level);
 }
 </script>
 
