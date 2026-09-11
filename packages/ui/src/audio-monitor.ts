@@ -7,7 +7,7 @@ export const AUDIO_MONITOR_SETTINGS = {
 	minFrequency: 20,
 	maxFrequency: 20000,
 	waveformSeconds: 0.04,
-	framesPerSecond: 30,
+	framesPerSecond: 60,
 	leftColor: '#48d8ed',
 	rightColor: '#f77da9',
 };

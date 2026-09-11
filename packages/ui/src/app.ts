@@ -80,8 +80,16 @@ class AppContext {
 					type: null,
 					direction: 'horizontal',
 					children: [{
-						id: '22bf5010d6c344118613b8c12959b2b7',
+						id: '251858d938b0448aafd613b73c7e352c',
 						ratio: 0.25,
+						type: 'audioSpectrum',
+					}, {
+						id: '136c0ccc916c438787756c07da414be7',
+						ratio: 0.25,
+						type: 'audioWaveform',
+					}, {
+						id: '22bf5010d6c344118613b8c12959b2b7',
+						ratio: 0.5,
 						type: 'players',
 					}],
 				}],

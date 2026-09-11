@@ -155,13 +155,13 @@ function getMenu() {
 	}
 
 	menuItems.push({
-		icon: 'ti ti-box-align-bottom',
-		text: 'Add panel to below',
-		action: () => addPanel('below'),
-	}, {
 		icon: 'ti ti-box-align-top',
 		text: 'Add panel to above',
 		action: () => addPanel('above'),
+	}, {
+		icon: 'ti ti-box-align-bottom',
+		text: 'Add panel to below',
+		action: () => addPanel('below'),
 	}, {
 		icon: 'ti ti-box-align-left',
 		text: 'Add panel to left',
