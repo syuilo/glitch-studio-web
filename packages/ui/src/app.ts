@@ -387,7 +387,7 @@ export async function newProjectFromImageOrVideo() {
 		assets: [],
 		macros: [],
 		automations: [],
-		resolution: { width: result.width || 1280, height: result.height || 720 },
+		resolution: { width: result.width ?? 2048, height: result.height ?? 2048 },
 	});
 
 	appContext.commit('addAsset', {
