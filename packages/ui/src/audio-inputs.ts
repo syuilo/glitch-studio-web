@@ -1,8 +1,9 @@
 import { playerAudioSourceId, projectAudioSourceId } from '@glitch/shared/audio.ts';
+import { AudioHistory } from '@glitch/shared/audio-history.ts';
 import { ref, shallowReactive } from 'vue';
 import workletUrl from './audio-capture.worklet.js?url';
 import { AudioMonitor } from './audio-monitor.ts';
-import type { AudioSourceId } from '@glitch/shared/audio.ts';
+import type { AudioCaptureMessage, AudioSourceId } from '@glitch/shared/audio.ts';
 
 const silentLevels = [0, 0] as const;
 
@@ -27,6 +28,7 @@ export class AudioInputs {
 	private output: GainNode | null = null;
 	private outputCapture: Capture | null = null;
 	private outputCaptureUsers = 0;
+	public readonly outputHistory = new AudioHistory();
 	private previewGain: GainNode | null = null;
 	public readonly previewVolume = ref(0.5);
 	private monitor: AudioMonitor | null = null;
@@ -47,8 +49,20 @@ export class AudioInputs {
 			channelCountMode: 'max', channelInterpretation: 'discrete',
 		});
 		const channel = new MessageChannel();
+		const audioHistory = id === projectAudioSourceId ? this.outputHistory : null;
+		const reset = () => { if (audioHistory) audioHistory.reset(); else this.reset(id, null); };
 		try {
-			this.attach(id, channel.port2);
+			if (audioHistory) {
+				channel.port2.onmessage = ({ data }: MessageEvent<AudioCaptureMessage>) => {
+					if (data.type === 'reset') audioHistory.reset(data.generation);
+					else {
+						audioHistory.append(data);
+						channel.port2.postMessage({ type: 'recycle', buffer: data.buffer }, [data.buffer]);
+					}
+				};
+			} else {
+				this.attach(id, channel.port2);
+			}
 		} catch (error) {
 			channel.port1.close();
 			channel.port2.close();
@@ -71,7 +85,7 @@ export class AudioInputs {
 		context.addEventListener('statechange', onContextState);
 		source.connect(capture);
 		capture.connect(context.destination);
-		capture.onprocessorerror = () => { active = false; clearLevels(); this.reset(id, null); };
+		capture.onprocessorerror = () => { active = false; clearLevels(); reset(); };
 		return {
 			setState: (nextActive, nextGeneration) => {
 				if (!nextActive || generation !== nextGeneration) clearLevels();
@@ -89,7 +103,8 @@ export class AudioInputs {
 				source.disconnect(capture);
 				capture.disconnect();
 				capture.port.close();
-				this.reset(id, null);
+				if (audioHistory) channel.port2.close();
+				reset();
 			},
 		};
 	}
@@ -108,7 +123,12 @@ export class AudioInputs {
 
 	public retainOutputCapture(): () => void {
 		this.outputCaptureUsers++;
-		this.ensureOutputCapture();
+		try {
+			this.ensureOutputCapture();
+		} catch (error) {
+			this.outputCaptureUsers--;
+			throw error;
+		}
 		let released = false;
 		return () => {
 			if (released) return;

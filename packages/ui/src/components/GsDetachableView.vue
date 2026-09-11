@@ -26,6 +26,8 @@ const props = defineProps<{
 	title: string;
 }>();
 
+const emit = defineEmits<{ changeWindow: [] }>();
+
 const home = useTemplateRef('home');
 const view = useTemplateRef('view');
 const viewWindow = shallowRef<Window | null>(null);
@@ -61,6 +63,7 @@ function restoreView() {
 	pip.document.removeEventListener('fullscreenchange', updateFullscreen);
 	// Restore synchronously, before the child document or Vue subtree is destroyed.
 	if (home.value && view.value) home.value.append(view.value);
+	emit('changeWindow');
 	viewWindow.value = null;
 	fullscreen.value = false;
 }
@@ -102,6 +105,7 @@ async function openView(mode: 'pip' | 'window') {
 			pip.document.head.append(style.cloneNode(true));
 		}
 		pip.document.body.append(view.value!);
+		emit('changeWindow');
 	} catch (error) {
 		restoreView();
 		pip?.close();
