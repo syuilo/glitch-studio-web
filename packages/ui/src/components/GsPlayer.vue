@@ -1,11 +1,7 @@
 <template>
 <div :class="$style.root">
 	<div :class="$style.header">{{ player.name }}</div>
-	<div :class="$style.buttons">
-		<GsButton :class="$style.button" :vTooltip="i18n.ts.ReplaceAsset" @click="replace()"><i class="ti ti-refresh"></i></GsButton>
-		<GsButton :class="$style.button" :vTooltip="i18n.ts.RenameAsset" @click="rename()"><i class="ti ti-cursor-text"></i></GsButton>
-		<GsButton :class="$style.button" :vTooltip="i18n.ts.RemoveAsset" @click="remove()"><i class="ti ti-trash"></i></GsButton>
-	</div>
+	<button class="_button" :class="$style.menuButton" @click="showMenu"><i class="ti ti-dots"></i></button>
 	<div :class="$style.body">
 		<GsVideoControls
 			v-if="videoEl != null" :video="videoEl" :class="$style.videoControl"
@@ -47,7 +43,7 @@ async function rename() {
 	//});
 }
 
-function replace() {
+function showMenu(ev: PointerEvent) {
 	// Implement the replace logic here
 }
 
@@ -62,7 +58,7 @@ function replace() {
 }
 
 .header {
-	padding: 0 88px 0 8px;
+	padding: 0 32px 0 8px;
 	white-space: nowrap;
 	overflow: clip;
 	text-overflow: ellipsis;
@@ -71,22 +67,13 @@ function replace() {
 	font-size: 95%;
 }
 
-.buttons {
-	display: flex;
+.menuButton {
 	position: absolute;
 	top: 4px;
 	right: 4px;
-	text-align: right;
-	width: 85px;
-}
-
-.button {
-	display: inline-block;
-	width: 23px;
-	height: 23px;
+	width: 28px;
+	height: 28px;
 	font-size: 90%;
-	padding-left: 0;
-	padding-right: 0;
 }
 
 .body {
