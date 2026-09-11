@@ -329,20 +329,15 @@ export class Engine {
 	public readAudioMonitor() { return this.audioInputs.readMonitor(); }
 
 	public addAudioSpectrogramMonitor(id: string, canvas: OffscreenCanvas, options: AudioSpectrogramOptions) {
-		this.call('addAudioSpectrogramMonitor', [id, canvas, options], [canvas]);
-		const release = this.audioInputs.retainOutputCapture();
-		return () => {
-			if (this.isReady.value) this.call('removeAudioSpectrogramMonitor', [id]);
-			release();
-		};
+
 	}
 
 	public updateAudioSpectrogramMonitor(id: string, options: AudioSpectrogramOptions) {
-		this.call('updateAudioSpectrogramMonitor', [id, options]);
+
 	}
 
 	public resizeAudioSpectrogramMonitor(id: string, width: number, height: number) {
-		this.call('resizeAudioSpectrogramMonitor', [id, width, height]);
+
 	}
 	public getPlayerLevels(playerId: Player['id']) { return this.audioInputs.getPlayerLevels(playerId); }
 
