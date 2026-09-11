@@ -1,3 +1,4 @@
+import { audioChannel, AudioSpectrum, finiteNumber } from '../audio-spectrum.ts';
 import shader from './audio-spectrogram.wgsl?raw';
 import type { AudioHistory } from '../../audio-history.ts';
 
@@ -26,18 +27,22 @@ export type AudioSpectrogramOptions = SpectrogramSettings & {
 // 入力音声と描画先は呼び出し側が決める。Playerやエフェクトの定義には依存しない。
 export function createAudioSpectrogram(device: GPUDevice, defaultVertexShaderModule: GPUShaderModule) {
 	const bands = 512;
+
 	const module = device.createShaderModule({ code: shader });
+
 	// r32floatをtextureLoadで読むため、float32-filterable機能を要求しない。
 	const layout = device.createBindGroupLayout({ entries: [
 		{ binding: 0, visibility: GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
 		{ binding: 1, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'unfilterable-float', viewDimension: '2d-array' } },
 	] });
+
 	const pipeline = device.createRenderPipeline({
 		layout: device.createPipelineLayout({ bindGroupLayouts: [layout] }),
 		vertex: { module: defaultVertexShaderModule },
 		fragment: { module, targets: [{ format: navigator.gpu.getPreferredCanvasFormat() }] },
 		primitive: { topology: 'triangle-list' },
 	});
+
 	const uniformBuffer = device.createBuffer({ size: 48, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
 	const uniforms = new Float32Array(12);
 	const rows = [new Float32Array(bands), new Float32Array(bands)];
@@ -50,6 +55,7 @@ export function createAudioSpectrogram(device: GPUDevice, defaultVertexShaderMod
 	let settings = '';
 	let newestBucket = -1;
 	let filled = 0;
+
 	return {
 		render(audio: AudioHistory | null, p: SpectrogramSettings, pass: GPURenderPassEncoder) {
 			const rate = audio?.sampleRate ?? 48000;
@@ -67,8 +73,11 @@ export function createAudioSpectrogram(device: GPUDevice, defaultVertexShaderMod
 			if (capacity !== required) {
 				texture?.destroy();
 				capacity = required;
-				texture = device.createTexture({ size: [bands, capacity, 2], format: 'r32float',
-																																					usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST });
+				texture = device.createTexture({
+					size: [bands, capacity, 2],
+					format: 'r32float',
+					usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+				});
 				bindGroup = device.createBindGroup({ layout, entries: [
 					{ binding: 0, resource: { buffer: uniformBuffer } },
 					{ binding: 1, resource: texture.createView({ dimension: '2d-array' }) },

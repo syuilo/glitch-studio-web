@@ -1,5 +1,5 @@
+import { audioChannel, finiteNumber } from '@glitch/shared/utility/audio-spectrum.js';
 import { implementEffect } from '../../fx-implementation.ts';
-import { audioChannel, finiteNumber } from '../../utility/audio-spectrum.ts';
 import { createAudioPlot } from '../audio-plot.ts';
 import type definition from '@glitch/shared/fx-definitions/audioWaveform.ts';
 
