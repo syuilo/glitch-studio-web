@@ -4,6 +4,7 @@
 		<div :class="$style.zoom">ZOOM: {{ Math.round(zoom * 100) }}%</div>
 	</template>
 	<template #default="{ detached }">
+		<div :class="$style.time" class="_monospace">{{ formatTime(time) }}</div>
 		<div ref="containerContainer" :class="$style.containerContainer" @wheel="onViewWheel" @click="onViewClick(detached)" @pointermove="onPointermove">
 			<div ref="canvasContainer" :class="$style.canvasContainer" :style="{ scale: zoom }"></div>
 		</div>
@@ -22,6 +23,12 @@ const canvasContainer = useTemplateRef('canvasContainer');
 const containerContainer = useTemplateRef('containerContainer');
 const ZOOM_STEP = 1.25;
 const zoom = ref(1 / ZOOM_STEP / ZOOM_STEP / ZOOM_STEP);
+const time = ref(0);
+
+window.requestAnimationFrame(function update(t) {
+	time.value = t;
+	window.requestAnimationFrame(update);
+});
 
 watch(resolutionFactor, (newFactor, oldFactor) => {
 	zoom.value *= (oldFactor ?? 1) / newFactor;
@@ -104,6 +111,14 @@ function onViewWheel(ev: WheelEvent) {
 	}
 }
 
+function formatTime(timeMs: number): string {
+	const ms = Math.floor(timeMs);
+	const hours = String(Math.floor(ms / 3600000)).padStart(2, '0');
+	const minutes = String(Math.floor(ms / 60000) % 60).padStart(2, '0');
+	const seconds = String(Math.floor(ms / 1000) % 60).padStart(2, '0');
+	const milliseconds = String(ms % 1000).padStart(3, '0');
+	return `${hours}:${minutes}:${seconds}.${milliseconds}`;
+}
 </script>
 
 <style module lang="scss">
@@ -124,6 +139,19 @@ function onViewWheel(ev: WheelEvent) {
 
 .canvasContainer {
 	display: block;
+}
+
+.time {
+	display: flex;
+	gap: 12px;
+	position: absolute;
+	z-index: 1;
+	top: 0;
+	left: 0;
+	padding: 4px 8px;
+	color: var(--THEME-accent);
+	background: #0008;
+	font-variant-numeric: tabular-nums;
 }
 
 @keyframes bg {
