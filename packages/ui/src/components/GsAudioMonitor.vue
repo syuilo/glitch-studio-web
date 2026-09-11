@@ -36,7 +36,7 @@ function draw() {
 	}
 	context.setTransform(ratio, 0, 0, ratio, 0, 0);
 	context.globalAlpha = 1;
-	context.fillStyle = '#101517';
+	context.fillStyle = '#111111';
 	context.fillRect(0, 0, width, height);
 	const data = engine.readAudioMonitor();
 	const top = 30;
