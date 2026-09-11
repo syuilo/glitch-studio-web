@@ -1,7 +1,7 @@
-import { AudioSpectrum, audioChannel, finiteNumber } from './audio-spectrum.ts';
-import type { AudioHistory } from './audio-history.ts';
-import type { SpectrogramSettings } from '@glitch/shared/utility/audio-spectrogram.ts';
+import { AudioSpectrum, audioChannel, finiteNumber } from '../audio-spectrum.ts';
 import shader from './audio-spectrogram.wgsl?raw';
+import type { AudioHistory } from '../../audio-history.ts';
+import type { SpectrogramSettings } from '@glitch/shared/utility/audio-spectrogram.ts';
 
 // 入力音声と描画先は呼び出し側が決める。Playerやエフェクトの定義には依存しない。
 export function createAudioSpectrogram(device: GPUDevice, defaultVertexShaderModule: GPUShaderModule) {
@@ -48,7 +48,7 @@ export function createAudioSpectrogram(device: GPUDevice, defaultVertexShaderMod
 				texture?.destroy();
 				capacity = required;
 				texture = device.createTexture({ size: [bands, capacity, 2], format: 'r32float',
-					usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST });
+																																					usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST });
 				bindGroup = device.createBindGroup({ layout, entries: [
 					{ binding: 0, resource: { buffer: uniformBuffer } },
 					{ binding: 1, resource: texture.createView({ dimension: '2d-array' }) },
@@ -99,9 +99,9 @@ export function createAudioSpectrogram(device: GPUDevice, defaultVertexShaderMod
 			const minDb = finiteNumber(p.minDb, -80, -120, -1);
 			const maxDb = finiteNumber(p.maxDb, 0, minDb + 1, 20);
 			uniforms.set([Math.max(0, newestBucket) % capacity, filled, duration * rate / step,
-				filled ? Math.max(0, (audio!.endFrame - newestBucket * step) / step) : 0,
-				Number(p.orientation !== 'vertical'), Number(p.direction === 'reverse'), Number(p.flipFrequency), Number(channel === 'stereo'),
-				minDb, maxDb, 0, 0]);
+																	filled ? Math.max(0, (audio!.endFrame - newestBucket * step) / step) : 0,
+																	Number(p.orientation !== 'vertical'), Number(p.direction === 'reverse'), Number(p.flipFrequency), Number(channel === 'stereo'),
+																	minDb, maxDb, 0, 0]);
 			device.queue.writeBuffer(uniformBuffer, 0, uniforms);
 			pass.setPipeline(pipeline);
 			pass.setBindGroup(0, bindGroup!);

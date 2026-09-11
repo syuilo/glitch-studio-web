@@ -1,5 +1,5 @@
 import { implementEffect } from '../../fx-implementation.ts';
-import { createAudioSpectrogram } from '../../audio-spectrogram.ts';
+import { createAudioSpectrogram } from '../../utility/audio-spectrogram/audio-spectrogram.ts';
 import type definition from '@glitch/shared/fx-definitions/audioSpectrogram.ts';
 
 export default implementEffect<typeof definition>({

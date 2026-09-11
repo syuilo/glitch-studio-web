@@ -1,4 +1,4 @@
-import type { AudioHistory } from './audio-history.ts';
+import type { AudioHistory } from '../audio-history.ts';
 
 export type AudioChannel = 'left' | 'right' | 'mix' | 'stereo';
 
@@ -44,7 +44,7 @@ export class AudioSpectrum {
 			const phase = 2 * Math.PI * i / size;
 			const weight = windowName === 'hann' ? 0.5 - 0.5 * Math.cos(phase)
 				: windowName === 'hamming' ? 0.54 - 0.46 * Math.cos(phase)
-					: windowName === 'blackman' ? 0.42 - 0.5 * Math.cos(phase) + 0.08 * Math.cos(2 * phase) : 1;
+				: windowName === 'blackman' ? 0.42 - 0.5 * Math.cos(phase) + 0.08 * Math.cos(2 * phase) : 1;
 			this.window[i] = weight;
 			this.windowSum += weight;
 			if (i < size / 2) {

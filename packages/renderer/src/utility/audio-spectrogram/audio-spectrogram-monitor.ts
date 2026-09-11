@@ -1,8 +1,7 @@
 import { createAudioSpectrogram } from './audio-spectrogram.ts';
 import type { AudioSpectrogramOptions } from '@glitch/shared/utility/audio-spectrogram.ts';
-import type { AudioHistory } from './audio-history.ts';
+import type { AudioHistory } from '../../audio-history.ts';
 
-// パネルの表示先を管理し、独立した共通処理に解析と描画を委譲する。
 export class AudioSpectrogramMonitor {
 	private context: GPUCanvasContext;
 	private spectrogram: ReturnType<typeof createAudioSpectrogram>;
@@ -23,8 +22,12 @@ export class AudioSpectrogramMonitor {
 	public render(audio: AudioHistory | null) {
 		const commandEncoder = this.device.createCommandEncoder();
 		const pass = commandEncoder.beginRenderPass({
-			colorAttachments: [{ view: this.context.getCurrentTexture().createView(),
-				loadOp: 'clear', storeOp: 'store', clearValue: [0, 0, 0, 1] }],
+			colorAttachments: [{
+				view: this.context.getCurrentTexture().createView(),
+				loadOp: 'clear',
+				storeOp: 'store',
+				clearValue: [0, 0, 0, 1],
+			}],
 		});
 		this.spectrogram.render(audio, this.options, pass);
 		pass.end();
