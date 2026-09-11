@@ -6,14 +6,28 @@
 
 <script lang="ts" setup>
 import { computed, onMounted, onBeforeUnmount, useTemplateRef, watch } from 'vue';
-import { audioSpectrogramDefaults } from '@glitch/shared/utility/audio-spectrogram.ts';
-import type { AudioSpectrogramOptions } from '@glitch/shared/utility/audio-spectrogram.ts';
 import GsDetachableView from './GsDetachableView.vue';
+import type { AudioSpectrogramOptions } from '@glitch/shared/utility/audio-spectrogram.ts';
 import { engine } from '@/app.ts';
 
-// 設定はリテラル値で指定可能。省略値にはパネル専用の既定値を使う。
 const props = defineProps<{ options?: Partial<AudioSpectrogramOptions> }>();
-const options = computed(() => ({ ...audioSpectrogramDefaults(), ...props.options }));
+const options = computed(() => ({
+	player: null,
+	channel: 'mix',
+	fftSize: 2048,
+	window: 'hann',
+	smoothing: 0,
+	minFrequency: 20,
+	maxFrequency: 20000,
+	logarithmic: false,
+	minDb: -80,
+	maxDb: 0,
+	duration: 10,
+	orientation: 'horizontal',
+	direction: 'forward',
+	flipFrequency: false,
+	...props.options,
+}));
 const canvas = useTemplateRef('canvas');
 const id = crypto.randomUUID();
 let release: (() => void) | undefined;
@@ -45,11 +59,24 @@ watch(options, value => {
 onBeforeUnmount(() => {
 	stopWatching?.();
 	observer?.disconnect();
-		release?.();
+	release?.();
 });
 </script>
 
 <style module lang="scss">
-.root { position: relative; flex: 1; min-height: 0; height: 100%; overflow: hidden; }
-.canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.root {
+	position: relative;
+	flex: 1;
+	min-height: 0;
+	height: 100%;
+	overflow: clip;
+}
+
+.canvas {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+}
 </style>

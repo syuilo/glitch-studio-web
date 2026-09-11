@@ -19,23 +19,3 @@ export type AudioSpectrogramOptions = SpectrogramSettings & {
 	// nullはプロジェクト全体のミックス。IDを指定するとPlayerの音量調整前を表示する。
 	player: string | null;
 };
-
-export function audioSpectrogramDefaults(): AudioSpectrogramOptions {
-	// パネル専用の既定値。エフェクト側の変更を自動反映しない。
-	return {
-		player: null,
-		channel: 'mix',
-		fftSize: 2048,
-		window: 'hann',
-		smoothing: 0,
-		minFrequency: 20,
-		maxFrequency: 20000,
-		logarithmic: true,
-		minDb: -80,
-		maxDb: 0,
-		duration: 10,
-		orientation: 'horizontal',
-		direction: 'forward',
-		flipFrequency: false,
-	};
-}
