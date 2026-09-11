@@ -11,7 +11,9 @@
 
 	<div v-show="expanded" :class="$style.params">
 		<div v-for="param in Object.keys(paramDefs)" v-show="paramDefs[param].visibility == null || paramDefs[param].visibility(node.params)" :key="param" :class="$style.param">
-			<label :class="[$style.paramLabel, { [$style.expression]: isExpression(param) }]" @click="changeValueType(param, $event)">{{ paramDefs[param].label }}</label>
+			<div :class="[$style.paramLabel, { [$style.expression]: isExpression(param) }]" @click="changeValueType(param, $event)">
+				<GsCondensedLine>{{ paramDefs[param].label }}</GsCondensedLine>
+			</div>
 			<div :class="$style.paramBody">
 				<GsInput v-if="isExpression(param)" type="text" :modelValue="getParam(param)" @update:modelValue="updateParamAsExpression(param, $event)"/>
 				<GsButton v-else-if="isAutomation(param)" @click="selectAutomation(param, $event)">{{ node.params[param].automationId ? appContext.state.automations.value.find(a => a.id === node.params[param].automationId).name : '(none)' }}</GsButton>
@@ -47,6 +49,7 @@ import { genId } from '@glitch/shared/utility/id.ts';
 import GsEffectParamControl from './GsEffectParamControl.vue';
 import GsButton from './common/GsButton.vue';
 import GsInput from './common/GsInput.vue';
+import GsCondensedLine from './common/GsCondensedLine.vue';
 import type { GsAutomation, GsFxNode, GsGroupNode, GsNode } from '@glitch/shared/types.ts';
 import { i18n } from '@/i18n.ts';
 import { appContext, wireMap } from '@/app.ts';
@@ -296,15 +299,12 @@ onMounted(() => {
 
 .param {
 	display: flex;
-	padding: 8px 16px;
-
-	&:nth-child(even) {
-		background: #0003;
-	}
+	padding: 4px 16px;
+	box-sizing: border-box;
+	min-height: 32px;
 }
 
 .paramLabel {
-	display: grid;
 	place-content: center left;
 	width: 30%;
 	box-sizing: border-box;
@@ -312,7 +312,7 @@ onMounted(() => {
 	flex-shrink: 0;
 	white-space: nowrap;
 	text-overflow: ellipsis;
-	overflow: hidden;
+	overflow: clip;
 	font-size: 95%;
 	cursor: pointer;
 
@@ -328,6 +328,7 @@ onMounted(() => {
 
 .footer {
 	display: flex;
+	margin-top: 4px;
 	line-height: 24px;
 	background-size: auto auto;
 	background-color: #2d2d2d;
