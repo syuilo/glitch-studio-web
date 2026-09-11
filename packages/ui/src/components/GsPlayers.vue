@@ -26,5 +26,7 @@ import { i18n } from '@/i18n.ts';
 	display: flex;
 	flex-direction: column;
 	overflow: auto;
+	padding: 8px;
+	gap: 8px;
 }
 </style>

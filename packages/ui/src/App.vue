@@ -102,7 +102,7 @@ function exportToWebp() {
 
 		const link = window.document.createElement('a');
 		link.href = url;
-		link.download = `$${Date.now()}.webp`;
+		link.download = `${Date.now()}.webp`;
 		link.click();
 
 		URL.revokeObjectURL(url);

@@ -100,9 +100,9 @@ const inputEl = useTemplateRef('inputEl');
 const prefixEl = useTemplateRef('prefixEl');
 const suffixEl = useTemplateRef('suffixEl');
 const height =
-	props.small ? 28 :
-	props.large ? 32 :
-	30;
+	props.small ? 26 :
+	props.large ? 30 :
+	28;
 let autocompleteWorker: Autocomplete | null = null;
 
 const focus = () => inputEl.value?.focus();
@@ -255,7 +255,7 @@ defineExpose({
 	height: v-bind("height + 'px'");
 	width: 100%;
 	margin: 0;
-	padding: 0 12px;
+	padding: 0 10px;
 	font: inherit;
 	font-weight: normal;
 	font-size: 1em;

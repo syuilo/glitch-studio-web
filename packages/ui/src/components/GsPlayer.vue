@@ -7,10 +7,12 @@
 		<GsButton :class="$style.button" :vTooltip="i18n.ts.RemoveAsset" @click="remove()"><i class="ti ti-trash"></i></GsButton>
 	</div>
 	<div :class="$style.body">
-		<GsVideoControls v-if="videoEl != null" :video="videoEl" :class="$style.videoControl"
+		<GsVideoControls
+			v-if="videoEl != null" :video="videoEl" :class="$style.videoControl"
 			:play="() => engine.playPlayer(player.id)"
 			:getVolume="player.type === 'asset' ? () => engine.getPlayerVolume(player.id) : undefined"
-			:setVolume="player.type === 'asset' ? volume => engine.setPlayerVolume(player.id, volume) : undefined"/>
+			:setVolume="player.type === 'asset' ? volume => engine.setPlayerVolume(player.id, volume) : undefined"
+		/>
 	</div>
 </div>
 </template>
@@ -49,33 +51,24 @@ function replace() {
 	// Implement the replace logic here
 }
 
-
 </script>
 
 <style module lang="scss">
 .root {
 	position: relative;
-	background: rgba(255, 255, 255, 0.1);
-	border: solid 1px rgba(255, 255, 255, 0.1);
 	border-radius: 4px;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
-	overflow: hidden;
+	overflow: clip;
+	background: var(--THEME-panel);
 }
 
 .header {
 	padding: 0 88px 0 8px;
 	white-space: nowrap;
-	overflow: hidden;
+	overflow: clip;
 	text-overflow: ellipsis;
 	font-weight: bold;
-	background: linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(255, 255, 255, 0.025));
-	border-bottom: solid 1px rgba(0, 0, 0, 0.5);
 	line-height: 32px;
-	text-shadow: 0 -1px #000;
-
-	&.disabled {
-		pointer-events: none;
-	}
+	font-size: 95%;
 }
 
 .buttons {
