@@ -23,17 +23,22 @@ import * as api from '@/api.ts';
 import { appContext } from '@/app.ts';
 
 async function addAsset() {
-	const result = await api.openImageFile({});
+	const result = await api.openMediaFile({});
+	if (!result) return;
+	const assetId = genId();
 	appContext.commit('addAsset', {
-		id: genId(),
+		id: assetId,
 		name: result.name,
-		width: result.img.width,
-		height: result.img.height,
-		data: result.img.data,
+		width: result.width,
+		height: result.height,
+		data: result.data,
 		fileDataType: result.type,
 		fileData: result.fileData,
 		hash: result.hash, // TODO
 	});
+	if (result.type.startsWith('audio/') || result.type.startsWith('video/')) {
+		appContext.commit('addPlayer', { id: genId(), name: result.name, type: 'asset', assetId });
+	}
 }
 </script>
 

@@ -42,7 +42,7 @@ onBeforeUnmount(() => {
 async function onViewClick(detached: boolean) {
 	if (detached) return;
 	if (appContext.state.nodes.value.length === 0) {
-		const result = await api.openImageOrVideoFile({});
+		const result = await api.openMediaFile({});
 		if (result == null) return;
 
 		const assetId = genId();
@@ -65,7 +65,7 @@ async function onViewClick(detached: boolean) {
 					image: { type: 'literal', value: assetId },
 				},
 			});
-		} else if (result.type.startsWith('video/')) {
+		} else if (result.type.startsWith('video/') || result.type.startsWith('audio/')) {
 			const playerId = genId();
 
 			appContext.commit('addPlayer', {
@@ -76,10 +76,10 @@ async function onViewClick(detached: boolean) {
 			});
 
 			appContext.commit('addFxNode', {
-				fx: 'video',
+				fx: result.type.startsWith('audio/') ? 'audioWaveform' : 'video',
 				id: genId(),
 				params: {
-					video: { type: 'literal', value: playerId },
+					player: { type: 'literal', value: playerId },
 				},
 			});
 		}

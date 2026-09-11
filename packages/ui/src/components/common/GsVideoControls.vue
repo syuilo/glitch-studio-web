@@ -26,7 +26,10 @@ import GsButton from './GsButton.vue';
 import { i18n } from '@/i18n.ts';
 
 const props = defineProps<{
-	video: HTMLVideoElement | null;
+	video: HTMLMediaElement | null;
+	play?: () => Promise<void>;
+	getVolume?: () => number;
+	setVolume?: (volume: number) => void;
 }>();
 
 const paused = ref(true);
@@ -44,7 +47,7 @@ watch(() => props.video, (video, _, onCleanup) => {
 		ready.value = video != null && video.readyState >= video.HAVE_METADATA && !video.error;
 		currentTime.value = video?.currentTime ?? 0;
 		duration.value = video && Number.isFinite(video.duration) ? video.duration : 0;
-		volume.value = video?.muted ? 0 : (video?.volume ?? 0.5);
+		volume.value = props.getVolume ? props.getVolume() : video?.muted ? 0 : (video?.volume ?? 0.5);
 	};
 	sync();
 	if (!video) return;
@@ -64,7 +67,7 @@ async function togglePlayback() {
 		return;
 	}
 	try {
-		await video.play();
+		await (props.play ? props.play() : video.play());
 	} catch (err) {
 		if (props.video === video && !(err instanceof DOMException && err.name === 'AbortError')) {
 			error.value = String(err);
@@ -87,6 +90,10 @@ function seek(event: Event) {
 
 function setVolume(event: Event) {
 	if (!props.video) return;
+	if (props.setVolume) {
+		props.setVolume((event.target as HTMLInputElement).valueAsNumber);
+		return;
+	}
 	props.video.volume = (event.target as HTMLInputElement).valueAsNumber;
 	props.video.muted = false;
 }

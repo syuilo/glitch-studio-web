@@ -361,7 +361,7 @@ export async function newProject() {
 }
 
 export async function newProjectFromImageOrVideo() {
-	const result = await api.openImageOrVideoFile({});
+	const result = await api.openMediaFile({});
 	if (result == null) return;
 
 	const assetId = genId();
@@ -375,7 +375,7 @@ export async function newProjectFromImageOrVideo() {
 		assets: [],
 		macros: [],
 		automations: [],
-		resolution: { width: result.width, height: result.height },
+		resolution: { width: result.width || 1280, height: result.height || 720 },
 	});
 
 	appContext.commit('addAsset', {
@@ -397,7 +397,7 @@ export async function newProjectFromImageOrVideo() {
 				image: { type: 'literal', value: assetId },
 			},
 		});
-	} else if (result.type.startsWith('video/')) {
+	} else if (result.type.startsWith('video/') || result.type.startsWith('audio/')) {
 		const playerId = genId();
 
 		appContext.commit('addPlayer', {
@@ -408,7 +408,7 @@ export async function newProjectFromImageOrVideo() {
 		});
 
 		appContext.commit('addFxNode', {
-			fx: 'video',
+			fx: result.type.startsWith('audio/') ? 'audioWaveform' : 'video',
 			id: genId(),
 			params: {
 				player: { type: 'literal', value: playerId },

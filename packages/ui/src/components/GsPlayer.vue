@@ -7,13 +7,16 @@
 		<GsButton :class="$style.button" :vTooltip="i18n.ts.RemoveAsset" @click="remove()"><i class="ti ti-trash"></i></GsButton>
 	</div>
 	<div :class="$style.body">
-		<GsVideoControls v-if="videoEl != null" :video="videoEl" :class="$style.videoControl"/>
+		<GsVideoControls v-if="videoEl != null" :video="videoEl" :class="$style.videoControl"
+			:play="() => engine.playPlayer(player.id)"
+			:getVolume="player.type === 'asset' ? () => engine.getPlayerVolume(player.id) : undefined"
+			:setVolume="player.type === 'asset' ? volume => engine.setPlayerVolume(player.id, volume) : undefined"/>
 	</div>
 </div>
 </template>
 
 <script lang="ts" setup>
-import { shallowRef, onMounted, nextTick } from 'vue';
+import { computed } from 'vue';
 import GsButton from './common/GsButton.vue';
 import GsVideoControls from './common/GsVideoControls.vue';
 import type { Player } from '@glitch/shared/types.ts';
@@ -25,7 +28,7 @@ const props = defineProps<{
 	player: Player;
 }>();
 
-const videoEl = shallowRef<HTMLVideoElement | null>(null);
+const videoEl = computed(() => engine.getMediaElement(props.player.id));
 
 function remove() {
 	//appContext.commit('removePlayer', {
@@ -46,9 +49,6 @@ function replace() {
 	// Implement the replace logic here
 }
 
-onMounted(() => {
-	videoEl.value = engine.getVideoElement(props.player.id);
-});
 
 </script>
 

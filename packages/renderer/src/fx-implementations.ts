@@ -1,4 +1,6 @@
 import accumulate from './fx-implementations/accumulate/main.ts';
+import audioWaveform from './fx-implementations/audioWaveform/main.ts';
+import audioSpectrum from './fx-implementations/audioSpectrum/main.ts';
 import bloom from './fx-implementations/bloom/main.ts';
 import blur from './fx-implementations/blur/main.ts';
 import channelShift from './fx-implementations/channelShift/main.ts';
@@ -29,6 +31,8 @@ import pointerTrail from './fx-implementations/pointerTrail/main.ts';
 import type { EffectImplementation } from './fx-implementation.ts';
 
 const _fxImplementations = {
+	audioWaveform,
+	audioSpectrum,
 	accumulate,
 	bloom,
 	blur,

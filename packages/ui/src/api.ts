@@ -62,7 +62,7 @@ export function encodeAssets(assets: Asset[]): Omit<Asset, 'data'>[] {
 	}));
 }
 
-export function openImageOrVideoFile(options: { multiple?: boolean } = {}): Promise<{
+export function openMediaFile(options: { multiple?: boolean } = {}): Promise<{
 	width: number;
 	height: number;
 	data: Uint8Array | null;
@@ -70,15 +70,38 @@ export function openImageOrVideoFile(options: { multiple?: boolean } = {}): Prom
 	type: string;
 	fileData: Blob;
 	hash?: string;
-}> {
+} | null> {
 	return new Promise((resolve, reject) => {
 		const input = window.document.createElement('input');
 		input.type = 'file';
-		input.accept = 'image/*,video/*';
+		input.accept = 'image/*,video/*,audio/*';
 		input.multiple = options.multiple ?? false;
+		input.addEventListener('cancel', () => resolve(null), { once: true });
 		input.onchange = () => {
 			const file = input.files?.[0];
-			if (file == null) return;
+			if (file == null) { resolve(null); return; }
+			if (file.type.startsWith('audio/') || file.type.startsWith('video/')) {
+				const media = document.createElement(file.type.startsWith('audio/') ? 'audio' : 'video');
+				const url = URL.createObjectURL(file);
+				const cleanup = () => {
+					media.onloadedmetadata = null;
+					media.onerror = null;
+					media.removeAttribute('src');
+					media.load();
+					URL.revokeObjectURL(url);
+				};
+				media.preload = 'metadata';
+				media.onloadedmetadata = () => {
+					resolve({ width: media instanceof HTMLVideoElement ? media.videoWidth : 0,
+						height: media instanceof HTMLVideoElement ? media.videoHeight : 0,
+						data: null, name: file.name, type: file.type, fileData: file });
+					cleanup();
+				};
+				media.onerror = () => { const error = media.error; cleanup(); reject(error ?? new Error('Could not decode media')); };
+				media.src = url;
+				return;
+			}
+			if (!file.type.startsWith('image/')) { reject(new Error('Unsupported media type')); return; }
 			const reader = new FileReader();
 			reader.onerror = () => reject(reader.error ?? new Error('Could not read file'));
 			reader.onload = () => {
@@ -107,21 +130,6 @@ export function openImageOrVideoFile(options: { multiple?: boolean } = {}): Prom
 						});
 					};
 					img.src = reader.result as string;
-				} else if (file.type.startsWith('video/')) {
-					const video = window.document.createElement('video');
-					video.onerror = () => reject(new Error('Could not decode video'));
-					video.onloadeddata = async () => {
-						resolve({
-							width: video.videoWidth,
-							height: video.videoHeight,
-							data: null,
-							name: file.name,
-							type: file.type,
-							fileData: file,
-						});
-						video.remove();
-					};
-					video.src = reader.result as string;
 				}
 			};
 			reader.readAsDataURL(file);

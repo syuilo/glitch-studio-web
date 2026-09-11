@@ -7,18 +7,21 @@
 		<GsButton :class="$style.button" :vTooltip="i18n.ts.RemoveAsset" @click="remove()"><i class="ti ti-trash"></i></GsButton>
 	</div>
 	<div :class="$style.body">
-		<canvas ref="canvas" :class="$style.canvas" :width="asset.width" :height="asset.height"></canvas>
+		<canvas v-if="asset.data" ref="canvas" :class="$style.canvas" :width="asset.width" :height="asset.height"></canvas>
+		<div v-else :class="$style.mediaLabel"><i :class="asset.fileDataType.startsWith('audio/') ? 'ti ti-music' : 'ti ti-movie'"></i> {{ asset.fileDataType }}</div>
 	</div>
 </div>
 </template>
 
 <script lang="ts" setup>
-import { shallowRef, onMounted, nextTick } from 'vue';
+import { shallowRef, watch, nextTick } from 'vue';
 import GsButton from './common/GsButton.vue';
 import { i18n } from '@/i18n.ts';
-import { Asset } from '@/types';
+import type { Asset } from '@glitch/shared/types.ts';
 import * as api from '@/api.ts';
 import { appContext } from '@/app.ts';
+import { popup } from '@/ui.ts';
+import GsDialog from './common/GsDialog.vue';
 
 const props = defineProps<{
 	asset: Asset;
@@ -33,39 +36,39 @@ function remove() {
 }
 
 async function rename() {
-	const { canceled, result } = await inputDialog({ default: props.asset.name });
-	if (canceled) return;
-	appContext.commit('renameAsset', {
-		assetId: props.asset.id,
-		name: result,
+	const { dispose } = popup(GsDialog, { input: { default: props.asset.name } }, {
+		done: result => {
+			if (!result.canceled && typeof result.result === 'string') {
+				appContext.commit('renameAsset', { assetId: props.asset.id, name: result.result });
+			}
+		},
+		closed: () => dispose(),
 	});
 }
 
 async function replace() {
-	const result = await api.openImageFile({});
+	const result = await api.openMediaFile({});
+	if (!result) return;
 	appContext.commit('replaceAsset', {
+		id: props.asset.id,
+		name: props.asset.name,
 		assetId: props.asset.id,
-		width: result.img.width,
-		height: result.img.height,
-		data: result.img.data,
+		width: result.width,
+		height: result.height,
+		data: result.data,
 		fileDataType: result.type,
 		fileData: result.fileData,
 		hash: result.hash, // TODO
 	});
-	nextTick(() => {
-		const ctx = canvas.value.getContext('2d')!;
-		if (props.asset.data) {
-			ctx.putImageData(new ImageData(new Uint8ClampedArray(props.asset.data), props.asset.width, props.asset.height), 0, 0);
-		}
-	});
 }
 
-onMounted(() => {
-	const ctx = canvas.value.getContext('2d')!;
-	if (props.asset.data) {
+watch(() => props.asset, async () => {
+	await nextTick();
+	const ctx = canvas.value?.getContext('2d');
+	if (ctx && props.asset.data) {
 		ctx.putImageData(new ImageData(new Uint8ClampedArray(props.asset.data), props.asset.width, props.asset.height), 0, 0);
 	}
-});
+}, { immediate: true, deep: true });
 
 </script>
 
@@ -122,5 +125,14 @@ onMounted(() => {
 	width: 100%;
 	height: 100%;
 	object-fit: contain;
+}
+
+.mediaLabel {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	height: 100%;
+	opacity: 0.7;
 }
 </style>

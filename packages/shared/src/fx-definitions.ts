@@ -1,4 +1,6 @@
 import accumulate from './fx-definitions/accumulate.ts';
+import audioWaveform from './fx-definitions/audioWaveform.ts';
+import audioSpectrum from './fx-definitions/audioSpectrum.ts';
 import bloom from './fx-definitions/bloom.ts';
 import blur from './fx-definitions/blur.ts';
 import channelShift from './fx-definitions/channelShift.ts';
@@ -30,6 +32,8 @@ import type { EffectDefinition } from './fx-definition.ts';
 import type { FxParamDefs } from '@glitch/shared/types.ts';
 
 const _fxDefinitions = {
+	audioWaveform,
+	audioSpectrum,
 	accumulate,
 	bloom,
 	blur,

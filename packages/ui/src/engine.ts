@@ -6,6 +6,7 @@ import { isVideoFrameAvailable, playVideoAfterFirstFrameIsReady } from './utilit
 import type { Asset, GsAutomation, GsFxNode, GsNode, Macro, Player } from '@glitch/shared/types.ts';
 import type { Renderer } from '@glitch/renderer/renderer.ts';
 import * as ui from '@/ui.ts';
+import { AudioInputs } from './audio-inputs.ts';
 
 type RendererMethods = {
 	[K in keyof Renderer as Renderer[K] extends (...args: never[]) => unknown ? K : never]: Renderer[K];
@@ -56,7 +57,12 @@ export class Engine {
 	private players: Player[] = [];
 	private macros: Macro[] = [];
 	private automations: GsAutomation[] = [];
-	private videoElements = shallowReactive(new Map<Player['id'], HTMLVideoElement>());
+	private videoElements = shallowReactive(new Map<Player['id'], HTMLMediaElement>());
+	private playerAssetFiles = new Map<Player['id'], Blob>();
+	private audioInputs = new AudioInputs(
+		(id, port) => this.call('attachAudioSource', [id, port], [port]),
+		(id, generation) => { if (this.isReady.value) this.call('resetAudioSource', [id, generation]); },
+	);
 	private videoLoads = new Map<Player['id'], Promise<void>>();
 	private videoFrameCallbacks = new Map<Player['id'], number>();
 	private pendingVideoFrames = new Map<Player['id'], VideoFrame>();
@@ -215,16 +221,24 @@ export class Engine {
 		for (const [id, video] of this.videoElements) {
 			const oldPlayer = oldPlayers.find(player => player.id === id);
 			const newPlayer = players.find(player => player.id === id);
-			if (!newPlayer || !deepEqual(oldPlayer?.assetId, newPlayer.assetId)) {
+			const asset = newPlayer?.type === 'asset' ? this.assets.find(asset => asset.id === newPlayer.assetId) : null;
+			if (!newPlayer || oldPlayer?.type !== newPlayer.type || !deepEqual(oldPlayer?.assetId, newPlayer.assetId)
+				|| (newPlayer.type === 'asset' && this.playerAssetFiles.get(id) !== asset?.fileData)) {
+				this.audioInputs.removePlayer(id);
 				const callbackId = this.videoFrameCallbacks.get(id);
-				if (callbackId !== undefined) video.cancelVideoFrameCallback(callbackId);
+				if (callbackId !== undefined && video instanceof HTMLVideoElement) video.cancelVideoFrameCallback(callbackId);
 				this.videoFrameCallbacks.delete(id);
 				this.pendingVideoFrames.get(id)?.close();
 				this.pendingVideoFrames.delete(id);
 				if (this.isReady.value) this.call('updateVideoFrame', [id, null]);
 				video.pause();
 				this.videoElements.delete(id);
+				this.playerAssetFiles.delete(id);
 				this.videoLoads.delete(id);
+				if (video.srcObject instanceof MediaStream) {
+					for (const track of video.srcObject.getTracks()) track.stop();
+					video.srcObject = null;
+				}
 				URL.revokeObjectURL(video.src);
 				video.removeAttribute('src');
 				video.load();
@@ -233,11 +247,14 @@ export class Engine {
 
 		for (const player of players) {
 			if (!this.videoElements.has(player.id)) {
-				const video = window.document.createElement('video');
+				const asset = player.type === 'asset' ? this.assets.find(asset => asset.id === player.assetId) : null;
+				if (player.type === 'asset' && !asset) continue;
+				const video = window.document.createElement(asset?.fileDataType.startsWith('audio/') ? 'audio' : 'video');
 				video.loop = true;
 				video.preload = 'auto';
 				video.volume = 0.5;
 				this.videoElements.set(player.id, video);
+				if (player.type === 'asset') this.audioInputs.registerPlayer(player.id, video);
 				this.videoLoads.set(player.id, new Promise<void>(resolve => {
 					const finish = () => {
 						video.removeEventListener('loadeddata', finish);
@@ -254,6 +271,7 @@ export class Engine {
 				}));
 
 				const onVideoFrame = () => {
+					if (!(video instanceof HTMLVideoElement)) return;
 					if (this.videoElements.get(player.id) !== video) return;
 					try {
 						if (!isVideoFrameAvailable(video)) return;
@@ -267,12 +285,12 @@ export class Engine {
 					}
 				};
 
-				this.videoFrameCallbacks.set(player.id, video.requestVideoFrameCallback(onVideoFrame));
+				if (video instanceof HTMLVideoElement) this.videoFrameCallbacks.set(player.id, video.requestVideoFrameCallback(onVideoFrame));
 
 				if (player.type === 'asset') {
-					const asset = this.assets.find(asset => asset.id === player.assetId)!;
-					video.src = URL.createObjectURL(asset.fileData);
-				} else if (player.type === 'webcam') {
+					this.playerAssetFiles.set(player.id, asset!.fileData);
+					video.src = URL.createObjectURL(asset!.fileData);
+				} else if (player.type === 'webcam' && video instanceof HTMLVideoElement) {
 					this.videoLoads.set(player.id, setupWebcam().then(camera => {
 						video.srcObject = camera;
 						video.muted = true;
@@ -292,8 +310,21 @@ export class Engine {
 	}
 
 	public getVideoElement(playerId: Player['id']): HTMLVideoElement | null {
+		const media = this.videoElements.get(playerId);
+		return media instanceof HTMLVideoElement ? media : null;
+	}
+
+	public getMediaElement(playerId: Player['id']): HTMLMediaElement | null {
 		return this.videoElements.get(playerId) ?? null;
 	}
+
+	public async playPlayer(playerId: Player['id']) {
+		if (this.players.find(player => player.id === playerId)?.type === 'asset') await this.audioInputs.play(playerId);
+		else await this.videoElements.get(playerId)?.play();
+	}
+
+	public getPlayerVolume(playerId: Player['id']) { return this.audioInputs.getVolume(playerId); }
+	public setPlayerVolume(playerId: Player['id'], volume: number) { this.audioInputs.setVolume(playerId, volume); }
 
 	public updateMacros(newMacros: Macro[]) {
 		this.macros = deepClone(newMacros);
@@ -308,6 +339,7 @@ export class Engine {
 	public async updateAssets(newAssets: Asset[]) {
 		this.assets = deepClone(newAssets);
 		await this.call('updateAssets', [this.assets]);
+		await this.updatePlayers(this.players);
 		await this.updateNodes(this.nodes);
 	}
 
@@ -349,5 +381,31 @@ export class Engine {
 		if (this.rendererWorker != null) {
 			this.rendererWorker.postMessage({ type: 'resize', resolution });
 		}
+	}
+
+	public destroy() {
+		this.audioInputs.dispose();
+		for (const [id, media] of this.videoElements) {
+			const callback = this.videoFrameCallbacks.get(id);
+			if (callback !== undefined && media instanceof HTMLVideoElement) media.cancelVideoFrameCallback(callback);
+			media.pause();
+			if (media.srcObject instanceof MediaStream) {
+				for (const track of media.srcObject.getTracks()) track.stop();
+			}
+			media.srcObject = null;
+			URL.revokeObjectURL(media.src);
+			media.removeAttribute('src');
+			media.load();
+		}
+		for (const frame of this.pendingVideoFrames.values()) frame.close();
+		this.videoElements.clear();
+		this.playerAssetFiles.clear();
+		this.videoFrameCallbacks.clear();
+		this.videoLoads.clear();
+		this.pendingVideoFrames.clear();
+		this.inFlightVideoFrames.clear();
+		this.rendererWorker?.terminate();
+		this.rendererWorker = null;
+		this.isReady.value = false;
 	}
 }

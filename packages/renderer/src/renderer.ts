@@ -11,6 +11,9 @@ import { GpuHistogram } from './GpuHistogram.ts';
 import { GpuWaveform } from './GpuWaveform.ts';
 import { GpuMemoryTracker } from './GpuMemoryTracker.ts';
 import { float32ToFloat16Bits } from './float32ToFloat16Bits.ts';
+import { AudioHistory } from './audio-history.ts';
+import { playerAudioSourceId } from '@glitch/shared/audio.ts';
+import type { AudioCaptureMessage, AudioSourceId } from '@glitch/shared/audio.ts';
 import type { Asset, FxParamValue, Macro, GsAutomation, GsFxNode, GsNode, GsGroupNode, Player } from '@glitch/shared/types.ts';
 import type { EffectInstance } from './fx-implementation.ts';
 
@@ -65,6 +68,8 @@ export class Renderer {
 	private automations: GsAutomation[] = [];
 	private assetTextures: Map<string, GPUTexture> = new Map();
 	private videoFrames: Map<Player['id'], VideoFrame> = new Map();
+	private audioSources = new Map<AudioSourceId, AudioHistory>();
+	private audioPorts = new Map<AudioSourceId, MessagePort>();
 	private effectInstances: Map<GsFxNode['id'], EffectInstance | null> = new Map();
 	private effectScalarFieldTextures: Map<GsFxNode['id'], Record<string, GPUTexture>> = new Map();
 	private effectOuts: Map<GsFxNode['id'], {
@@ -402,7 +407,10 @@ export class Renderer {
 			} else if (typeDef === 'image') {
 				resolvedParams[k] = this.assetTextures.get(v)!;
 			} else if (typeDef === 'player') {
-				resolvedParams[k] = this.videoFrames.get(v)!;
+				resolvedParams[k] = v == null ? null : {
+					videoFrame: this.videoFrames.get(v) ?? null,
+					audio: this.audioSources.get(playerAudioSourceId(v)) ?? null,
+				};
 			} else {
 				if (fxDefinitions[node.fx].paramDefs[k].canNode) {
 					resolvedParams[k] = v == null ? this.fallbackScalarFieldTexture : node.params[k].type === 'node' ? this.effectOuts.get(getActualOutputNodeId(this.findNode(v)!)!)!.texture : this.effectScalarFieldTextures.get(node.id)![k];
@@ -714,6 +722,41 @@ export class Renderer {
 		this.automations = newAutomations;
 	}
 
+	public attachAudioSource(id: AudioSourceId, port: MessagePort) {
+		this.resetAudioSource(id, null);
+		const history = new AudioHistory();
+		this.audioSources.set(id, history);
+		this.audioPorts.set(id, port);
+		port.onmessage = (event: MessageEvent<AudioCaptureMessage>) => {
+			if (this.audioPorts.get(id) !== port) return;
+			const message = event.data;
+			if (message.type === 'reset') {
+				if (message.generation >= history.generation) history.reset(message.generation);
+			} else if (message.type === 'samples') {
+				try {
+					if (message.frameCount === 1024 && message.buffer.byteLength === 8192
+						&& (message.channelCount === 1 || message.channelCount === 2)
+						&& Number.isFinite(message.sampleRate) && message.sampleRate >= 8000 && message.sampleRate <= 192000
+						&& Number.isSafeInteger(message.startFrame) && message.startFrame >= 0) history.append(message);
+				} finally {
+					port.postMessage({ type: 'recycle', buffer: message.buffer }, [message.buffer]);
+				}
+			}
+		};
+	}
+
+	public resetAudioSource(id: AudioSourceId, generation: number | null) {
+		const history = this.audioSources.get(id);
+		if (generation == null) {
+			history?.reset();
+			this.audioPorts.get(id)?.close();
+			this.audioPorts.delete(id);
+			this.audioSources.delete(id);
+		} else if (history && generation >= history.generation) {
+			history.reset(generation);
+		}
+	}
+
 	public updateVideoFrame(playerId: Player['id'], videoFrame: VideoFrame | null) {
 		this.videoFrames.get(playerId)?.close();
 		if (videoFrame) {
@@ -813,6 +856,7 @@ export class Renderer {
 	}
 
 	public destroy() {
+		for (const id of this.audioPorts.keys()) this.resetAudioSource(id, null);
 		for (const frame of this.videoFrames.values()) frame.close();
 		this.videoFrames.clear();
 		this.gpuHistogram.dispose();

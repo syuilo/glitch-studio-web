@@ -8,6 +8,7 @@
 		"lint": "pnpm typecheck && pnpm eslint"
 	},
 	"exports": {
+		"./audio.ts": "./src/audio.ts",
 		"./types.ts": "./src/types.ts",
 		"./utility/*.ts": "./src/utility/*.ts",
 		"./fx-definition.ts": "./src/fx-definition.ts",

@@ -9,7 +9,7 @@
 			<GsButton inline @click="_newProject">New project</GsButton>
 		</div>
 		<div>
-			<GsButton inline @click="_newProjectFromImageOrVideo">New project from image/video</GsButton>
+			<GsButton inline @click="_newProjectFromImageOrVideo">New project from image/video/audio</GsButton>
 		</div>
 		<div>
 			<GsButton inline @click="_openProject">Open project</GsButton>

@@ -56,13 +56,13 @@ export default implementEffect<typeof definition>({
 
 		return {
 			render: (ctx) => {
-				if (!ctx.params.player) {
+				if (!ctx.params.player?.videoFrame) {
 					bindGroup = null;
 					return;
 				}
-				if (ctx.params.player) {
+				if (ctx.params.player.videoFrame) {
 					const freshTex = wgpu.device.importExternalTexture(
-						{ source: ctx.params.player },
+						{ source: ctx.params.player.videoFrame },
 					);
 					bindGroup = wgpu.device.createBindGroup({
 						layout: pipeline.getBindGroupLayout(0),

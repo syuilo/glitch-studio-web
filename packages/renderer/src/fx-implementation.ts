@@ -1,4 +1,5 @@
-import type { BlendModeOptionSchema, BooleanOptionSchema, ColorOptionSchema, EffectDefinition, EffectOptionsSchema, EnumOptionSchema, ImageOptionSchema, NodeOptionSchema, NumberOptionSchema, RangeOptionSchema, SeedOptionSchema, SignalOptionSchema, VectorOptionSchema, VideoOptionSchema } from '@glitch/shared/fx-definition.ts';
+import type { BlendModeOptionSchema, BooleanOptionSchema, ColorOptionSchema, EffectDefinition, EffectOptionsSchema, EnumOptionSchema, ImageOptionSchema, NodeOptionSchema, NumberOptionSchema, RangeOptionSchema, SeedOptionSchema, SignalOptionSchema, VectorOptionSchema, PlayerOptionSchema } from '@glitch/shared/fx-definition.ts';
+import type { PlayerInput } from './audio-history.ts';
 
 type RuntimeEffectOptionValue<T extends EffectOptionsSchema[string]> =
 	T extends { canNode: true } ? GPUTexture :
@@ -12,7 +13,7 @@ type RuntimeEffectOptionValue<T extends EffectOptionsSchema[string]> =
 	T extends EnumOptionSchema ? T['options'][number]['value'] :
 	T extends RangeOptionSchema ? number :
 	T extends ImageOptionSchema ? GPUTexture | null :
-	T extends VideoOptionSchema ? VideoFrame | null :
+	T extends PlayerOptionSchema ? PlayerInput | null :
 	T extends NodeOptionSchema ? GPUTexture | null :
 	never;
 
