@@ -49,6 +49,7 @@ function normalizedLevel(level: number): number {
 	background: #000;
 	// グラデーション自体は伸縮せず、未点灯部分だけを覆う。レイアウト計算は不要。
 	transition: transform 65ms linear;
+	will-change: transform; // これが無いとChromeのバグがしらんけど全く関係ないコンポーネントのradius描画がちらつく
 }
 
 .horizontal {
