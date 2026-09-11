@@ -4,18 +4,13 @@ import { deepEqual } from '@glitch/shared/utility/deep-equal.ts';
 import { deepClone } from '@glitch/shared/utility/deep-clone.ts';
 import { isVideoFrameAvailable, playVideoAfterFirstFrameIsReady } from './utility/video.ts';
 import { AudioInputs } from './audio-inputs.ts';
-import type { Asset, GsAutomation, GsFxNode, GsNode, Macro, Player } from '@glitch/shared/types.ts';
+import type { Asset, GsAutomation, GsNode, Macro, Player } from '@glitch/shared/types.ts';
 import type { Renderer } from '@glitch/renderer/renderer.ts';
-import type { AudioSpectrogramOptions } from '@glitch/shared/utility/audio-spectrogram.ts';
 import * as ui from '@/ui.ts';
 
 type RendererMethods = {
 	[K in keyof Renderer as Renderer[K] extends (...args: never[]) => unknown ? K : never]: Renderer[K];
 };
-
-function getFxNodes(nodes: GsNode[]): GsFxNode[] {
-	return nodes.flatMap(node => node.type === 'group' ? getFxNodes(node.nodes) : [node]);
-}
 
 function setupWebcam(): Promise<MediaStream> {
 	return new Promise((resolve, reject) => {
