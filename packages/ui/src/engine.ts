@@ -324,6 +324,7 @@ export class Engine {
 	}
 
 	public getPlayerVolume(playerId: Player['id']) { return this.audioInputs.getVolume(playerId); }
+	public readAudioMonitor() { return this.audioInputs.readMonitor(); }
 	public getPlayerLevels(playerId: Player['id']) { return this.audioInputs.getPlayerLevels(playerId); }
 	public setPlayerVolume(playerId: Player['id'], volume: number) { this.audioInputs.setVolume(playerId, volume); }
 

@@ -2,6 +2,7 @@ import { playerAudioSourceId } from '@glitch/shared/audio.ts';
 import type { AudioSourceId } from '@glitch/shared/audio.ts';
 import workletUrl from './audio-capture.worklet.js?url';
 import { shallowReactive } from 'vue';
+import { AudioMonitor } from './audio-monitor.ts';
 
 const silentLevels = [0, 0] as const;
 
@@ -23,6 +24,8 @@ type PlayerAudio = {
 
 export class AudioInputs {
 	private context: AudioContext | null = null;
+	private output: GainNode | null = null;
+	private monitor: AudioMonitor | null = null;
 	private moduleReady: Promise<void> | null = null;
 	private modules = new WeakMap<BaseAudioContext, Promise<void>>();
 	private players = new Map<string, PlayerAudio>();
@@ -152,7 +155,12 @@ export class AudioInputs {
 		entry.gain ??= context.createGain();
 		entry.gain.gain.value = entry.volume;
 		entry.source.connect(entry.gain);
-		entry.gain.connect(context.destination);
+		if (!this.output) {
+			// 各Playerの音量調整後を加算するプロジェクト出力。モノラルは左右へ複製する。
+			this.output = new GainNode(context, { channelCount: 2, channelCountMode: 'explicit', channelInterpretation: 'speakers' });
+			this.output.connect(context.destination);
+		}
+		entry.gain.connect(this.output);
 		entry.media.volume = 1;
 		entry.media.muted = false;
 		entry.capture = this.captureSource(playerAudioSourceId(id), entry.source);
@@ -160,6 +168,12 @@ export class AudioInputs {
 	}
 
 	public getVolume(id: string) { return this.players.get(id)?.volume ?? 0.5; }
+
+	public readMonitor(): AudioMonitor | null {
+		if (!this.context || !this.output) return null;
+		this.monitor ??= new AudioMonitor(this.context, this.output);
+		return this.monitor.read();
+	}
 
 	public getLevels(id: AudioSourceId): readonly [number, number] {
 		return this.levels.get(id) ?? silentLevels;
@@ -190,6 +204,10 @@ export class AudioInputs {
 
 	public dispose() {
 		for (const id of this.players.keys()) this.removePlayer(id);
+		this.monitor?.dispose();
+		this.monitor = null;
+		this.output?.disconnect();
+		this.output = null;
 		void this.context?.close();
 		this.context = null;
 		this.moduleReady = null;
