@@ -751,7 +751,7 @@ export class Renderer {
 	public addAudioSpectrogramMonitor(id: string, canvas: OffscreenCanvas, options: AudioSpectrogramOptions) {
 		this.removeAudioSpectrogramMonitor(id);
 		this.audioSpectrogramMonitors.set(id, new AudioSpectrogramMonitor(canvas, options,
-			this.gpuDevice, this.defaultVertexShaderModule, this.fallbackTexture, this.enableFloat32Filtering));
+			this.gpuDevice, this.defaultVertexShaderModule));
 	}
 
 	public updateAudioSpectrogramMonitor(id: string, options: AudioSpectrogramOptions) {
@@ -840,7 +840,7 @@ export class Renderer {
 			});
 			for (const monitor of this.audioSpectrogramMonitors.values()) {
 				const sourceId = monitor.options.player == null ? projectAudioSourceId : playerAudioSourceId(monitor.options.player);
-				monitor.render(timeStamp, this.audioSources.get(sourceId) ?? null);
+				monitor.render(this.audioSources.get(sourceId) ?? null);
 			}
 		};
 

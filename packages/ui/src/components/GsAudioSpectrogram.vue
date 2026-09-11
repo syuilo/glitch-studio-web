@@ -11,7 +11,7 @@ import type { AudioSpectrogramOptions } from '@glitch/shared/utility/audio-spect
 import GsDetachableView from './GsDetachableView.vue';
 import { engine } from '@/app.ts';
 
-// エフェクトの全パラメータをリテラル値で指定可能。省略値はエフェクトの既定値に追従する。
+// 設定はリテラル値で指定可能。省略値にはパネル専用の既定値を使う。
 const props = defineProps<{ options?: Partial<AudioSpectrogramOptions> }>();
 const options = computed(() => ({ ...audioSpectrogramDefaults(), ...props.options }));
 const canvas = useTemplateRef('canvas');

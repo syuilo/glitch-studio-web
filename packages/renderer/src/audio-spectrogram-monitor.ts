@@ -1,23 +1,17 @@
-import effect from './fx-implementations/audioSpectrogram/main.ts';
+import { createAudioSpectrogram } from './audio-spectrogram.ts';
 import type { AudioSpectrogramOptions } from '@glitch/shared/utility/audio-spectrogram.ts';
 import type { AudioHistory } from './audio-history.ts';
 
-// エフェクトと同じ解析・履歴・シェーダーを使い、表示先だけを独立させる。
+// パネルの表示先を管理し、独立した共通処理に解析と描画を委譲する。
 export class AudioSpectrogramMonitor {
 	private context: GPUCanvasContext;
-	private instance: ReturnType<typeof effect.init>;
-	private previousTime: number | null = null;
+	private spectrogram: ReturnType<typeof createAudioSpectrogram>;
 
 	constructor(private canvas: OffscreenCanvas, public options: AudioSpectrogramOptions,
-		private device: GPUDevice, defaultVertexShaderModule: GPUShaderModule, fallbackTexture: GPUTexture,
-		enableFloat32Filtering: boolean) {
+		private device: GPUDevice, defaultVertexShaderModule: GPUShaderModule) {
 		this.context = canvas.getContext('webgpu')!;
 		this.context.configure({ device, format: navigator.gpu.getPreferredCanvasFormat(), alphaMode: 'opaque' });
-		this.instance = effect.init({
-			resolution: { width: canvas.width, height: canvas.height },
-			wgpu: { device, context: this.context, defaultVertexShaderModule, enableFloat32Filtering },
-			params: { ...options, player: null }, fallbackTexture,
-		});
+		this.spectrogram = createAudioSpectrogram(device, defaultVertexShaderModule);
 	}
 
 	public resize(width: number, height: number) {
@@ -26,25 +20,19 @@ export class AudioSpectrogramMonitor {
 		this.canvas.height = Math.max(1, Math.min(limit, height));
 	}
 
-	public render(time: number, audio: AudioHistory | null) {
+	public render(audio: AudioHistory | null) {
 		const commandEncoder = this.device.createCommandEncoder();
-		this.instance.render({
-			time: time / 1000, timeDelta: this.previousTime == null ? 0 : time - this.previousTime,
-			pointerPosition: { x: 0, y: 0 }, pointerVector: { x: 0, y: 0 },
-			commandEncoder,
-			createPassEncoder: (encoder, descriptor) => encoder.beginRenderPass(descriptor ?? {
-				colorAttachments: [{ view: this.context.getCurrentTexture().createView(),
-					loadOp: 'clear', storeOp: 'store', clearValue: [0, 0, 0, 1] }],
-			}),
-			createComputePassEncoder: (encoder, descriptor) => encoder.beginComputePass(descriptor),
-			params: { ...this.options, player: { videoFrame: null, audio } },
+		const pass = commandEncoder.beginRenderPass({
+			colorAttachments: [{ view: this.context.getCurrentTexture().createView(),
+				loadOp: 'clear', storeOp: 'store', clearValue: [0, 0, 0, 1] }],
 		});
+		this.spectrogram.render(audio, this.options, pass);
+		pass.end();
 		this.device.queue.submit([commandEncoder.finish()]);
-		this.previousTime = time;
 	}
 
 	public dispose() {
-		this.instance.dispose();
+		this.spectrogram.dispose();
 		this.context.unconfigure();
 	}
 }
