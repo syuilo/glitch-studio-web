@@ -7,11 +7,17 @@
 		<GsButton iconOnly :disabled="!ready" :title="i18n.ts._VideoControls.Stop" @click="stop">
 			<i class="ti ti-player-stop"></i>
 		</GsButton>
+		<span v-if="isVideo" class="_monospace">Frame {{ currentFrame ?? '—' }}</span>
 	</div>
 	<div :class="$style.row">
 		<span :class="$style.time" class="_monospace">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
 	</div>
-	<input :class="$style.slider" type="range" min="0" :max="duration || 1" step="0.01" :value="currentTime" :disabled="!ready || duration === 0" @input="seek"/>
+	<div :class="$style.row">
+		<input :class="$style.slider" type="range" min="0" :max="duration || 1" step="0.01" :value="currentTime" :disabled="!ready || duration === 0" @input="seek"/>
+		<GsInput v-if="isVideo" v-model="frameRate" :class="$style.frameRate" type="number" :min="0.001" step="any" small>
+			<template #suffix>FPS</template>
+		</GsInput>
+	</div>
 	<!-- 音量調整はそれを利用するノード側の役目。「動画の明るさ調整」などというコントロールが無いのと一緒
 	<label :class="$style.row">
 		<i class="ti ti-volume"></i>
@@ -25,8 +31,9 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import GsButton from './GsButton.vue';
+import GsInput from './GsInput.vue';
 import { i18n } from '@/i18n.ts';
 
 const props = defineProps<{
@@ -40,12 +47,22 @@ const paused = ref(true);
 const ready = ref(false);
 const currentTime = ref(0);
 const duration = ref(0);
+const frameRate = ref(30);
+const frameTime = ref<number | null>(null);
+const isVideo = computed(() => props.video instanceof HTMLVideoElement);
+const currentFrame = computed(() => {
+	if (frameTime.value === null || !Number.isFinite(frameRate.value) || frameRate.value <= 0) return null;
+	// 指定FPSで固定フレームレートと仮定した0始まりの番号。時刻の丸め誤差を吸収する。
+	return Math.max(0, Math.round(frameTime.value * frameRate.value));
+});
 //const volume = ref(0.5);
 const error = ref('');
 
 watch(() => props.video, (video, _, onCleanup) => {
 	error.value = '';
+	frameTime.value = null;
 	let animationFrameId: number | null = null;
+	let videoFrameCallbackId: number | null = null;
 	const updateCurrentTime = () => {
 		animationFrameId = null;
 		currentTime.value = video?.currentTime ?? 0;
@@ -59,6 +76,7 @@ watch(() => props.video, (video, _, onCleanup) => {
 		ready.value = video != null && video.readyState >= video.HAVE_METADATA && !video.error;
 		currentTime.value = video?.currentTime ?? 0;
 		duration.value = video && Number.isFinite(video.duration) ? video.duration : 0;
+		if (!video || video.readyState === video.HAVE_NOTHING) frameTime.value = null;
 		if (video && !video.paused && !video.ended && !video.error) {
 			if (animationFrameId === null) animationFrameId = requestAnimationFrame(updateCurrentTime);
 		} else if (animationFrameId !== null) {
@@ -69,10 +87,19 @@ watch(() => props.video, (video, _, onCleanup) => {
 	};
 	sync();
 	if (!video) return;
+	if (video instanceof HTMLVideoElement) {
+		const updateFrame = (_now: number, metadata: VideoFrameCallbackMetadata) => {
+			frameTime.value = metadata.mediaTime;
+			videoFrameCallbackId = video.requestVideoFrameCallback(updateFrame);
+		};
+		// 一時停止中も登録を維持し、シークで表示されるフレームを受け取る。
+		videoFrameCallbackId = video.requestVideoFrameCallback(updateFrame);
+	}
 	const events = ['play', 'pause', 'ended', 'timeupdate', 'seeking', 'seeked', 'loadeddata', 'loadedmetadata', 'durationchange', 'volumechange', 'emptied', 'error'] as const;
 	for (const event of events) video.addEventListener(event, sync);
 	onCleanup(() => {
 		if (animationFrameId !== null) cancelAnimationFrame(animationFrameId);
+		if (video instanceof HTMLVideoElement && videoFrameCallbackId !== null) video.cancelVideoFrameCallback(videoFrameCallbackId);
 		for (const event of events) video.removeEventListener(event, sync);
 	});
 }, { immediate: true });
@@ -153,5 +180,10 @@ function formatTime(value: number): string {
 
 .time {
 	font-variant-numeric: tabular-nums;
+}
+
+.frameRate {
+	flex: 0 0 100px;
+	min-width: 0;
 }
 </style>
