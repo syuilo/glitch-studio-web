@@ -13,21 +13,7 @@
 <script lang="ts" setup>
 import GsWorkspacePanel from './GsWorkspacePanel.vue';
 import GsButton from './common/GsButton.vue';
-import type { WorkspacePanel } from '@/types/workspace.ts';
-
-const choices = [
-	{ type: 'audioSpectrum', label: 'Audio Spectrum' },
-	{ type: 'audioSpectrogram', label: 'Audio Spectrogram' },
-	{ type: 'audioWaveform', label: 'Audio Waveform' },
-	{ type: 'histogram', label: 'Histogram' },
-	{ type: 'waveform', label: 'Waveform' },
-	{ type: 'preview', label: 'Preview' },
-	{ type: 'players', label: 'Players' },
-	{ type: 'nodesEditor', label: 'Nodes' },
-	{ type: 'macros', label: 'Macros' },
-	{ type: 'stats', label: 'Stats' },
-	{ type: 'commandLog', label: 'Command Log' },
-];
+import { workspacePanelChoices as choices, type WorkspacePanel } from '@/types/workspace.ts';
 
 const props = defineProps<{
 	panel: WorkspacePanel;

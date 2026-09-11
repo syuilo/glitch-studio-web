@@ -33,7 +33,7 @@
 import { onBeforeUnmount, onMounted, provide, watch, useTemplateRef, ref, computed } from 'vue';
 import { genId } from '@glitch/shared/utility/id.ts';
 import type { MenuItem } from '@/types/menu.ts';
-import type { WorkspaceDivider, WorkspacePanel } from '@/types/workspace.ts';
+import { workspacePanelChoices, type WorkspaceDivider, type WorkspacePanel } from '@/types/workspace.ts';
 import * as ui from '@/ui.ts';
 import { i18n } from '@/i18n.ts';
 import { appContext } from '@/app.ts';
@@ -155,6 +155,13 @@ function getMenu() {
 	}
 
 	menuItems.push({
+		type: 'parent',
+		text: 'Switch type to',
+		children: workspacePanelChoices.map(choice => ({
+			text: choice.label,
+			action: () => { props.panel.type = choice.type; },
+		})),
+	}, { type: 'divider' }, {
 		icon: 'ti ti-box-align-top',
 		text: 'Add panel to above',
 		action: () => addPanel('above'),

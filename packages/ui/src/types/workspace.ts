@@ -1,3 +1,17 @@
+export const workspacePanelChoices = [
+	{ type: 'audioSpectrum', label: 'Audio Spectrum' },
+	{ type: 'audioSpectrogram', label: 'Audio Spectrogram' },
+	{ type: 'audioWaveform', label: 'Audio Waveform' },
+	{ type: 'histogram', label: 'Histogram' },
+	{ type: 'waveform', label: 'Waveform' },
+	{ type: 'preview', label: 'Preview' },
+	{ type: 'players', label: 'Players' },
+	{ type: 'nodesEditor', label: 'Nodes' },
+	{ type: 'macros', label: 'Macros' },
+	{ type: 'stats', label: 'Stats' },
+	{ type: 'commandLog', label: 'Command Log' },
+];
+
 export type WorkspacePanel = {
 	id: string;
 	ratio: number;
