@@ -330,6 +330,24 @@ const addPlayerCommandDef = defineCommand<Player>({
 	},
 });
 
+const updatePlayerTypeCommandDef = defineCommand<{ playerId: Player['id']; type: Player['type'] }>({
+	label: 'Update player type',
+	create: (payload) => {
+		let previousType: Player['type'];
+		return {
+			execute(state) {
+				const player = state.players.value.find(player => player.id === payload.playerId)!;
+				previousType = player.type;
+				player.type = payload.type;
+			},
+			undo(state) {
+				const player = state.players.value.find(player => player.id === payload.playerId)!;
+				player.type = previousType;
+			},
+		};
+	},
+});
+
 const addMacroCommandDef = defineCommand<{ groupId?: GsGroupNode['id']; id: string; }>({
 	label: 'Add macro',
 	create: (payload) => {
@@ -632,6 +650,7 @@ export const COMMAND_DEFS = {
 	renameAsset: renameAssetCommandDef,
 	replaceAsset: replaceAssetCommandDef,
 	addPlayer: addPlayerCommandDef,
+	updatePlayerType: updatePlayerTypeCommandDef,
 	addMacro: addMacroCommandDef,
 	removeMacro: removeMacroCommandDef,
 	toggleMacroValueType: toggleMacroValueTypeCommandDef,

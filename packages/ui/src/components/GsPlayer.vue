@@ -20,6 +20,7 @@ import GsAudioLevelMeter from './common/GsAudioLevelMeter.vue';
 import type { Player } from '@glitch/shared/types.ts';
 import { i18n } from '@/i18n.ts';
 import * as api from '@/api.ts';
+import * as ui from '@/ui.ts';
 import { appContext, engine } from '@/app.ts';
 
 const props = defineProps<{
@@ -44,7 +45,18 @@ async function rename() {
 }
 
 function showMenu(ev: PointerEvent) {
-	// Implement the replace logic here
+	ui.popupMenu([{
+		text: 'Webcam',
+		icon: 'ti ti-camera',
+		active: props.player.type === 'webcam',
+		action: () => {
+			if (props.player.type === 'webcam') return;
+			appContext.commit('updatePlayerType', {
+				playerId: props.player.id,
+				type: 'webcam',
+			});
+		},
+	}], ev.currentTarget ?? ev.target);
 }
 
 </script>
