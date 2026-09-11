@@ -22,7 +22,7 @@
 			@mousedown.prevent="() => {}"
 			@keydown.prevent="() => {}"
 		>
-			<div style="pointer-events: none;">{{ currentValueText ?? '' }}</div>
+			<GsCondensedLine style="pointer-events: none;">{{ currentValueText ?? '' }}</GsCondensedLine>
 			<div style="display: none;">
 				<slot></slot>
 			</div>
@@ -70,6 +70,7 @@ export type GetGsSelectValueTypesFromDef<T extends GsSelectItem[]> = T[number] e
 import { onMounted, onUnmounted, nextTick, ref, watch, computed, toRefs, useTemplateRef } from 'vue';
 import type { MenuItem } from '@/types/menu.ts';
 import * as ui from '@/ui.ts';
+import GsCondensedLine from './GsCondensedLine.vue';
 
 const props = defineProps<{
 	items: ITEMS;

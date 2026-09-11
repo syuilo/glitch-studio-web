@@ -1,31 +1,34 @@
 <template>
 <div :class="$style.root">
-	<div :class="$style.row">
+	<div :class="$style.buttons">
 		<GsButton iconOnly primary :disabled="!ready" :title="paused ? i18n.ts._VideoControls.Play : i18n.ts._VideoControls.Pause" @click="togglePlayback">
 			<i :class="paused ? 'ti ti-player-play' : 'ti ti-player-pause'"></i>
 		</GsButton>
 		<GsButton iconOnly :disabled="!ready" :title="i18n.ts._VideoControls.Stop" @click="stop">
 			<i class="ti ti-player-stop"></i>
 		</GsButton>
-		<span v-if="isVideo" class="_monospace">Frame {{ currentFrame ?? '—' }}</span>
 	</div>
-	<div :class="$style.row">
-		<span :class="$style.time" class="_monospace">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
+	<div>
+		<div :class="$style.time" class="_monospace" style="display: flex;">
+			<span>{{ formatTime(currentTime) }}</span>
+			<span style="margin-left: auto;">-{{ formatTime(Math.abs(currentTime - duration)) }}</span>
+		</div>
+		<div v-if="isVideo" :class="$style.time" class="_monospace">{{ currentFrame ?? '—' }}</div>
 	</div>
-	<div :class="$style.row">
+	<div>
 		<input :class="$style.slider" type="range" min="0" :max="duration || 1" step="0.01" :value="currentTime" :disabled="!ready || duration === 0" @input="seek"/>
-		<GsInput v-if="isVideo" v-model="frameRate" :class="$style.frameRate" type="number" :min="0.001" step="any" small>
-			<template #suffix>FPS</template>
-		</GsInput>
 	</div>
 	<!-- 音量調整はそれを利用するノード側の役目。「動画の明るさ調整」などというコントロールが無いのと一緒
-	<label :class="$style.row">
+	<label>
 		<i class="ti ti-volume"></i>
 		<span>{{ i18n.ts._VideoControls.Volume }}</span>
 		<input :class="$style.slider" type="range" min="0" max="1" step="0.01" :value="volume" :disabled="!video" @input="setVolume"/>
 		<span>{{ Math.round(volume * 100) }}%</span>
 	</label>
 	-->
+	<div>
+		<div :class="$style.time" class="_monospace">Total: {{ formatTime(duration) }}</div>
+	</div>
 	<div v-if="error" role="alert">{{ error }}</div>
 </div>
 </template>
@@ -54,6 +57,10 @@ const currentFrame = computed(() => {
 	if (frameTime.value === null || !Number.isFinite(frameRate.value) || frameRate.value <= 0) return null;
 	// 指定FPSで固定フレームレートと仮定した0始まりの番号。時刻の丸め誤差を吸収する。
 	return Math.max(0, Math.round(frameTime.value * frameRate.value));
+});
+const totalFrames = computed(() => {
+	if (frameTime.value === null || !Number.isFinite(frameRate.value) || frameRate.value <= 0) return null;
+	return Math.max(0, Math.round(duration.value * frameRate.value));
 });
 //const volume = ref(0.5);
 const error = ref('');
@@ -163,11 +170,10 @@ function formatTime(value: number): string {
 	gap: 8px;
 }
 
-.row {
+.buttons {
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	font-size: 90%;
 }
 
 .slider {

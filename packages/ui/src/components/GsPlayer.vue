@@ -1,6 +1,6 @@
 <template>
 <div :class="$style.root">
-	<div :class="$style.header">{{ player.name }}</div>
+	<div :class="$style.header"><GsCondensedLine>{{ player.name }}</GsCondensedLine></div>
 	<button class="_button" :class="$style.menuButton" @click="showMenu"><i class="ti ti-dots"></i></button>
 	<div :class="$style.body">
 		<GsVideoControls
@@ -17,6 +17,7 @@ import { computed } from 'vue';
 import GsButton from './common/GsButton.vue';
 import GsVideoControls from './common/GsVideoControls.vue';
 import GsAudioLevelMeter from './common/GsAudioLevelMeter.vue';
+import GsCondensedLine from './common/GsCondensedLine.vue';
 import type { Player } from '@glitch/shared/types.ts';
 import { i18n } from '@/i18n.ts';
 import * as api from '@/api.ts';
@@ -91,9 +92,9 @@ function showMenu(ev: PointerEvent) {
 .body {
 	display: flex;
 	flex-direction: row;
-	gap: 8px;
+	gap: 16px;
 	height: 120px;
-	padding: 8px;
+	padding: 6px 12px 12px 12px;
 }
 
 .videoControl {
