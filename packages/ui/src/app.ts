@@ -8,7 +8,7 @@ import { COMMAND_DEFS } from './commands.ts';
 import type { CommandDef } from './commands.ts';
 import type { AppState } from './types.ts';
 import type { WorkspaceDivider } from './types/workspace.ts';
-import type { Asset, GsNode, Macro, GsAutomation, GsGroupNode } from '@glitch/shared/types.ts';
+import type { Asset, GsNode, Macro, GsAutomation, GsGroupNode, Player } from '@glitch/shared/types.ts';
 import type { RawProject } from './settings.ts';
 import * as ui from '@/ui.ts';
 import * as api from '@/api.ts';
@@ -80,9 +80,9 @@ class AppContext {
 					type: null,
 					direction: 'horizontal',
 					children: [{
-						id: 'test',
+						id: '22bf5010d6c344118613b8c12959b2b7',
 						ratio: 0.25,
-						type: 'macros',
+						type: 'players',
 					}],
 				}],
 			}],
@@ -97,6 +97,7 @@ class AppContext {
 		this.state = {
 			resolution: ref<{ width: number; height: number }>({ width: 2048, height: 2048 }),
 			assets: ref<Asset[]>([]), // TODO: バイナリをリアクティブでwrapするのをやめる
+			players: ref<Player[]>([]),
 			nodes: ref<GsNode[]>([]),
 			macros: ref<Macro[]>([]),
 			automations: ref<GsAutomation[]>([]),
@@ -286,6 +287,18 @@ export async function appReady(project: RawProject) {
 	appContext.state.macros.value = project.macros;
 	appContext.state.automations.value = project.automations;
 
+	watch(appContext.state.automations, () => {
+		engine.updateAutomations(deepClone(appContext.state.automations.value));
+	}, { deep: true, immediate: true });
+
+	watch(appContext.state.assets, () => {
+		engine.updateAssets(deepClone(appContext.state.assets.value));
+	}, { deep: true, immediate: true });
+
+	watch(appContext.state.players, () => {
+		engine.updatePlayers(deepClone(appContext.state.players.value));
+	}, { deep: true, immediate: true });
+
 	watch(appContext.state.nodes, () => {
 		engine.updateNodes(deepClone(appContext.state.nodes.value));
 
@@ -297,14 +310,6 @@ export async function appReady(project: RawProject) {
 
 	watch(appContext.state.macros, () => {
 		engine.updateMacros(deepClone(appContext.state.macros.value));
-	}, { deep: true, immediate: true });
-
-	watch(appContext.state.automations, () => {
-		engine.updateAutomations(deepClone(appContext.state.automations.value));
-	}, { deep: true, immediate: true });
-
-	watch(appContext.state.assets, () => {
-		engine.updateAssets(deepClone(appContext.state.assets.value));
 	}, { deep: true, immediate: true });
 
 	engine.startRenderLoop();
@@ -393,11 +398,20 @@ export async function newProjectFromImageOrVideo() {
 			},
 		});
 	} else if (result.type.startsWith('video/')) {
+		const playerId = genId();
+
+		appContext.commit('addPlayer', {
+			id: playerId,
+			name: result.name,
+			type: 'asset',
+			assetId: assetId,
+		});
+
 		appContext.commit('addFxNode', {
 			fx: 'video',
 			id: genId(),
 			params: {
-				video: { type: 'literal', value: { type: 'asset', id: assetId } },
+				player: { type: 'literal', value: playerId },
 			},
 		});
 	}

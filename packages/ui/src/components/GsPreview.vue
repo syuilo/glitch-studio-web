@@ -66,11 +66,20 @@ async function onViewClick(detached: boolean) {
 				},
 			});
 		} else if (result.type.startsWith('video/')) {
+			const playerId = genId();
+
+			appContext.commit('addPlayer', {
+				id: playerId,
+				name: result.name,
+				type: 'asset',
+				assetId: assetId,
+			});
+
 			appContext.commit('addFxNode', {
 				fx: 'video',
 				id: genId(),
 				params: {
-					video: { type: 'literal', value: { type: 'asset', id: assetId } },
+					video: { type: 'literal', value: playerId },
 				},
 			});
 		}

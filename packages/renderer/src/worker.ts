@@ -87,15 +87,15 @@ onmessage = async (event) => {
 			break;
 		}
 		case 'videoFrame': {
-			const { nodeId, id, frame } = event.data;
+			const { playerId, id, frame } = event.data;
 			try {
 				if (renderer) {
-					renderer.updateVideoFrame(nodeId, frame);
+					renderer.updateVideoFrame(playerId, frame);
 				} else {
 					frame.close();
 				}
 			} finally {
-				self.postMessage({ type: 'videoFrameReceived', nodeId, id });
+				self.postMessage({ type: 'videoFrameReceived', playerId, id });
 			}
 			break;
 		}

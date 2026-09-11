@@ -11,7 +11,7 @@ import { GpuHistogram } from './GpuHistogram.ts';
 import { GpuWaveform } from './GpuWaveform.ts';
 import { GpuMemoryTracker } from './GpuMemoryTracker.ts';
 import { float32ToFloat16Bits } from './float32ToFloat16Bits.ts';
-import type { Asset, FxParamValue, Macro, GsAutomation, GsFxNode, GsNode, GsGroupNode } from '@glitch/shared/types.ts';
+import type { Asset, FxParamValue, Macro, GsAutomation, GsFxNode, GsNode, GsGroupNode, Player } from '@glitch/shared/types.ts';
 import type { EffectInstance } from './fx-implementation.ts';
 
 const aisParser = new AiScript.Parser();
@@ -64,7 +64,7 @@ export class Renderer {
 	private macros: Macro[] = [];
 	private automations: GsAutomation[] = [];
 	private assetTextures: Map<string, GPUTexture> = new Map();
-	private videoFrames: Map<GsFxNode['id'], VideoFrame> = new Map();
+	private videoFrames: Map<Player['id'], VideoFrame> = new Map();
 	private effectInstances: Map<GsFxNode['id'], EffectInstance | null> = new Map();
 	private effectScalarFieldTextures: Map<GsFxNode['id'], Record<string, GPUTexture>> = new Map();
 	private effectOuts: Map<GsFxNode['id'], {
@@ -401,8 +401,8 @@ export class Renderer {
 				resolvedParams[k] = v == null ? this.fallbackTexture : this.effectOuts.get(getActualOutputNodeId(this.findNode(v)!)!)!.texture;
 			} else if (typeDef === 'image') {
 				resolvedParams[k] = this.assetTextures.get(v)!;
-			} else if (typeDef === 'video') {
-				resolvedParams[k] = this.videoFrames.get(node.id)!;
+			} else if (typeDef === 'player') {
+				resolvedParams[k] = this.videoFrames.get(v)!;
 			} else {
 				if (fxDefinitions[node.fx].paramDefs[k].canNode) {
 					resolvedParams[k] = v == null ? this.fallbackScalarFieldTexture : node.params[k].type === 'node' ? this.effectOuts.get(getActualOutputNodeId(this.findNode(v)!)!)!.texture : this.effectScalarFieldTextures.get(node.id)![k];
@@ -714,12 +714,12 @@ export class Renderer {
 		this.automations = newAutomations;
 	}
 
-	public updateVideoFrame(nodeId: GsFxNode['id'], videoFrame: VideoFrame | null) {
-		this.videoFrames.get(nodeId)?.close();
+	public updateVideoFrame(playerId: Player['id'], videoFrame: VideoFrame | null) {
+		this.videoFrames.get(playerId)?.close();
 		if (videoFrame) {
-			this.videoFrames.set(nodeId, videoFrame);
+			this.videoFrames.set(playerId, videoFrame);
 		} else {
-			this.videoFrames.delete(nodeId);
+			this.videoFrames.delete(playerId);
 		}
 	}
 

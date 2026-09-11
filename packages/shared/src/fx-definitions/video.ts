@@ -5,9 +5,9 @@ export default defineEffect({
 	displayName: 'Video',
 	category: '',
 	paramDefs: {
-		video: {
-			label: 'Video',
-			type: 'video',
+		player: {
+			label: 'Player',
+			type: 'player',
 		},
 		sizeMode: {
 			label: 'Size mode',
@@ -25,7 +25,7 @@ export default defineEffect({
 		},
 	},
 	getDefaultParams: () => ({
-		video: { type: 'literal', value: null },
+		player: { type: 'literal', value: null },
 		sizeMode: { type: 'literal', value: 1 },
 	}),
 });

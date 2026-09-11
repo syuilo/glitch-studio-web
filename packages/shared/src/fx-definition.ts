@@ -64,8 +64,8 @@ export type ImageOptionSchema = {
 	label: string;
 };
 
-export type VideoOptionSchema = {
-	type: 'video';
+export type PlayerOptionSchema = {
+	type: 'player';
 	label: string;
 };
 
@@ -86,7 +86,7 @@ export type EffectOptionsSchema = Record<string,
 	EnumOptionSchema |
 	RangeOptionSchema |
 	ImageOptionSchema |
-	VideoOptionSchema |
+	PlayerOptionSchema |
 	NodeOptionSchema
 >;
 
@@ -102,7 +102,7 @@ type EffectOptionValue<T extends EffectOptionsSchema[string]> =
 	T extends EnumOptionSchema ? T['options'][number]['value'] :
 	T extends RangeOptionSchema ? number :
 	T extends ImageOptionSchema ? null :
-	T extends VideoOptionSchema ? null :
+	T extends PlayerOptionSchema ? null :
 	T extends NodeOptionSchema ? null :
 	never;
 

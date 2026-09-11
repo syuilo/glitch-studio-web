@@ -1,4 +1,4 @@
-export type FxParamDataType = 'number' | 'range' | 'range2' | 'enum' | 'bool' | 'blendMode' | 'signal' | 'xy' | 'wh' | 'color' | 'vector' | 'seed' | 'time' | 'image' | 'video' | 'node' | 'nodes';
+export type FxParamDataType = 'number' | 'range' | 'range2' | 'enum' | 'bool' | 'blendMode' | 'signal' | 'xy' | 'wh' | 'color' | 'vector' | 'seed' | 'time' | 'image' | 'player' | 'node' | 'nodes';
 
 export type FxParamValue = {
 	type: 'literal';
@@ -34,6 +34,13 @@ export type Asset = {
 	hash?: string;
 };
 
+export type Player = {
+	id: string;
+	name: string;
+	type: null | 'asset' | 'webcam' | 'microphone' | 'liveStream';
+	assetId?: Asset['id'] | null;
+};
+
 export type FxParamDef = Record<string, any> & {
 	type: FxParamDataType;
 	label: string;
@@ -50,7 +57,7 @@ export type EvaledParams<T extends FxParamDefs> = {
 	T[K]['type'] extends 'node' ? string :
 	T[K]['type'] extends 'nodes' ? string[] :
 	T[K]['type'] extends 'image' ? string :
-	T[K]['type'] extends 'video' ? string :
+	T[K]['type'] extends 'player' ? string :
 	T[K]['type'] extends 'range' ? number :
 	T[K]['type'] extends 'bool' ? boolean :
 	any;

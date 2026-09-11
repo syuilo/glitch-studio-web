@@ -3,7 +3,7 @@ import { AiSON } from '@syuilo/aiscript';
 import { deepClone } from '@glitch/shared/utility/deep-clone.ts';
 import { genEmptyValue } from '@glitch/shared/utility/misc.ts';
 import type { AppState } from './types.ts';
-import type { Asset, FxParamDataType, FxParamDefs, GsFxNode, GsGroupNode, GsNode } from '@glitch/shared/types.ts';
+import type { Asset, FxParamDataType, FxParamDefs, GsFxNode, GsGroupNode, GsNode, Player } from '@glitch/shared/types.ts';
 
 export type CommandDef<Payload> = {
 	label: string;
@@ -316,6 +316,20 @@ const replaceAssetCommandDef = defineCommand<Asset & { assetId: string }>({
 	},
 });
 
+const addPlayerCommandDef = defineCommand<Player>({
+	label: 'Add player',
+	create: (payload) => {
+		return {
+			execute(state) {
+				state.players.value.push(payload);
+			},
+			undo(state) {
+				state.players.value = state.players.value.filter(player => player.id !== payload.id);
+			},
+		};
+	},
+});
+
 const addMacroCommandDef = defineCommand<{ groupId?: GsGroupNode['id']; id: string; }>({
 	label: 'Add macro',
 	create: (payload) => {
@@ -617,6 +631,7 @@ export const COMMAND_DEFS = {
 	removeAsset: removeAssetCommandDef,
 	renameAsset: renameAssetCommandDef,
 	replaceAsset: replaceAssetCommandDef,
+	addPlayer: addPlayerCommandDef,
 	addMacro: addMacroCommandDef,
 	removeMacro: removeMacroCommandDef,
 	toggleMacroValueType: toggleMacroValueTypeCommandDef,

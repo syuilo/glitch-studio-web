@@ -39,6 +39,7 @@ import XWaveform from '@/components/GsWorkspacePanel.Waveform.vue';
 import XStats from '@/components/GsWorkspacePanel.Stats.vue';
 import XCommandLog from '@/components/GsWorkspacePanel.CommandLog.vue';
 import XMacros from '@/components/GsWorkspacePanel.Macros.vue';
+import XPlayers from '@/components/GsWorkspacePanel.Players.vue';
 
 const panelComponents = {
 	empty: XEmpty,
@@ -49,6 +50,7 @@ const panelComponents = {
 	stats: XStats,
 	commandLog: XCommandLog,
 	macros: XMacros,
+	players: XPlayers,
 };
 
 const props = withDefaults(defineProps<{

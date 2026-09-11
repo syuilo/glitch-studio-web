@@ -3,7 +3,7 @@ import { createRendererWorker } from '@glitch/renderer/client.ts';
 import { deepEqual } from '@glitch/shared/utility/deep-equal.ts';
 import { deepClone } from '@glitch/shared/utility/deep-clone.ts';
 import { isVideoFrameAvailable, playVideoAfterFirstFrameIsReady } from './utility/video.ts';
-import type { Asset, GsAutomation, GsFxNode, GsNode, Macro } from '@glitch/shared/types.ts';
+import type { Asset, GsAutomation, GsFxNode, GsNode, Macro, Player } from '@glitch/shared/types.ts';
 import type { Renderer } from '@glitch/renderer/renderer.ts';
 import * as ui from '@/ui.ts';
 
@@ -53,13 +53,14 @@ export class Engine {
 	private enableStats = true;
 	private nodes: GsNode[] = [];
 	private assets: Asset[] = [];
+	private players: Player[] = [];
 	private macros: Macro[] = [];
 	private automations: GsAutomation[] = [];
-	private videoElements = shallowReactive(new Map<GsFxNode['id'], HTMLVideoElement>());
-	private videoLoads = new Map<string, Promise<void>>();
-	private videoFrameCallbacks = new Map<string, number>();
-	private pendingVideoFrames = new Map<string, VideoFrame>();
-	private inFlightVideoFrames = new Map<string, number>();
+	private videoElements = shallowReactive(new Map<Player['id'], HTMLVideoElement>());
+	private videoLoads = new Map<Player['id'], Promise<void>>();
+	private videoFrameCallbacks = new Map<Player['id'], number>();
+	private pendingVideoFrames = new Map<Player['id'], VideoFrame>();
+	private inFlightVideoFrames = new Map<Player['id'], number>();
 	private nextVideoFrameId = 0;
 	private fpsLimit: number | null;
 	public gpuAverageDisplayFast = ref(0);
@@ -168,10 +169,10 @@ export class Engine {
 					break;
 				}
 				case 'videoFrameReceived': {
-					const { nodeId, id } = event.data;
-					if (this.inFlightVideoFrames.get(nodeId) !== id) break;
-					this.inFlightVideoFrames.delete(nodeId);
-					this.sendPendingVideoFrame(nodeId);
+					const { playerId, id } = event.data;
+					if (this.inFlightVideoFrames.get(playerId) !== id) break;
+					this.inFlightVideoFrames.delete(playerId);
+					this.sendPendingVideoFrame(playerId);
 					break;
 				}
 				case 'gpuMemory': {
@@ -206,22 +207,20 @@ export class Engine {
 		this.call('stopRenderLoop', []);
 	}
 
-	public async updateNodes(newNodes: GsNode[]) {
-		const oldFxNodes = getFxNodes(this.nodes);
-		const newFxNodes = getFxNodes(newNodes);
-		const nodes = deepClone(newNodes);
-		this.nodes = nodes;
+	public async updatePlayers(newPlayers: Player[]) {
+		const oldPlayers = this.players;
+		const players = deepClone(newPlayers);
+		this.players = players;
 
 		for (const [id, video] of this.videoElements) {
-			const oldNode = oldFxNodes.find(node => node.id === id);
-			const newNode = newFxNodes.find(node => node.id === id);
-			if (newNode?.fx !== 'video' || !deepEqual(oldNode?.params.video.value, newNode.params.video.value)) {
+			const oldPlayer = oldPlayers.find(player => player.id === id);
+			const newPlayer = players.find(player => player.id === id);
+			if (!newPlayer || !deepEqual(oldPlayer?.assetId, newPlayer.assetId)) {
 				const callbackId = this.videoFrameCallbacks.get(id);
 				if (callbackId !== undefined) video.cancelVideoFrameCallback(callbackId);
 				this.videoFrameCallbacks.delete(id);
 				this.pendingVideoFrames.get(id)?.close();
 				this.pendingVideoFrames.delete(id);
-				// Keep the in-flight slot until its ACK, even when reusing the node ID.
 				if (this.isReady.value) this.call('updateVideoFrame', [id, null]);
 				video.pause();
 				this.videoElements.delete(id);
@@ -232,20 +231,19 @@ export class Engine {
 			}
 		}
 
-		for (const node of newFxNodes) {
-			if (node.fx === 'video' && !this.videoElements.has(node.id)) {
-				if (node.params.video.value == null) continue;
+		for (const player of players) {
+			if (!this.videoElements.has(player.id)) {
 				const video = window.document.createElement('video');
 				video.loop = true;
 				video.preload = 'auto';
 				video.volume = 0.5;
-				this.videoElements.set(node.id, video);
-				this.videoLoads.set(node.id, new Promise<void>(resolve => {
+				this.videoElements.set(player.id, video);
+				this.videoLoads.set(player.id, new Promise<void>(resolve => {
 					const finish = () => {
 						video.removeEventListener('loadeddata', finish);
 						video.removeEventListener('error', finish);
 						video.removeEventListener('emptied', finish);
-						if (video.error && this.videoElements.get(node.id) === video) {
+						if (video.error && this.videoElements.get(player.id) === video) {
 							void ui.alert({ type: 'error', text: video.error.message });
 						}
 						resolve();
@@ -256,26 +254,26 @@ export class Engine {
 				}));
 
 				const onVideoFrame = () => {
-					if (this.videoElements.get(node.id) !== video) return;
+					if (this.videoElements.get(player.id) !== video) return;
 					try {
 						if (!isVideoFrameAvailable(video)) return;
 						const frame = new VideoFrame(video);
 						// Retain only the newest frame while the worker is busy.
-						this.pendingVideoFrames.get(node.id)?.close();
-						this.pendingVideoFrames.set(node.id, frame);
-						this.sendPendingVideoFrame(node.id);
+						this.pendingVideoFrames.get(player.id)?.close();
+						this.pendingVideoFrames.set(player.id, frame);
+						this.sendPendingVideoFrame(player.id);
 					} finally {
-						this.videoFrameCallbacks.set(node.id, video.requestVideoFrameCallback(onVideoFrame));
+						this.videoFrameCallbacks.set(player.id, video.requestVideoFrameCallback(onVideoFrame));
 					}
 				};
 
-				this.videoFrameCallbacks.set(node.id, video.requestVideoFrameCallback(onVideoFrame));
+				this.videoFrameCallbacks.set(player.id, video.requestVideoFrameCallback(onVideoFrame));
 
-				if (node.params.video.value.type === 'asset') {
-					const asset = this.assets.find(asset => asset.id === node.params.video.value.id)!;
+				if (player.type === 'asset') {
+					const asset = this.assets.find(asset => asset.id === player.assetId)!;
 					video.src = URL.createObjectURL(asset.fileData);
-				} else if (node.params.video.value.type === 'webcam') {
-					this.videoLoads.set(node.id, setupWebcam().then(camera => {
+				} else if (player.type === 'webcam') {
+					this.videoLoads.set(player.id, setupWebcam().then(camera => {
 						video.srcObject = camera;
 						video.muted = true;
 						video.playsInline = true;
@@ -286,12 +284,15 @@ export class Engine {
 		}
 
 		await Promise.all(this.videoLoads.values());
-		if (this.nodes !== nodes) return;
+	}
+
+	public updateNodes(newNodes: GsNode[]) {
+		this.nodes = deepClone(newNodes);
 		this.call('updateNodes', [this.nodes]);
 	}
 
-	public getVideoElement(nodeId: GsFxNode['id']): HTMLVideoElement | null {
-		return this.videoElements.get(nodeId) ?? null;
+	public getVideoElement(playerId: Player['id']): HTMLVideoElement | null {
+		return this.videoElements.get(playerId) ?? null;
 	}
 
 	public updateMacros(newMacros: Macro[]) {

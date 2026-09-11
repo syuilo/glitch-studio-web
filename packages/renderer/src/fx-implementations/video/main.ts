@@ -1,7 +1,7 @@
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
-import type definition from '@glitch/shared/fx-definitions/video.ts';
 import { implementEffect } from '../../fx-implementation.ts';
 import code from './shader.wgsl?raw';
+import type definition from '@glitch/shared/fx-definitions/video.ts';
 
 export default implementEffect<typeof definition>({
 	disableCache: true,
@@ -56,13 +56,13 @@ export default implementEffect<typeof definition>({
 
 		return {
 			render: (ctx) => {
-				if (!ctx.params.video) {
+				if (!ctx.params.player) {
 					bindGroup = null;
 					return;
 				}
-				if (ctx.params.video) {
+				if (ctx.params.player) {
 					const freshTex = wgpu.device.importExternalTexture(
-						{ source: ctx.params.video },
+						{ source: ctx.params.player },
 					);
 					bindGroup = wgpu.device.createBindGroup({
 						layout: pipeline.getBindGroupLayout(0),
