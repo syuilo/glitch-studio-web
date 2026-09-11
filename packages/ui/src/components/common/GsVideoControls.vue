@@ -15,8 +15,11 @@
 		</div>
 		<div v-if="isVideo" :class="$style.time" class="_monospace">{{ currentFrame ?? '—' }}</div>
 	</div>
-	<div>
-		<input :class="$style.slider" type="range" min="0" :max="duration || 1" step="0.01" :value="currentTime" :disabled="!ready || duration === 0" @input="seek"/>
+	<div :class="$style.seekBar">
+		<GsMediaRange
+			v-model="rangePercent"
+			:buffer="bufferedDataRatio"
+		/>
 	</div>
 	<!-- 音量調整はそれを利用するノード側の役目。「動画の明るさ調整」などというコントロールが無いのと一緒
 	<label>
@@ -37,6 +40,7 @@
 import { computed, ref, watch } from 'vue';
 import GsButton from './GsButton.vue';
 import GsInput from './GsInput.vue';
+import GsMediaRange from './GsMediaRange.vue';
 import { i18n } from '@/i18n.ts';
 
 const props = defineProps<{
@@ -61,6 +65,21 @@ const currentFrame = computed(() => {
 const totalFrames = computed(() => {
 	if (frameTime.value === null || !Number.isFinite(frameRate.value) || frameRate.value <= 0) return null;
 	return Math.max(0, Math.round(duration.value * frameRate.value));
+});
+const rangePercent = computed({
+	get: () => {
+		return (currentTime.value / duration.value) || 0;
+	},
+	set: (to) => {
+		if (props.video == null) return;
+		props.video.currentTime = to * duration.value;
+		currentTime.value = props.video.currentTime;
+	},
+});
+const bufferedEnd = ref(0);
+const bufferedDataRatio = computed(() => {
+	if (duration.value === 0) return 0;
+	return bufferedEnd.value / (duration.value);
 });
 //const volume = ref(0.5);
 const error = ref('');
@@ -91,6 +110,7 @@ watch(() => props.video, (video, _, onCleanup) => {
 			animationFrameId = null;
 		}
 		//volume.value = props.getVolume ? props.getVolume() : video?.muted ? 0 : (video?.volume ?? 0.5);
+		syncBuffered();
 	};
 	sync();
 	if (!video) return;
@@ -135,10 +155,19 @@ function stop() {
 	currentTime.value = 0;
 }
 
-function seek(event: Event) {
-	if (!props.video || duration.value === 0) return;
-	props.video.currentTime = Math.min(duration.value, Math.max(0, (event.target as HTMLInputElement).valueAsNumber));
-	currentTime.value = props.video.currentTime;
+function syncBuffered() {
+	const buffered = props.video?.buffered;
+	if (buffered == null || buffered.length === 0) {
+		bufferedEnd.value = 0;
+		return;
+	}
+
+	// シークすると読み込み済みの範囲が複数に分かれるため、最も先まで到達している位置を採用する
+	let end = 0;
+	for (let i = 0; i < buffered.length; i++) {
+		if (buffered.end(i) > end) end = buffered.end(i);
+	}
+	bufferedEnd.value = end;
 }
 
 /*
@@ -176,12 +205,10 @@ function formatTime(value: number): string {
 	gap: 8px;
 }
 
-.slider {
+.seekBar {
 	flex: 1;
 	min-width: 0;
 	width: 100%;
-	margin: 0;
-	accent-color: var(--THEME-accent);
 }
 
 .time {
