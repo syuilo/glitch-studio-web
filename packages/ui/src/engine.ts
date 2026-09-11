@@ -324,7 +324,6 @@ export class Engine {
 		else await this.videoElements.get(playerId)?.play();
 	}
 
-	public getPlayerVolume(playerId: Player['id']) { return this.audioInputs.getVolume(playerId); }
 	public get previewVolume() { return this.audioInputs.previewVolume; }
 	public setPreviewVolume(volume: number) { this.audioInputs.setPreviewVolume(volume); }
 	public readAudioMonitor() { return this.audioInputs.readMonitor(); }
@@ -346,7 +345,6 @@ export class Engine {
 		this.call('resizeAudioSpectrogramMonitor', [id, width, height]);
 	}
 	public getPlayerLevels(playerId: Player['id']) { return this.audioInputs.getPlayerLevels(playerId); }
-	public setPlayerVolume(playerId: Player['id'], volume: number) { this.audioInputs.setVolume(playerId, volume); }
 
 	public updateMacros(newMacros: Macro[]) {
 		this.macros = deepClone(newMacros);

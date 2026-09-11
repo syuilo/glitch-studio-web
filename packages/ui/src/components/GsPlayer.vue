@@ -10,8 +10,6 @@
 		<GsVideoControls
 			v-if="videoEl != null" :video="videoEl" :class="$style.videoControl"
 			:play="() => engine.playPlayer(player.id)"
-			:getVolume="player.type === 'asset' ? () => engine.getPlayerVolume(player.id) : undefined"
-			:setVolume="player.type === 'asset' ? volume => engine.setPlayerVolume(player.id, volume) : undefined"
 		/>
 		<div :class="$style.levelMeter"><GsAudioLevelMeter :orientation="'vertical'" :levels="engine.getPlayerLevels(player.id)"/></div>
 	</div>

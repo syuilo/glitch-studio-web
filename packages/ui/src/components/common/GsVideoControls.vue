@@ -10,12 +10,14 @@
 		<span :class="$style.time">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
 	</div>
 	<input :class="$style.slider" type="range" min="0" :max="duration || 1" step="0.01" :value="currentTime" :disabled="!ready || duration === 0" @input="seek"/>
+	<!-- 音量調整はそれを利用するノード側の役目。「動画の明るさ調整」などというコントロールが無いのと一緒
 	<label :class="$style.row">
 		<i class="ti ti-volume"></i>
 		<span>{{ i18n.ts._VideoControls.Volume }}</span>
 		<input :class="$style.slider" type="range" min="0" max="1" step="0.01" :value="volume" :disabled="!video" @input="setVolume"/>
 		<span>{{ Math.round(volume * 100) }}%</span>
 	</label>
+	-->
 	<div v-if="error" role="alert">{{ error }}</div>
 </div>
 </template>
@@ -28,15 +30,15 @@ import { i18n } from '@/i18n.ts';
 const props = defineProps<{
 	video: HTMLMediaElement | null;
 	play?: () => Promise<void>;
-	getVolume?: () => number;
-	setVolume?: (volume: number) => void;
+	//getVolume?: () => number;
+	//setVolume?: (volume: number) => void;
 }>();
 
 const paused = ref(true);
 const ready = ref(false);
 const currentTime = ref(0);
 const duration = ref(0);
-const volume = ref(0.5);
+//const volume = ref(0.5);
 const error = ref('');
 
 watch(() => props.video, (video, _, onCleanup) => {
@@ -47,7 +49,7 @@ watch(() => props.video, (video, _, onCleanup) => {
 		ready.value = video != null && video.readyState >= video.HAVE_METADATA && !video.error;
 		currentTime.value = video?.currentTime ?? 0;
 		duration.value = video && Number.isFinite(video.duration) ? video.duration : 0;
-		volume.value = props.getVolume ? props.getVolume() : video?.muted ? 0 : (video?.volume ?? 0.5);
+		//volume.value = props.getVolume ? props.getVolume() : video?.muted ? 0 : (video?.volume ?? 0.5);
 	};
 	sync();
 	if (!video) return;
@@ -88,6 +90,7 @@ function seek(event: Event) {
 	currentTime.value = props.video.currentTime;
 }
 
+/*
 function setVolume(event: Event) {
 	if (!props.video) return;
 	if (props.setVolume) {
@@ -97,6 +100,7 @@ function setVolume(event: Event) {
 	props.video.volume = (event.target as HTMLInputElement).valueAsNumber;
 	props.video.muted = false;
 }
+*/
 
 function formatTime(value: number): string {
 	const seconds = Math.floor(value);

@@ -196,8 +196,6 @@ export class AudioInputs {
 		entry.capture.setState(!entry.media.paused && !entry.media.seeking, entry.generation);
 	}
 
-	public getVolume(id: string) { return this.players.get(id)?.volume ?? 0.5; }
-
 	public setPreviewVolume(volume: number) {
 		if (!Number.isFinite(volume)) return;
 		this.previewVolume.value = Math.min(1, Math.max(0, volume));
@@ -220,15 +218,6 @@ export class AudioInputs {
 	}
 
 	public getPlayerLevels(id: string) { return this.getLevels(playerAudioSourceId(id)); }
-
-	public setVolume(id: string, volume: number) {
-		const entry = this.players.get(id);
-		if (!entry) return;
-		entry.volume = Math.min(1, Math.max(0, volume));
-		if (entry.gain) entry.gain.gain.setTargetAtTime(entry.volume, entry.gain.context.currentTime, 0.01);
-		else entry.media.volume = entry.volume;
-		entry.media.dispatchEvent(new Event('volumechange'));
-	}
 
 	public removePlayer(id: string) {
 		const entry = this.players.get(id);
