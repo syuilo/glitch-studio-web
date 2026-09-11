@@ -101,17 +101,17 @@ export class Engine {
 		}
 	}
 
-	private sendPendingVideoFrame(nodeId: string) {
-		if (!this.isReady.value || !this.rendererWorker || this.inFlightVideoFrames.has(nodeId)) return;
-		const frame = this.pendingVideoFrames.get(nodeId);
+	private sendPendingVideoFrame(playerId: string) {
+		if (!this.isReady.value || !this.rendererWorker || this.inFlightVideoFrames.has(playerId)) return;
+		const frame = this.pendingVideoFrames.get(playerId);
 		if (!frame) return;
-		this.pendingVideoFrames.delete(nodeId);
+		this.pendingVideoFrames.delete(playerId);
 		const id = this.nextVideoFrameId++;
-		this.inFlightVideoFrames.set(nodeId, id);
+		this.inFlightVideoFrames.set(playerId, id);
 		try {
-			this.rendererWorker.postMessage({ type: 'videoFrame', nodeId, id, frame }, [frame]);
+			this.rendererWorker.postMessage({ type: 'videoFrame', playerId, id, frame }, [frame]);
 		} catch (error) {
-			this.inFlightVideoFrames.delete(nodeId);
+			this.inFlightVideoFrames.delete(playerId);
 			frame.close();
 			throw error;
 		}
@@ -163,7 +163,7 @@ export class Engine {
 			switch (event.data?.type) {
 				case 'inited': {
 					this.isReady.value = true;
-					for (const nodeId of this.pendingVideoFrames.keys()) this.sendPendingVideoFrame(nodeId);
+					for (const playerId of this.pendingVideoFrames.keys()) this.sendPendingVideoFrame(playerId);
 					console.log('Renderer worker initialized!');
 					resolveReady();
 					break;
