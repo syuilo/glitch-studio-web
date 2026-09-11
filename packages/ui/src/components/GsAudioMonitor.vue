@@ -1,5 +1,5 @@
 <template>
-<GsDetachableView :title="mode === 'spectrum' ? 'Audio Spectrum' : 'Audio Waveform'">
+<GsDetachableView :title="mode === 'spectrum' ? 'Audio Spectrum' : 'Audio Waveform'" @change-window="startAnimationLoop">
 	<template #controls>
 		<label :class="$style.option"><input v-model="overlay" type="checkbox"> Overlay L/R</label>
 	</template>
@@ -16,8 +16,9 @@ import { AUDIO_MONITOR_SETTINGS as settings } from '@/audio-monitor.ts';
 const props = defineProps<{ mode: 'spectrum' | 'waveform' }>();
 const overlay = defineModel<boolean>('overlay', { default: false });
 const canvas = useTemplateRef('canvas');
-let timer: number | undefined;
-let timerWindow: Window | undefined;
+let animationFrame: number | undefined;
+let animationWindow: Window | undefined;
+let disposed = false;
 let observer: ResizeObserver | undefined;
 let width = 0;
 let height = 0;
@@ -143,9 +144,15 @@ function draw() {
 
 function tick() {
 	draw();
-	// 別ウィンドウへ移した後は、そのウィンドウのタイマーで更新する。
-	timerWindow = canvas.value?.ownerDocument.defaultView ?? window;
-	timer = timerWindow.setTimeout(tick, 1000 / settings.framesPerSecond);
+	animationFrame = animationWindow!.requestAnimationFrame(tick);
+}
+
+function startAnimationLoop() {
+	if (disposed) return;
+	if (animationFrame !== undefined) animationWindow?.cancelAnimationFrame(animationFrame);
+	// 移動元のウィンドウが非表示・閉鎖されても更新が止まらないよう、移動先で登録し直す。
+	animationWindow = canvas.value?.ownerDocument.defaultView ?? window;
+	animationFrame = animationWindow.requestAnimationFrame(tick);
 }
 
 onMounted(() => {
@@ -156,10 +163,14 @@ onMounted(() => {
 	});
 	if (canvas.value) observer.observe(canvas.value);
 	// PCM配列をVueのリアクティブ状態に入れず、Canvasだけを更新する。
-	tick();
+	startAnimationLoop();
 });
 
-onBeforeUnmount(() => { timerWindow?.clearTimeout(timer); observer?.disconnect(); });
+onBeforeUnmount(() => {
+	disposed = true;
+	if (animationFrame !== undefined) animationWindow?.cancelAnimationFrame(animationFrame);
+	observer?.disconnect();
+});
 </script>
 
 <style module lang="scss">

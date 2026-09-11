@@ -2,13 +2,13 @@
 export const AUDIO_MONITOR_SETTINGS = {
 	fftSize: 4096,
 	waveformSize: 32768,
-	smoothingTimeConstant: 0.75,
+	// 従来の60Hz更新・平滑化係数0.75に相当する時定数（秒）。
+	smoothingSeconds: -1 / (60 * Math.log(0.75)),
 	minDecibels: -90,
 	maxDecibels: 0,
 	minFrequency: 20,
 	maxFrequency: 20000,
 	waveformSeconds: 0.04,
-	framesPerSecond: 60,
 	leftColor: '#48d8ed',
 	rightColor: '#f77da9',
 };
@@ -26,7 +26,7 @@ export class AudioMonitor {
 		this.analysers = [0, 1].map(channel => {
 			const analyser = new AnalyserNode(context, {
 				fftSize: AUDIO_MONITOR_SETTINGS.fftSize,
-				smoothingTimeConstant: AUDIO_MONITOR_SETTINGS.smoothingTimeConstant,
+				smoothingTimeConstant: 0,
 				minDecibels: AUDIO_MONITOR_SETTINGS.minDecibels,
 				maxDecibels: AUDIO_MONITOR_SETTINGS.maxDecibels,
 			});
@@ -45,13 +45,16 @@ export class AudioMonitor {
 	public get sampleRate() { return this.context.sampleRate; }
 
 	public read() {
-		const now = performance.now();
-		// 複数のパネルがあっても同じ取得結果を共有する。
-		if (now - this.lastRead < 1000 / AUDIO_MONITOR_SETTINGS.framesPerSecond) return this;
-		this.lastRead = now;
+		const now = this.context.currentTime;
+		// 同じ音声処理時刻の取得結果は、別ウィンドウを含む複数のパネルで共有する。
+		if (this.context.state === 'running' && now === this.lastRead) return this;
+		// 更新頻度によらず同じ時間で減衰するよう、経過秒数から平滑化係数を求める。
+		const smoothing = Math.exp(-(now - this.lastRead) / AUDIO_MONITOR_SETTINGS.smoothingSeconds);
+		this.lastRead = this.context.state === 'running' ? now : -Infinity;
 		for (let channel = 0; channel < 2; channel++) {
 			if (this.context.state === 'running') {
 				this.waveformAnalysers[channel].getFloatTimeDomainData(this.waveform[channel]);
+				this.analysers[channel].smoothingTimeConstant = smoothing;
 				this.analysers[channel].getFloatFrequencyData(this.spectrum[channel]);
 			} else {
 				this.waveform[channel].fill(0);
