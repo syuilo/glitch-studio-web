@@ -87,7 +87,8 @@ export class AudioSpectrum {
 		}
 	}
 
-	public update(history: AudioHistory | null, channel: AudioChannel, smoothing: number) {
+	public update(history: AudioHistory | null, channel: AudioChannel, smoothing: number,
+		onFrame?: (endFrame: number, reset: boolean) => void) {
 		const hop = this.size / 4;
 		if (this.history !== history || this.revision !== history?.revision || this.channel !== channel
 			|| (history && this.nextEndFrame - this.size < history.startFrame)) {
@@ -113,6 +114,8 @@ export class AudioSpectrum {
 		while (this.nextEndFrame <= history.endFrame) {
 			this.transform(history, this.nextEndFrame, channel === 'stereo' ? 'left' : channel, this.left, alpha);
 			if (channel === 'stereo') this.transform(history, this.nextEndFrame, 'right', this.right, alpha);
+			// 各解析区間を通知し、低fpsでも途中のスペクトラムを履歴へ残せるようにする。
+			onFrame?.(this.nextEndFrame, !this.hasData);
 			this.nextEndFrame += hop;
 			this.hasData = true;
 		}
