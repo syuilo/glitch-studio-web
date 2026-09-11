@@ -3,7 +3,7 @@
 	<template #controls>
 		<label :class="$style.option"><input v-model="overlay" type="checkbox"> Overlay L/R</label>
 	</template>
-	<div :class="$style.root"><canvas ref="canvas" :class="$style.canvas"></canvas></div>
+	<div :class="$style.root"><canvas ref="canvas" :class="$style.canvas" @wheel="onWheel"></canvas></div>
 </GsDetachableView>
 </template>
 
@@ -21,6 +21,19 @@ let timerWindow: Window | undefined;
 let observer: ResizeObserver | undefined;
 let width = 0;
 let height = 0;
+let waveformSeconds = settings.waveformSeconds;
+
+function onWheel(event: WheelEvent) {
+	if (props.mode !== 'waveform' || event.deltaY === 0) return;
+	event.preventDefault();
+	event.stopPropagation();
+	const data = engine.readAudioMonitor();
+	const sampleRate = data?.sampleRate ?? 48000;
+	const maxSeconds = (data?.waveform[0].length ?? settings.fftSize) / sampleRate;
+	const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? height : 1);
+	waveformSeconds = Math.max(2 / sampleRate, Math.min(maxSeconds, Math.min(waveformSeconds, maxSeconds) * Math.exp(Math.max(-1, Math.min(1, delta * 0.002)))));
+	draw();
+}
 
 function draw() {
 	const element = canvas.value;
@@ -39,6 +52,8 @@ function draw() {
 	context.fillStyle = '#111111';
 	context.fillRect(0, 0, width, height);
 	const data = engine.readAudioMonitor();
+	const sampleRate = data?.sampleRate ?? 48000;
+	const waveformCount = Math.max(2, Math.min(data?.waveform[0].length ?? settings.fftSize, Math.round(sampleRate * waveformSeconds)));
 	const top = 30;
 	const bottom = 18;
 	const plotHeight = Math.max(1, height - top - bottom);
@@ -87,7 +102,7 @@ function draw() {
 			context.fill();
 		} else {
 			const values = data?.waveform[channel];
-			const count = Math.max(2, Math.min(values?.length ?? settings.fftSize, Math.round((data?.sampleRate ?? 48000) * settings.waveformSeconds)));
+			const count = waveformCount;
 			const start = (values?.length ?? count) - count;
 			const center = laneTop + laneHeight / 2;
 			const scale = laneHeight * 0.45;
@@ -121,7 +136,7 @@ function draw() {
 			context.fillText(frequency >= 1000 ? `${frequency / 1000}k` : String(frequency), x, height - 4);
 		}
 	} else {
-		context.textAlign = 'left'; context.fillText(`−${(Math.min(settings.waveformSeconds, settings.fftSize / (data?.sampleRate ?? 48000)) * 1000).toFixed(1)} ms`, 8, height - 4);
+		context.textAlign = 'left'; context.fillText(`−${(waveformCount / sampleRate * 1000).toFixed(1)} ms`, 8, height - 4);
 		context.textAlign = 'right'; context.fillText('0', width - 8, height - 4);
 	}
 }
