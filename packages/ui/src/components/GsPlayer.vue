@@ -13,7 +13,7 @@
 			:getVolume="player.type === 'asset' ? () => engine.getPlayerVolume(player.id) : undefined"
 			:setVolume="player.type === 'asset' ? volume => engine.setPlayerVolume(player.id, volume) : undefined"
 		/>
-		<div :class="$style.levelMeter"><GsAudioLevelMeter :levels="engine.getPlayerLevels(player.id)"/></div>
+		<div :class="$style.levelMeter"><GsAudioLevelMeter :orientation="'vertical'" :levels="engine.getPlayerLevels(player.id)"/></div>
 	</div>
 </div>
 </template>
@@ -74,6 +74,7 @@ function replace() {
 }
 
 .buttons {
+	display: flex;
 	position: absolute;
 	top: 4px;
 	right: 4px;
@@ -92,7 +93,7 @@ function replace() {
 
 .body {
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
 	gap: 8px;
 	height: 120px;
 	padding: 8px;
@@ -105,7 +106,7 @@ function replace() {
 }
 
 .levelMeter {
-	flex: 0 0 12px;
-	width: 100%;
+	width: 16px;
+	height: 100%;
 }
 </style>

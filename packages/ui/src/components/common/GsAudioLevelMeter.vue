@@ -23,13 +23,14 @@ function normalizedLevel(level: number): number {
 
 <style module lang="scss">
 .root {
+	position: relative;
 	display: flex;
 	gap: 2px;
 	width: 100%;
 	height: 100%;
 	min-width: 0;
 	min-height: 0;
-	overflow: hidden;
+	overflow: clip;
 }
 
 .track {
@@ -44,7 +45,7 @@ function normalizedLevel(level: number): number {
 .cover {
 	position: absolute;
 	inset: 0;
-	background: #252a28;
+	background: #000;
 	// グラデーション自体は伸縮せず、未点灯部分だけを覆う。レイアウト計算は不要。
 	transition: transform 65ms linear;
 }
