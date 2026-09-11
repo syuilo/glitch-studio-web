@@ -1,4 +1,4 @@
-import type { AudioChunk } from '@glitch/shared/audio.ts';
+import type { AudioChunk } from './audio.ts';
 
 export class AudioHistory {
 	public sampleRate = 48000;
@@ -51,8 +51,3 @@ export class AudioHistory {
 		return this.channels[0][index];
 	}
 }
-
-export type PlayerInput = {
-	videoFrame: VideoFrame | null;
-	audio: AudioHistory | null;
-};
