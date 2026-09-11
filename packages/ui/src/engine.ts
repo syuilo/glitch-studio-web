@@ -328,17 +328,6 @@ export class Engine {
 	public setPreviewVolume(volume: number) { this.audioInputs.setPreviewVolume(volume); }
 	public readAudioMonitor() { return this.audioInputs.readMonitor(); }
 
-	public addAudioSpectrogramMonitor(id: string, canvas: OffscreenCanvas, options: AudioSpectrogramOptions) {
-
-	}
-
-	public updateAudioSpectrogramMonitor(id: string, options: AudioSpectrogramOptions) {
-
-	}
-
-	public resizeAudioSpectrogramMonitor(id: string, width: number, height: number) {
-
-	}
 	public getPlayerLevels(playerId: Player['id']) { return this.audioInputs.getPlayerLevels(playerId); }
 
 	public updateMacros(newMacros: Macro[]) {
