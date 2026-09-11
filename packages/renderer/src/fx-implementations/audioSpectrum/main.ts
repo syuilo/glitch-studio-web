@@ -1,5 +1,5 @@
 import { implementEffect } from '../../fx-implementation.ts';
-import { AudioSpectrum, audioChannel, finiteNumber } from '../../audio-spectrum.ts';
+import { AudioSpectrum, audioChannel, finiteNumber } from '../../utility/audio-spectrum.ts';
 import { createAudioPlot } from '../audio-plot.ts';
 import type definition from '@glitch/shared/fx-definitions/audioSpectrum.ts';
 
@@ -50,7 +50,9 @@ export default implementEffect<typeof definition>({
 						}
 					}
 				}
-				plot.render(ctx, { color: params.color, rightColor: params.rightColor,
+				plot.render(ctx, {
+					color: params.color,
+					rightColor: params.rightColor,
 					stereo: channel === 'stereo', spectrum: true, lineWidth: 0,
 					aspectRatio: resolution.width / resolution.height, valid: spectrum.hasData });
 			},
