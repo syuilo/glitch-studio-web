@@ -23,6 +23,9 @@
 			<input type="range" min="0" max="1" step="0.01" :value="engine.previewVolume.value" @input="setPreviewVolume">
 			<span :class="$style.volumeValue">{{ Math.round(engine.previewVolume.value * 100) }}%</span>
 		</div>
+		<div :class="$style.outputLevelMeter" title="Project output level — before preview volume">
+			<GsAudioLevelMeter :levels="engine.audioOutputLevels"/>
+		</div>
 		<div :class="$style.footerStats">
 			<div :class="$style.footerStatsItem">{{ (engine.gpuAverageDisplayFast.value / 1000).toFixed(1) }}ms</div>
 			<div :class="$style.footerStatsItem">{{ (engine.gpuAverageDisplayMedium.value / 1000).toFixed(1) }}ms</div>
@@ -34,7 +37,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, nextTick, onMounted, ref, shallowRef, useTemplateRef, watch } from 'vue';
+import { computed, nextTick, onMounted, onBeforeUnmount, ref, shallowRef, useTemplateRef, watch } from 'vue';
 import { frame, frameMax, appReady, rendererEnv, saveProject, engine, openProject, resolutionFactor, fpsLimit, appContext } from './app';
 import GsAboutDialog from '@/components/GsAboutDialog.vue';
 import GsDashboardDialog from '@/components/GsDashboardDialog.vue';
@@ -42,9 +45,13 @@ import GsWorkspaceDivider from '@/components/GsWorkspaceDivider.vue';
 import { i18n } from '@/i18n.ts';
 import * as api from '@/api.ts';
 import GsButton from '@/components/common/GsButton.vue';
+import GsAudioLevelMeter from '@/components/common/GsAudioLevelMeter.vue';
 import * as ui from '@/ui.ts';
 
 const presetName = '';
+
+const releaseOutputCapture = engine.retainAudioOutputCapture();
+onBeforeUnmount(releaseOutputCapture);
 
 function setPreviewVolume(event: Event) {
 	engine.setPreviewVolume((event.target as HTMLInputElement).valueAsNumber);
@@ -233,6 +240,13 @@ onMounted(() => {
 		margin: 0;
 		accent-color: var(--THEME-accent);
 	}
+}
+
+.outputLevelMeter {
+	align-self: center;
+	flex: 0 0 100px;
+	height: 14px;
+	margin-right: 16px;
 }
 
 .volumeValue {

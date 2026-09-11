@@ -2,6 +2,7 @@ import { ref, shallowReactive } from 'vue';
 import { createRendererWorker } from '@glitch/renderer/client.ts';
 import { deepEqual } from '@glitch/shared/utility/deep-equal.ts';
 import { deepClone } from '@glitch/shared/utility/deep-clone.ts';
+import { projectAudioSourceId } from '@glitch/shared/audio.ts';
 import { isVideoFrameAvailable, playVideoAfterFirstFrameIsReady } from './utility/video.ts';
 import { AudioInputs } from './audio-inputs.ts';
 import type { Asset, GsAutomation, GsNode, Macro, Player } from '@glitch/shared/types.ts';
@@ -324,6 +325,7 @@ export class Engine {
 	public readAudioMonitor() { return this.audioInputs.readMonitor(); }
 	public get audioOutputHistory() { return this.audioInputs.outputHistory; }
 	public retainAudioOutputCapture() { return this.audioInputs.retainOutputCapture(); }
+	public get audioOutputLevels() { return this.audioInputs.getLevels(projectAudioSourceId); }
 
 	public getPlayerLevels(playerId: Player['id']) { return this.audioInputs.getPlayerLevels(playerId); }
 
