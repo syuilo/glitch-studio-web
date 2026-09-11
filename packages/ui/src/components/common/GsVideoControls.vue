@@ -1,10 +1,10 @@
 <template>
 <div :class="$style.root">
 	<div :class="$style.row">
-		<GsButton small iconOnly primary :disabled="!ready" :title="paused ? i18n.ts._VideoControls.Play : i18n.ts._VideoControls.Pause" @click="togglePlayback">
+		<GsButton iconOnly primary :disabled="!ready" :title="paused ? i18n.ts._VideoControls.Play : i18n.ts._VideoControls.Pause" @click="togglePlayback">
 			<i :class="paused ? 'ti ti-player-play' : 'ti ti-player-pause'"></i>
 		</GsButton>
-		<GsButton small iconOnly :disabled="!ready" :title="i18n.ts._VideoControls.Stop" @click="stop">
+		<GsButton iconOnly :disabled="!ready" :title="i18n.ts._VideoControls.Stop" @click="stop">
 			<i class="ti ti-player-stop"></i>
 		</GsButton>
 		<span :class="$style.time">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
