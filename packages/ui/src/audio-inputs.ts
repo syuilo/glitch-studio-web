@@ -1,6 +1,9 @@
 import { playerAudioSourceId } from '@glitch/shared/audio.ts';
 import type { AudioSourceId } from '@glitch/shared/audio.ts';
 import workletUrl from './audio-capture.worklet.js?url';
+import { shallowReactive } from 'vue';
+
+const silentLevels = [0, 0] as const;
 
 type Capture = {
 	setState: (active: boolean, generation: number) => void;
@@ -23,6 +26,7 @@ export class AudioInputs {
 	private moduleReady: Promise<void> | null = null;
 	private modules = new WeakMap<BaseAudioContext, Promise<void>>();
 	private players = new Map<string, PlayerAudio>();
+	private levels = shallowReactive(new Map<AudioSourceId, readonly [number, number]>());
 
 	constructor(private attach: (id: AudioSourceId, port: MessagePort) => void,
 		private reset: (id: AudioSourceId, generation: number | null) => void) {}
@@ -45,12 +49,34 @@ export class AudioInputs {
 			throw error;
 		}
 		capture.port.postMessage({ type: 'connect', port: channel.port1 }, [channel.port1]);
+		let active = false;
+		let generation = 0;
+		const clearLevels = () => this.levels.set(id, silentLevels);
+		clearLevels();
+		capture.port.onmessage = ({ data }) => {
+			if (data.type !== 'levels') return;
+			if (active && data.generation === generation && context.state === 'running') {
+				this.levels.set(id, [data.left, data.right]);
+			}
+			capture.port.postMessage({ type: 'meterReceived' });
+		};
+		const onContextState = () => { if (context.state !== 'running') clearLevels(); };
+		context.addEventListener('statechange', onContextState);
 		source.connect(capture);
 		capture.connect(context.destination);
-		capture.onprocessorerror = () => this.reset(id, null);
+		capture.onprocessorerror = () => { active = false; clearLevels(); this.reset(id, null); };
 		return {
-			setState: (active, generation) => capture.port.postMessage({ type: 'state', active, generation }),
+			setState: (nextActive, nextGeneration) => {
+				if (!nextActive || generation !== nextGeneration) clearLevels();
+				active = nextActive;
+				generation = nextGeneration;
+				capture.port.postMessage({ type: 'state', active, generation });
+			},
 			dispose: () => {
+				active = false;
+				context.removeEventListener('statechange', onContextState);
+				capture.port.onmessage = null;
+				this.levels.delete(id);
 				capture.onprocessorerror = null;
 				capture.port.postMessage({ type: 'dispose' });
 				source.disconnect(capture);
@@ -134,6 +160,12 @@ export class AudioInputs {
 	}
 
 	public getVolume(id: string) { return this.players.get(id)?.volume ?? 0.5; }
+
+	public getLevels(id: AudioSourceId): readonly [number, number] {
+		return this.levels.get(id) ?? silentLevels;
+	}
+
+	public getPlayerLevels(id: string) { return this.getLevels(playerAudioSourceId(id)); }
 
 	public setVolume(id: string, volume: number) {
 		const entry = this.players.get(id);

@@ -11,7 +11,12 @@ class AudioCaptureProcessor extends AudioWorkletProcessor {
 		this.generation = 0;
 		this.active = false;
 		this.disposed = false;
+		this.meterFrames = 0;
+		this.meterLeft = 0;
+		this.meterRight = 0;
+		this.meterPending = false;
 		this.port.onmessage = ({ data }) => {
+			if (data.type === 'meterReceived') this.meterPending = false;
 			if (data.type === 'dispose') {
 				this.disposed = true;
 				this.stream?.close();
@@ -27,6 +32,8 @@ class AudioCaptureProcessor extends AudioWorkletProcessor {
 				for (let i = 0; i < 8; i++) this.pool.push(new Float32Array(2048));
 			}
 			if (data.type === 'state') {
+				this.meterFrames = 0;
+				this.meterLeft = this.meterRight = 0;
 				this.active = data.active;
 				this.offset = 0;
 				if (this.samples) this.pool.push(this.samples);
@@ -39,9 +46,27 @@ class AudioCaptureProcessor extends AudioWorkletProcessor {
 		};
 	}
 
-	process(inputs) {
+	process(inputs, outputs) {
 		if (this.disposed) return false;
 		const channels = inputs[0];
+		// PCM転送用バッファの空きに依存せず、音量調整前の入力ピークを計測する。
+		if (this.active) {
+			const frames = channels?.[0]?.length ?? outputs[0][0].length;
+			for (let i = 0; i < (channels?.[0]?.length ?? 0); i++) {
+				this.meterLeft = Math.max(this.meterLeft, Math.abs(channels[0][i]));
+				this.meterRight = Math.max(this.meterRight, Math.abs(channels[1]?.[i] ?? 0));
+			}
+			this.meterFrames += frames;
+			if (this.meterFrames >= sampleRate / 30) {
+				// UIが停止していても通知を積み上げない。
+				if (!this.meterPending) {
+					this.meterPending = true;
+					this.port.postMessage({ type: 'levels', generation: this.generation, left: this.meterLeft, right: this.meterRight });
+				}
+				this.meterFrames = 0;
+				this.meterLeft = this.meterRight = 0;
+			}
+		}
 		if (!this.active || !this.stream || !channels?.length) {
 			this.offset = 0;
 			return true;

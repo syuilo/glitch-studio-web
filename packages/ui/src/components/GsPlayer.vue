@@ -13,6 +13,7 @@
 			:getVolume="player.type === 'asset' ? () => engine.getPlayerVolume(player.id) : undefined"
 			:setVolume="player.type === 'asset' ? volume => engine.setPlayerVolume(player.id, volume) : undefined"
 		/>
+		<div :class="$style.levelMeter"><GsAudioLevelMeter :levels="engine.getPlayerLevels(player.id)"/></div>
 	</div>
 </div>
 </template>
@@ -21,6 +22,7 @@
 import { computed } from 'vue';
 import GsButton from './common/GsButton.vue';
 import GsVideoControls from './common/GsVideoControls.vue';
+import GsAudioLevelMeter from './common/GsAudioLevelMeter.vue';
 import type { Player } from '@glitch/shared/types.ts';
 import { i18n } from '@/i18n.ts';
 import * as api from '@/api.ts';
@@ -89,12 +91,21 @@ function replace() {
 }
 
 .body {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
 	height: 120px;
 	padding: 8px;
 }
 
 .videoControl {
+	flex: 1;
+	min-height: 0;
 	width: 100%;
-	height: 100%;
+}
+
+.levelMeter {
+	flex: 0 0 12px;
+	width: 100%;
 }
 </style>
