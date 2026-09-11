@@ -29,7 +29,7 @@ function onWheel(event: WheelEvent) {
 	event.stopPropagation();
 	const data = engine.readAudioMonitor();
 	const sampleRate = data?.sampleRate ?? 48000;
-	const maxSeconds = (data?.waveform[0].length ?? settings.fftSize) / sampleRate;
+	const maxSeconds = (data?.waveform[0].length ?? settings.waveformSize) / sampleRate;
 	const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? height : 1);
 	waveformSeconds = Math.max(2 / sampleRate, Math.min(maxSeconds, Math.min(waveformSeconds, maxSeconds) * Math.exp(Math.max(-1, Math.min(1, delta * 0.002)))));
 	draw();
@@ -53,7 +53,7 @@ function draw() {
 	context.fillRect(0, 0, width, height);
 	const data = engine.readAudioMonitor();
 	const sampleRate = data?.sampleRate ?? 48000;
-	const waveformCount = Math.max(2, Math.min(data?.waveform[0].length ?? settings.fftSize, Math.round(sampleRate * waveformSeconds)));
+	const waveformCount = Math.max(2, Math.min(data?.waveform[0].length ?? settings.waveformSize, Math.round(sampleRate * waveformSeconds)));
 	const top = 30;
 	const bottom = 18;
 	const plotHeight = Math.max(1, height - top - bottom);
