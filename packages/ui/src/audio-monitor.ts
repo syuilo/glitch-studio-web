@@ -9,8 +9,8 @@ export const AUDIO_MONITOR_SETTINGS = {
 	minFrequency: 20,
 	maxFrequency: 20000,
 	waveformSeconds: 0.04,
-	leftColor: '#48d8ed',
-	rightColor: '#f77da9',
+	leftColor: '#ff8400',
+	rightColor: '#c2fe0c',
 };
 
 export class AudioMonitor {

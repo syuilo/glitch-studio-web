@@ -1,5 +1,5 @@
 <template>
-<GsDetachableView :title="mode === 'spectrum' ? 'Audio Spectrum' : 'Audio Waveform'" @change-window="startAnimationLoop">
+<GsDetachableView :title="mode === 'spectrum' ? 'Audio Spectrum' : 'Audio Waveform'" @changeWindow="startAnimationLoop">
 	<template #controls>
 		<label :class="$style.option"><input v-model="overlay" type="checkbox"> Overlay L/R</label>
 	</template>
