@@ -164,9 +164,11 @@ setInterval(() => {
 	readings.clear();
 }, 1000 / 30);
 
-// 別ウィンドウへの移動や画像ノードのFPS設定に依存しないプレビュー専用ループ。
+// 描画はブラウザーのリフレッシュ周期に合わせる。FFTの解析間隔・平滑化・履歴の進行は
+// PCMのサンプル時刻を基準にするため、描画FPSが変わっても時間スケールは変わらない。
 // 非表示のパネルでは解析も描画も行わない。
-setInterval(() => {
+function drawFrame() {
+	self.requestAnimationFrame(drawFrame);
 	if (!device) return;
 	for (const [id, panel] of panels) {
 		const { width, height, ratio, visible } = panel.size;
@@ -191,4 +193,6 @@ setInterval(() => {
 			send({ type: 'error', id, message: String(error) });
 		}
 	}
-}, 1000 / 60);
+}
+
+self.requestAnimationFrame(drawFrame);

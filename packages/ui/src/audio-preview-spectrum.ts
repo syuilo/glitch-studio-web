@@ -5,6 +5,8 @@ import type { MonitorSettings } from './audio-preview-types.ts';
 export function createPreviewSpectrum(device: GPUDevice) {
 	const columns = 2048;
 	const spectrum = new AudioSpectrum(4096, 'blackman');
+	// 従来の60Hz・係数0.75に相当する時定数（秒）。実際の描画FPSには依存しない。
+	const smoothingSeconds = -1 / (60 * Math.log(0.75));
 	const levels = new Float32Array(columns * 2);
 	const buffer = device.createBuffer({ size: levels.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
 	const uniform = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
@@ -42,7 +44,7 @@ struct Vertex { @builtin(position) position: vec4f, @location(0) color: vec4f };
 	] });
 	return {
 		render(history: AudioHistory | null, settings: MonitorSettings, pass: GPURenderPassEncoder, width: number) {
-			spectrum.update(history, 'stereo', -1 / (60 * Math.log(0.75)));
+			spectrum.update(history, 'stereo', smoothingSeconds);
 			const count = Math.max(2, Math.min(columns, Math.floor(width)));
 			const rate = history?.sampleRate ?? 48000;
 			const maxFrequency = Math.min(20000, rate / 2);
