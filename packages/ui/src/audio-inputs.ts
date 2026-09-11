@@ -1,9 +1,8 @@
 import { playerAudioSourceId, projectAudioSourceId } from '@glitch/shared/audio.ts';
-import { AudioHistory } from '@glitch/shared/audio-history.ts';
 import { ref, shallowReactive } from 'vue';
 import workletUrl from './audio-capture.worklet.js?url';
-import { AudioMonitor } from './audio-monitor.ts';
-import type { AudioCaptureMessage, AudioSourceId } from '@glitch/shared/audio.ts';
+import { AudioPreview } from './audio-preview.ts';
+import type { AudioSourceId } from '@glitch/shared/audio.ts';
 
 const silentLevels = [0, 0] as const;
 
@@ -28,10 +27,9 @@ export class AudioInputs {
 	private output: GainNode | null = null;
 	private outputCapture: Capture | null = null;
 	private outputCaptureUsers = 0;
-	public readonly outputHistory = new AudioHistory();
+	public readonly preview = new AudioPreview();
 	private previewGain: GainNode | null = null;
 	public readonly previewVolume = ref(0.5);
-	private monitor: AudioMonitor | null = null;
 	private moduleReady: Promise<void> | null = null;
 	private modules = new WeakMap<BaseAudioContext, Promise<void>>();
 	private players = new Map<string, PlayerAudio>();
@@ -49,17 +47,11 @@ export class AudioInputs {
 			channelCountMode: 'max', channelInterpretation: 'discrete',
 		});
 		const channel = new MessageChannel();
-		const audioHistory = id === projectAudioSourceId ? this.outputHistory : null;
-		const reset = () => { if (audioHistory) audioHistory.reset(); else this.reset(id, null); };
+		const isOutput = id === projectAudioSourceId;
+		const reset = () => { if (isOutput) this.preview.resetAudio(); else this.reset(id, null); };
 		try {
-			if (audioHistory) {
-				channel.port2.onmessage = ({ data }: MessageEvent<AudioCaptureMessage>) => {
-					if (data.type === 'reset') audioHistory.reset(data.generation);
-					else {
-						audioHistory.append(data);
-						channel.port2.postMessage({ type: 'recycle', buffer: data.buffer }, [data.buffer]);
-					}
-				};
+			if (isOutput) {
+				this.preview.attachAudio(channel.port2);
 			} else {
 				this.attach(id, channel.port2);
 			}
@@ -72,17 +64,24 @@ export class AudioInputs {
 		capture.port.postMessage({ type: 'connect', port: channel.port1 }, [channel.port1]);
 		let active = false;
 		let generation = 0;
+		let meterGeneration = 0;
 		const clearLevels = () => this.levels.set(id, silentLevels);
 		clearLevels();
-		capture.port.onmessage = ({ data }) => {
-			if (data.type !== 'levels') return;
-			if (active && data.generation === generation && context.state === 'running') {
+		const meter = new MessageChannel();
+		const releaseMeter = this.preview.attachMeter(meter.port2, data => {
+			if (active && data.generation === meterGeneration && context.state === 'running') {
 				this.levels.set(id, [data.left, data.right]);
 			}
-			capture.port.postMessage({ type: 'meterReceived' });
+		});
+		capture.port.postMessage({ type: 'meter', port: meter.port1 }, [meter.port1]);
+		const onContextState = () => {
+			// 停止前のバッチが再開後に届いても表示しない。PCMの世代とは独立に進める。
+			capture.port.postMessage({ type: 'meterState', generation: ++meterGeneration });
+			if (context.state !== 'running') clearLevels();
+			if (isOutput) this.preview.setRunning(context.state === 'running');
 		};
-		const onContextState = () => { if (context.state !== 'running') clearLevels(); };
 		context.addEventListener('statechange', onContextState);
+		onContextState();
 		source.connect(capture);
 		capture.connect(context.destination);
 		capture.onprocessorerror = () => { active = false; clearLevels(); reset(); };
@@ -91,19 +90,18 @@ export class AudioInputs {
 				if (!nextActive || generation !== nextGeneration) clearLevels();
 				active = nextActive;
 				generation = nextGeneration;
-				capture.port.postMessage({ type: 'state', active, generation });
+				capture.port.postMessage({ type: 'state', active, generation, meterGeneration: ++meterGeneration });
 			},
 			dispose: () => {
 				active = false;
 				context.removeEventListener('statechange', onContextState);
-				capture.port.onmessage = null;
+				releaseMeter();
 				this.levels.delete(id);
 				capture.onprocessorerror = null;
 				capture.port.postMessage({ type: 'dispose' });
 				source.disconnect(capture);
 				capture.disconnect();
 				capture.port.close();
-				if (audioHistory) channel.port2.close();
 				reset();
 			},
 		};
@@ -227,12 +225,6 @@ export class AudioInputs {
 		gain.linearRampToValueAtTime(this.previewVolume.value, now + 0.015);
 	}
 
-	public readMonitor(): AudioMonitor | null {
-		if (!this.context || !this.output) return null;
-		this.monitor ??= new AudioMonitor(this.context, this.output);
-		return this.monitor.read();
-	}
-
 	public getLevels(id: AudioSourceId): readonly [number, number] {
 		return this.levels.get(id) ?? silentLevels;
 	}
@@ -255,8 +247,7 @@ export class AudioInputs {
 		this.outputCapture?.dispose();
 		this.outputCapture = null;
 		for (const id of this.players.keys()) this.removePlayer(id);
-		this.monitor?.dispose();
-		this.monitor = null;
+		this.preview.dispose();
 		this.output?.disconnect();
 		this.output = null;
 		this.previewGain?.disconnect();

@@ -15,11 +15,22 @@ class AudioCaptureProcessor extends AudioWorkletProcessor {
 		this.meterLeft = 0;
 		this.meterRight = 0;
 		this.meterPending = false;
+		this.meterGeneration = 0;
+		this.meterPort = null;
 		this.port.onmessage = ({ data }) => {
-			if (data.type === 'meterReceived') this.meterPending = false;
+			if (data.type === 'meterState') {
+				this.meterGeneration = data.generation;
+				this.meterFrames = 0;
+				this.meterLeft = this.meterRight = 0;
+			}
+			if (data.type === 'meter') {
+				this.meterPort = data.port;
+				this.meterPort.onmessage = () => { this.meterPending = false; };
+			}
 			if (data.type === 'dispose') {
 				this.disposed = true;
 				this.stream?.close();
+				this.meterPort?.close();
 				this.samples = null;
 				this.pool = [];
 				return;
@@ -32,6 +43,7 @@ class AudioCaptureProcessor extends AudioWorkletProcessor {
 				for (let i = 0; i < 8; i++) this.pool.push(new Float32Array(2048));
 			}
 			if (data.type === 'state') {
+				this.meterGeneration = data.meterGeneration;
 				this.meterFrames = 0;
 				this.meterLeft = this.meterRight = 0;
 				this.active = data.active;
@@ -59,32 +71,33 @@ class AudioCaptureProcessor extends AudioWorkletProcessor {
 			this.meterFrames += frames;
 			if (this.meterFrames >= sampleRate / 30) {
 				// UIが停止していても通知を積み上げない。
-				if (!this.meterPending) {
+				if (this.meterPort && !this.meterPending) {
 					this.meterPending = true;
-					this.port.postMessage({ type: 'levels', generation: this.generation, left: this.meterLeft, right: this.meterRight });
+					this.meterPort.postMessage({ type: 'levels', generation: this.meterGeneration, left: this.meterLeft, right: this.meterRight });
+					this.meterLeft = this.meterRight = 0;
 				}
 				this.meterFrames = 0;
-				this.meterLeft = this.meterRight = 0;
 			}
 		}
-		if (!this.active || !this.stream || !channels?.length) {
+		if (!this.active || !this.stream) {
 			this.offset = 0;
 			return true;
 		}
-		const count = Math.min(2, channels.length);
+		// 接続元が無音で入力配列が空になっても、プレビューの時間と無音波形を進める。
+		const count = Math.min(2, channels?.length || this.channelCount || 1);
 		if (count !== this.channelCount) {
 			this.channelCount = count;
 			this.offset = 0;
 		}
 		// レンダークォンタムの長さを128に固定しない。
-		for (let i = 0; i < channels[0].length; i++) {
+		for (let i = 0; i < (channels?.[0]?.length ?? outputs[0][0].length); i++) {
 			if (!this.samples) {
 				this.samples = this.pool.pop();
 				if (!this.samples) break;
 			}
 			if (this.offset === 0) this.startFrame = currentFrame + i;
-			this.samples[this.offset] = channels[0][i];
-			this.samples[1024 + this.offset] = count > 1 ? channels[1][i] : 0;
+			this.samples[this.offset] = channels?.[0]?.[i] ?? 0;
+			this.samples[1024 + this.offset] = channels?.[1]?.[i] ?? 0;
 			this.offset++;
 			if (this.offset === 1024) {
 				const buffer = this.samples.buffer;

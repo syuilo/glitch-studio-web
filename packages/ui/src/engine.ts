@@ -322,8 +322,7 @@ export class Engine {
 
 	public get previewVolume() { return this.audioInputs.previewVolume; }
 	public setPreviewVolume(volume: number) { this.audioInputs.setPreviewVolume(volume); }
-	public readAudioMonitor() { return this.audioInputs.readMonitor(); }
-	public get audioOutputHistory() { return this.audioInputs.outputHistory; }
+	public get audioPreview() { return this.audioInputs.preview; }
 	public retainAudioOutputCapture() { return this.audioInputs.retainOutputCapture(); }
 	public get audioOutputLevels() { return this.audioInputs.getLevels(projectAudioSourceId); }
 
