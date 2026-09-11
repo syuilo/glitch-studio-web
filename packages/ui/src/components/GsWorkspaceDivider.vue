@@ -37,6 +37,7 @@ import XNodesEditor from '@/components/GsWorkspacePanel.NodesEditor.vue';
 import XHistogram from '@/components/GsWorkspacePanel.Histogram.vue';
 import XWaveform from '@/components/GsWorkspacePanel.Waveform.vue';
 import XAudioSpectrum from '@/components/GsWorkspacePanel.AudioSpectrum.vue';
+import XAudioSpectrogram from '@/components/GsWorkspacePanel.AudioSpectrogram.vue';
 import XAudioWaveform from '@/components/GsWorkspacePanel.AudioWaveform.vue';
 import XStats from '@/components/GsWorkspacePanel.Stats.vue';
 import XCommandLog from '@/components/GsWorkspacePanel.CommandLog.vue';
@@ -50,6 +51,7 @@ const panelComponents = {
 	histogram: XHistogram,
 	waveform: XWaveform,
 	audioSpectrum: XAudioSpectrum,
+	audioSpectrogram: XAudioSpectrogram,
 	audioWaveform: XAudioWaveform,
 	stats: XStats,
 	commandLog: XCommandLog,

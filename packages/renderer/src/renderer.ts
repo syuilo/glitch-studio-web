@@ -12,7 +12,9 @@ import { GpuWaveform } from './GpuWaveform.ts';
 import { GpuMemoryTracker } from './GpuMemoryTracker.ts';
 import { float32ToFloat16Bits } from './float32ToFloat16Bits.ts';
 import { AudioHistory } from './audio-history.ts';
-import { playerAudioSourceId } from '@glitch/shared/audio.ts';
+import { playerAudioSourceId, projectAudioSourceId } from '@glitch/shared/audio.ts';
+import { AudioSpectrogramMonitor } from './audio-spectrogram-monitor.ts';
+import type { AudioSpectrogramOptions } from '@glitch/shared/utility/audio-spectrogram.ts';
 import type { AudioCaptureMessage, AudioSourceId } from '@glitch/shared/audio.ts';
 import type { Asset, FxParamValue, Macro, GsAutomation, GsFxNode, GsNode, GsGroupNode, Player } from '@glitch/shared/types.ts';
 import type { EffectInstance } from './fx-implementation.ts';
@@ -70,6 +72,7 @@ export class Renderer {
 	private videoFrames: Map<Player['id'], VideoFrame> = new Map();
 	private audioSources = new Map<AudioSourceId, AudioHistory>();
 	private audioPorts = new Map<AudioSourceId, MessagePort>();
+	private audioSpectrogramMonitors = new Map<string, AudioSpectrogramMonitor>();
 	private effectInstances: Map<GsFxNode['id'], EffectInstance | null> = new Map();
 	private effectScalarFieldTextures: Map<GsFxNode['id'], Record<string, GPUTexture>> = new Map();
 	private effectOuts: Map<GsFxNode['id'], {
@@ -745,6 +748,26 @@ export class Renderer {
 		};
 	}
 
+	public addAudioSpectrogramMonitor(id: string, canvas: OffscreenCanvas, options: AudioSpectrogramOptions) {
+		this.removeAudioSpectrogramMonitor(id);
+		this.audioSpectrogramMonitors.set(id, new AudioSpectrogramMonitor(canvas, options,
+			this.gpuDevice, this.defaultVertexShaderModule, this.fallbackTexture, this.enableFloat32Filtering));
+	}
+
+	public updateAudioSpectrogramMonitor(id: string, options: AudioSpectrogramOptions) {
+		const monitor = this.audioSpectrogramMonitors.get(id);
+		if (monitor) monitor.options = options;
+	}
+
+	public resizeAudioSpectrogramMonitor(id: string, width: number, height: number) {
+		this.audioSpectrogramMonitors.get(id)?.resize(width, height);
+	}
+
+	public removeAudioSpectrogramMonitor(id: string) {
+		this.audioSpectrogramMonitors.get(id)?.dispose();
+		this.audioSpectrogramMonitors.delete(id);
+	}
+
 	public resetAudioSource(id: AudioSourceId, generation: number | null) {
 		const history = this.audioSources.get(id);
 		if (generation == null) {
@@ -815,6 +838,10 @@ export class Renderer {
 			this.render(this.nodes.at(-1)?.id, {
 				time: timeStamp,
 			});
+			for (const monitor of this.audioSpectrogramMonitors.values()) {
+				const sourceId = monitor.options.player == null ? projectAudioSourceId : playerAudioSourceId(monitor.options.player);
+				monitor.render(timeStamp, this.audioSources.get(sourceId) ?? null);
+			}
 		};
 
 		this.currentRafId = requestAnimationFrame(renderLoop);
@@ -856,6 +883,7 @@ export class Renderer {
 	}
 
 	public destroy() {
+		for (const id of this.audioSpectrogramMonitors.keys()) this.removeAudioSpectrogramMonitor(id);
 		for (const id of this.audioPorts.keys()) this.resetAudioSource(id, null);
 		for (const frame of this.videoFrames.values()) frame.close();
 		this.videoFrames.clear();

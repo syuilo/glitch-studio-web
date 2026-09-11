@@ -6,6 +6,7 @@ import { isVideoFrameAvailable, playVideoAfterFirstFrameIsReady } from './utilit
 import { AudioInputs } from './audio-inputs.ts';
 import type { Asset, GsAutomation, GsFxNode, GsNode, Macro, Player } from '@glitch/shared/types.ts';
 import type { Renderer } from '@glitch/renderer/renderer.ts';
+import type { AudioSpectrogramOptions } from '@glitch/shared/utility/audio-spectrogram.ts';
 import * as ui from '@/ui.ts';
 
 type RendererMethods = {
@@ -327,6 +328,23 @@ export class Engine {
 	public get previewVolume() { return this.audioInputs.previewVolume; }
 	public setPreviewVolume(volume: number) { this.audioInputs.setPreviewVolume(volume); }
 	public readAudioMonitor() { return this.audioInputs.readMonitor(); }
+
+	public addAudioSpectrogramMonitor(id: string, canvas: OffscreenCanvas, options: AudioSpectrogramOptions) {
+		this.call('addAudioSpectrogramMonitor', [id, canvas, options], [canvas]);
+		const release = this.audioInputs.retainOutputCapture();
+		return () => {
+			if (this.isReady.value) this.call('removeAudioSpectrogramMonitor', [id]);
+			release();
+		};
+	}
+
+	public updateAudioSpectrogramMonitor(id: string, options: AudioSpectrogramOptions) {
+		this.call('updateAudioSpectrogramMonitor', [id, options]);
+	}
+
+	public resizeAudioSpectrogramMonitor(id: string, width: number, height: number) {
+		this.call('resizeAudioSpectrogramMonitor', [id, width, height]);
+	}
 	public getPlayerLevels(playerId: Player['id']) { return this.audioInputs.getPlayerLevels(playerId); }
 	public setPlayerVolume(playerId: Player['id'], volume: number) { this.audioInputs.setVolume(playerId, volume); }
 

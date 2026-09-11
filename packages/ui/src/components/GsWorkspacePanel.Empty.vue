@@ -17,6 +17,7 @@ import type { WorkspacePanel } from '@/types/workspace.ts';
 
 const choices = [
 	{ type: 'audioSpectrum', label: 'Audio Spectrum' },
+	{ type: 'audioSpectrogram', label: 'Audio Spectrogram' },
 	{ type: 'audioWaveform', label: 'Audio Waveform' },
 	{ type: 'histogram', label: 'Histogram' },
 	{ type: 'waveform', label: 'Waveform' },

@@ -1,4 +1,4 @@
-import { playerAudioSourceId } from '@glitch/shared/audio.ts';
+import { playerAudioSourceId, projectAudioSourceId } from '@glitch/shared/audio.ts';
 import { ref, shallowReactive } from 'vue';
 import workletUrl from './audio-capture.worklet.js?url';
 import { AudioMonitor } from './audio-monitor.ts';
@@ -25,6 +25,8 @@ type PlayerAudio = {
 export class AudioInputs {
 	private context: AudioContext | null = null;
 	private output: GainNode | null = null;
+	private outputCapture: Capture | null = null;
+	private outputCaptureUsers = 0;
 	private previewGain: GainNode | null = null;
 	public readonly previewVolume = ref(0.5);
 	private monitor: AudioMonitor | null = null;
@@ -104,6 +106,27 @@ export class AudioInputs {
 		return ready;
 	}
 
+	public retainOutputCapture(): () => void {
+		this.outputCaptureUsers++;
+		this.ensureOutputCapture();
+		let released = false;
+		return () => {
+			if (released) return;
+			released = true;
+			if (--this.outputCaptureUsers === 0) {
+				this.outputCapture?.dispose();
+				this.outputCapture = null;
+			}
+		};
+	}
+
+	private ensureOutputCapture() {
+		if (!this.output || this.outputCapture || this.outputCaptureUsers === 0) return;
+		// 複数パネルでPCM履歴を共有し、試聴音量には影響されない位置で分岐する。
+		this.outputCapture = this.captureSource(projectAudioSourceId, this.output);
+		this.outputCapture.setState(true, 0);
+	}
+
 	public registerPlayer(id: string, media: HTMLMediaElement) {
 		this.removePlayer(id);
 		const entry: PlayerAudio = {
@@ -166,6 +189,7 @@ export class AudioInputs {
 			this.previewGain.connect(context.destination);
 		}
 		entry.gain.connect(this.output);
+		this.ensureOutputCapture();
 		entry.media.volume = 1;
 		entry.media.muted = false;
 		entry.capture = this.captureSource(playerAudioSourceId(id), entry.source);
@@ -219,6 +243,8 @@ export class AudioInputs {
 	}
 
 	public dispose() {
+		this.outputCapture?.dispose();
+		this.outputCapture = null;
 		for (const id of this.players.keys()) this.removePlayer(id);
 		this.monitor?.dispose();
 		this.monitor = null;
