@@ -31,6 +31,7 @@ function normalizedLevel(level: number): number {
 	min-width: 0;
 	min-height: 0;
 	overflow: clip;
+	contain: strict;
 }
 
 .track {

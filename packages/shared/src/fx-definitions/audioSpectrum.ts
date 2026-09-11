@@ -37,7 +37,7 @@ export default defineEffect({
 		smoothing: { type: 'literal', value: 0.15 },
 		minFrequency: { type: 'literal', value: 20 },
 		maxFrequency: { type: 'literal', value: 20000 },
-		logarithmic: { type: 'literal', value: true },
+		logarithmic: { type: 'literal', value: false },
 		minDb: { type: 'literal', value: -80 },
 		maxDb: { type: 'literal', value: 0 },
 		color: { type: 'literal', value: [0.2, 0.9, 1] },
