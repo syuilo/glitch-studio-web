@@ -168,6 +168,10 @@ hr {
 	text-overflow: ellipsis;
 }
 
+._monospace {
+	font-family: Fira code, Fira Mono, Consolas, Menlo, Courier, monospace !important;
+}
+
 ._modalBg {
 	position: fixed;
 	top: 0;

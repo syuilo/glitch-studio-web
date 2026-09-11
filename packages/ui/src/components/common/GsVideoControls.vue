@@ -7,7 +7,9 @@
 		<GsButton iconOnly :disabled="!ready" :title="i18n.ts._VideoControls.Stop" @click="stop">
 			<i class="ti ti-player-stop"></i>
 		</GsButton>
-		<span :class="$style.time">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
+	</div>
+	<div :class="$style.row">
+		<span :class="$style.time" class="_monospace">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
 	</div>
 	<input :class="$style.slider" type="range" min="0" :max="duration || 1" step="0.01" :value="currentTime" :disabled="!ready || duration === 0" @input="seek"/>
 	<!-- 音量調整はそれを利用するノード側の役目。「動画の明るさ調整」などというコントロールが無いのと一緒
@@ -103,8 +105,12 @@ function setVolume(event: Event) {
 */
 
 function formatTime(value: number): string {
-	const seconds = Math.floor(value);
-	return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+	const totalMilliseconds = Math.floor(value * 1000);
+	const hours = String(Math.floor(totalMilliseconds / 3600000)).padStart(2, '0');
+	const minutes = String(Math.floor(totalMilliseconds / 60000) % 60).padStart(2, '0');
+	const seconds = String(Math.floor(totalMilliseconds / 1000) % 60).padStart(2, '0');
+	const milliseconds = String(totalMilliseconds % 1000).padStart(3, '0');
+	return `${hours}:${minutes}:${seconds}.${milliseconds}`;
 }
 </script>
 
