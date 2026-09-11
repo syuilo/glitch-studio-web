@@ -19,13 +19,8 @@ export type SpectrogramSettings = {
 	flipFrequency: boolean;
 };
 
-export type AudioSpectrogramOptions = SpectrogramSettings & {
-	// nullはプロジェクト全体のミックス。IDを指定するとPlayerの音量調整前を表示する。
-	player: string | null;
-};
-
 // 入力音声と描画先は呼び出し側が決める。Playerやエフェクトの定義には依存しない。
-export function createAudioSpectrogram(device: GPUDevice, defaultVertexShaderModule: GPUShaderModule) {
+export function createAudioSpectrogram(device: GPUDevice, vertexShaderModule: GPUShaderModule) {
 	const bands = 512;
 
 	const module = device.createShaderModule({ code: shader });
@@ -38,7 +33,7 @@ export function createAudioSpectrogram(device: GPUDevice, defaultVertexShaderMod
 
 	const pipeline = device.createRenderPipeline({
 		layout: device.createPipelineLayout({ bindGroupLayouts: [layout] }),
-		vertex: { module: defaultVertexShaderModule },
+		vertex: { module: vertexShaderModule },
 		fragment: { module, targets: [{ format: navigator.gpu.getPreferredCanvasFormat() }] },
 		primitive: { topology: 'triangle-list' },
 	});

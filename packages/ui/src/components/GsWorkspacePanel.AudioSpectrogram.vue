@@ -8,11 +8,19 @@
 <script lang="ts" setup>
 import GsWorkspacePanel from './GsWorkspacePanel.vue';
 import GsAudioSpectrogram from './GsAudioSpectrogram.vue';
-import type { AudioSpectrogramOptions } from '@glitch/shared/utility/audio-spectrogram.ts';
 import type { WorkspacePanel } from '@/types/workspace.ts';
-defineProps<{ panel: WorkspacePanel; isStacked?: boolean; options?: Partial<AudioSpectrogramOptions> }>();
+
+defineProps<{
+	panel: WorkspacePanel;
+	isStacked?: boolean;
+	options?: any;
+}>();
 </script>
 
 <style module lang="scss">
-.root { height: 100%; padding: 2px 12px 12px; box-sizing: border-box; }
+.root {
+	height: 100%;
+	padding: 2px 12px 12px;
+	box-sizing: border-box;
+}
 </style>
