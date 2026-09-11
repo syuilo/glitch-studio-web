@@ -387,7 +387,8 @@ export async function newProjectFromImageOrVideo() {
 		assets: [],
 		macros: [],
 		automations: [],
-		resolution: { width: result.width ?? 2048, height: result.height ?? 2048 },
+		// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+		resolution: { width: result.width || 2048, height: result.height || 2048 },
 	});
 
 	appContext.commit('addAsset', {
