@@ -5,7 +5,7 @@
 	</template>
 	<template #default="{ detached }">
 		<div :class="$style.time" class="_monospace">{{ formatTime(time) }}</div>
-		<div ref="containerContainer" :class="$style.containerContainer" @wheel="onViewWheel" @click="onViewClick(detached)" @pointermove="onPointermove">
+		<div ref="containerContainer" :class="[$style.containerContainer, { [$style.animatedBg]: prefer.r.animatedBgInPreview.value }]" @wheel="onViewWheel" @click="onViewClick(detached)" @pointermove="onPointermove">
 			<div ref="canvasContainer" :class="$style.canvasContainer" :style="{ scale: zoom }"></div>
 		</div>
 	</template>
@@ -18,6 +18,7 @@ import { genId } from '@glitch/shared/utility/id.ts';
 import GsDetachableView from './GsDetachableView.vue';
 import * as api from '@/api.ts';
 import { appContext, engine, rendererEnv, resolutionFactor } from '@/app.ts';
+import { prefer } from '@/preferences.ts';
 
 const canvasContainer = useTemplateRef('canvasContainer');
 const containerContainer = useTemplateRef('containerContainer');
@@ -127,14 +128,18 @@ function formatTime(timeMs: number): string {
 	height: 100%;
 	display: grid;
 	place-content: center;
-	$color1: #1a1a1a;
-	$color2: #101010;
-	background-color: $color1;
-	background-image: linear-gradient(45deg, $color2 25%, transparent 25%, transparent 75%, $color2 75%, $color2), linear-gradient(-45deg, $color2 25%, transparent 25%, transparent 75%, $color2 75%, $color2);
-	background-size: 32px 32px;
-	animation: bg 0.7s linear infinite;
 	overflow: clip;
 	contain: content;
+	background: #080808;
+
+	&.animatedBg {
+		$color1: #1a1a1a;
+		$color2: #101010;
+		background-color: $color1;
+		background-image: linear-gradient(45deg, $color2 25%, transparent 25%, transparent 75%, $color2 75%, $color2), linear-gradient(-45deg, $color2 25%, transparent 25%, transparent 75%, $color2 75%, $color2);
+		background-size: 32px 32px;
+		animation: bg 0.7s linear infinite;
+	}
 }
 
 .canvasContainer {

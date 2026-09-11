@@ -38,20 +38,6 @@ export type Preset = {
 	assets: Asset[];
 };
 
-export type Settings = {
-	version: string;
-	presets: Preset[];
-	showHistogram: boolean;
-	locale: string;
-};
-
-const defaultSettings: Settings = {
-	version: _VERSION_,
-	presets: [],
-	showHistogram: false,
-	locale: 'en',
-};
-
 /*
 export class SettingsStore {
 	public settings: Settings;
