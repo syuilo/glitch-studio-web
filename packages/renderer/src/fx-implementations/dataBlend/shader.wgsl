@@ -4,8 +4,6 @@ struct Uniforms {
 	fitB: u32,
 	fitAmount: u32,
 	blendMode: u32,
-	data: u32,
-	interpolate: u32,
 };
 @group(0) @binding(0) var<uniform> uniforms: Uniforms;
 @group(0) @binding(1) var inputA: texture_2d<f32>;
@@ -56,26 +54,7 @@ fn fs(@location(0) position: vec2f) -> @location(0) vec4f {
 	let a = fittedSample(inputA, uv, uniforms.fitA);
 	let b = fittedSample(inputB, uv, uniforms.fitB);
 	let amount = clamp(fittedSample(amountTexture, uv, uniforms.fitAmount).r, 0.0, 1.0);
-	// 端点は演算せず返す。MixはRGBA全体の補間なのでアルファの解釈を必要としない。
 	if (amount == 0.0) { return a; }
-	if (uniforms.interpolate != 0u) {
-		if (amount == 1.0) { return b; }
-		return mix(a, b, amount);
-	}
-	if (uniforms.data != 0u) {
-		// データの負値・1を超える値・第4成分も保持し、色用のクランプやアルファ合成をしない。
-		return mix(a, blendComponents(a, b), amount);
-	}
-
-	// Bを前景、Aを背景とするsource-over。ブレンド関数だけを未乗算RGBで計算する。
-	// https://www.w3.org/TR/compositing-1/#generalformula
-	var straightA = vec4f(0.0);
-	var straightB = vec4f(0.0);
-	if (a.a > 0.0) { straightA = vec4f(a.rgb / a.a, 1.0); }
-	if (b.a > 0.0) { straightB = vec4f(b.rgb / b.a, 1.0); }
-	let blended = clamp(blendComponents(straightA, straightB).rgb, vec3f(0.0), vec3f(1.0));
-	let rgb = (1.0 - b.a) * a.rgb + (1.0 - a.a) * b.rgb + a.a * b.a * blended;
-	let alpha = b.a + a.a * (1.0 - b.a);
-	// amountはBの不透明度ではなく、Aから合成結果への適用量。
-	return mix(a, vec4f(rgb, alpha), amount);
+	// データの負値・1を超える値・第4成分も保持し、色用のクランプやアルファ合成をしない。
+	return mix(a, blendComponents(a, b), amount);
 }

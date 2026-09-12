@@ -1,5 +1,4 @@
 import accumulate from './fx-definitions/accumulate.ts';
-import { blend, mix, dataBlend, dataMix } from './fx-definitions/composite.ts';
 import audioWaveform from './fx-definitions/audioWaveform.ts';
 import audioSpectrum from './fx-definitions/audioSpectrum.ts';
 import audioSpectrogram from './fx-definitions/audioSpectrogram.ts';
@@ -30,11 +29,14 @@ import video from './fx-definitions/video.ts';
 import water from './fx-definitions/water.ts';
 import waveform from './fx-definitions/waveform.ts';
 import pointerTrail from './fx-definitions/pointerTrail.ts';
+import colorBlend from './fx-definitions/colorBlend.ts';
+import colorMix from './fx-definitions/colorMix.ts';
+import dataBlend from './fx-definitions/dataBlend.ts';
+import dataMix from './fx-definitions/dataMix.ts';
 import type { EffectDefinition } from './fx-definition.ts';
 import type { FxParamDefs } from '@glitch/shared/types.ts';
 
 const _fxDefinitions = {
-	blend, mix, dataBlend, dataMix,
 	audioWaveform,
 	audioSpectrum,
 	audioSpectrogram,
@@ -66,6 +68,10 @@ const _fxDefinitions = {
 	water,
 	waveform,
 	pointerTrail,
+	colorBlend,
+	colorMix,
+	dataBlend,
+	dataMix,
 } as Record<string, Omit<EffectDefinition<any>, 'paramDefs'> & { paramDefs: FxParamDefs }>;
 
 const fxDefinitions = {} as typeof _fxDefinitions;
