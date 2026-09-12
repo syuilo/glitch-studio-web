@@ -18,8 +18,8 @@
 - 最新のChromeを動作対象としています。サポートが限られる最新の構文やAPIを使うことを厭いません。
 - デスクトップPCで動かすことを想定しています。ただしスマホやタブレット対応を諦めているわけではなく、ポインターをマウスと決めつけずタッチであることも考慮するなど、それらの環境への配慮も可能であれば行います。ただし優先順位は低いです。
 - 今後も様々な機能を実装予定です。
-- Tech Stack: TypeScript, Vite, Vue 3, WebGPU, WGSL, WebAudioAPI, CSS Modules
-- Keywords: moduler, routing, nodes, graph, chain, pipeline, compositor, playground, visualization, interactive performance
+- Tech Stack: TypeScript, Vite, Vue 3, WebGPU, WGSL, WebAudio, WebWorker, CSS Modules
+- Keywords: moduler, routing, signals, nodes, graph, chain, pipeline, compositor, playground, visualization, interactive performance
 
 ## Directory Structure
 

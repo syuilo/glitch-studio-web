@@ -1,14 +1,12 @@
 <template>
 <div :class="$style.root">
-	<div :class="$style.main">
-		<GsButton full @click="showAddNodeMenu">Add node</GsButton>
-		<div :class="$style.nodesContainer">
-			<div :class="$style.nodes">
-				<GsNodes :group="null"/>
-				<!--<GsNodesX/>-->
-				<GsWires/>
-			</div>
-		</div>
+	<div :class="$style.nodesContainer">
+		<GsNodes :group="null"/>
+
+		<GsButton :class="$style.addButton" full @click="showAddNodeMenu">Add node</GsButton>
+
+		<!--<GsNodesX/>-->
+		<GsWires/>
 	</div>
 </div>
 </template>
@@ -24,30 +22,18 @@ import { showAddNodeMenu } from '@/app.ts';
 
 <style module lang="scss">
 .root {
-	display: flex;
-	flex-direction: column;
 	height: 100%;
-}
-
-.main {
-	box-sizing: border-box;
-	height: 100%;
-	padding: 8px;
-	display: flex;
-	flex-direction: column;
-	box-sizing: border-box;
 }
 
 .nodesContainer {
 	height: 100%;
 	overflow: auto;
 	background: var(--THEME-bg);
-	border-radius: 6px;
+	padding: 8px;
+	box-sizing: border-box;
 }
 
-.nodes {
-	position: relative;
-	flex: 1;
-	padding: 8px;
+.addButton {
+	margin-top: 8px;
 }
 </style>
