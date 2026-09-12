@@ -1,4 +1,5 @@
 import accumulate from './fx-implementations/accumulate/main.ts';
+import { blend, mix, dataBlend, dataMix } from './fx-implementations/composite/main.ts';
 import audioWaveform from './fx-implementations/audioWaveform/main.ts';
 import audioSpectrum from './fx-implementations/audioSpectrum/main.ts';
 import audioSpectrogram from './fx-implementations/audioSpectrogram/main.ts';
@@ -32,6 +33,7 @@ import pointerTrail from './fx-implementations/pointerTrail/main.ts';
 import type { EffectImplementation } from './fx-implementation.ts';
 
 const _fxImplementations = {
+	blend, mix, dataBlend, dataMix,
 	audioWaveform,
 	audioSpectrum,
 	audioSpectrogram,

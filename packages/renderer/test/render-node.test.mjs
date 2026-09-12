@@ -81,6 +81,17 @@ test('renderer graph traversal and frame history', async t => {
 
 	const disabled = node => ({ ...node, isEnabled: false });
 
+	for (const name of ['blend', 'mix', 'dataBlend', 'dataMix']) {
+		await t.test(`${name} preserves output precision and renders node-driven amount`, t => {
+			const run = setup(t, [fx('a', 'fill'), fx('b', 'fill'), fx('weight', 'multiply'), fx('root', name, { inputA: 'a', inputB: 'b', amount: 'weight' })]);
+			const passes = run.frame();
+			assert.equal(passes.length, 4);
+			assert.equal(passes[3].output.format, name.startsWith('data') ? 'rgba32float' : 'rgba16float');
+			assert.deepEqual(passes[3].inputs, passes.slice(0, 3).map(pass => pass.output));
+			assert.equal(run.frame().length, 0);
+		});
+	}
+
 	await t.test('bypasses middle and final nodes, follows live input and restores cached output', t => {
 		const a = fx('a', 'multiply', { v: 2 });
 		const b = fx('b', 'multiply', { input: 'a', v: 3 });

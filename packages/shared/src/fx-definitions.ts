@@ -1,4 +1,5 @@
 import accumulate from './fx-definitions/accumulate.ts';
+import { blend, mix, dataBlend, dataMix } from './fx-definitions/composite.ts';
 import audioWaveform from './fx-definitions/audioWaveform.ts';
 import audioSpectrum from './fx-definitions/audioSpectrum.ts';
 import audioSpectrogram from './fx-definitions/audioSpectrogram.ts';
@@ -33,6 +34,7 @@ import type { EffectDefinition } from './fx-definition.ts';
 import type { FxParamDefs } from '@glitch/shared/types.ts';
 
 const _fxDefinitions = {
+	blend, mix, dataBlend, dataMix,
 	audioWaveform,
 	audioSpectrum,
 	audioSpectrogram,
