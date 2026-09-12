@@ -89,12 +89,8 @@ class AppContext {
 						type: 'audioWaveform',
 					}, {
 						id: '15bd089777d440a0baaf2953c8020e24',
-						ratio: 0.25,
+						ratio: 0.5,
 						type: 'players',
-					}, {
-						id: '22bf5010d6c344118613b8c12959b2b7',
-						ratio: 0.25,
-						type: 'audioSpectrum',
 					}],
 				}],
 			}],
