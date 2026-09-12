@@ -39,7 +39,7 @@
 	<div v-if="error" :class="$style.error">{{ error }}</div>
 	<div :class="$style.recentTitle">最近使った色</div>
 	<div :class="$style.recent">
-		<div v-for="(recentColor, index) in recent" :key="index" :class="[$style.swatch, $style.checker]" :title="colorHex(recentColor)" tabindex="0" @click="selectRecent(recentColor)" @keydown.enter.prevent="selectRecent(recentColor)">
+		<div v-for="(recentColor, index) in recent" :key="index" :class="[$style.swatch, $style.checker]" :title="colorHex(recentColor)" tabindex="0" @click="setColor(recentColor)" @keydown.enter.prevent="setColor(recentColor)">
 			<div :class="$style.fill" :style="{ background: colorCss(recentColor) }"></div>
 		</div>
 		<span v-if="recent.length === 0" :class="$style.empty">まだありません</span>
@@ -160,7 +160,6 @@ function finishEdit(event: FocusEvent, key: string) {
 	// v-textの値が変わらない場合も、未完了・不正な入力を確実に戻す。
 	(event.currentTarget as HTMLElement).textContent = field.value;
 	drafts.value[key] = field.value;
-	remember();
 }
 
 function blurEditor(event: KeyboardEvent) {
@@ -199,7 +198,6 @@ function endDrag(event: PointerEvent) {
 	const { element, id } = drag;
 	drag = null;
 	if (element.hasPointerCapture(id)) element.releasePointerCapture(id);
-	remember();
 }
 
 function readRecent(): RgbaColor[] {
@@ -224,11 +222,6 @@ function remember() {
 	}
 }
 
-function selectRecent(value: RgbaColor) {
-	setColor(value);
-	remember();
-}
-
 async function pickFromScreen() {
 	if (!EyeDropper || picking.value || closed) return;
 	picking.value = true;
@@ -237,7 +230,7 @@ async function pickFromScreen() {
 		const result = await new EyeDropper().open({ signal: eyeDropperAbort.signal });
 		if (closed) return;
 		const next = parseColorHex(result.sRGBHex, color.value[3]);
-		if (next) { setColor(next); remember(); }
+		if (next) setColor(next);
 	} catch (err) {
 		if (!closed && !(err instanceof DOMException && err.name === 'AbortError')) error.value = '画面から色を取得できませんでした。';
 	} finally {
