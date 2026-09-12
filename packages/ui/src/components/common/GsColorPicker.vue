@@ -1,7 +1,7 @@
 <template>
-<div ref="root" :class="$style.root" class="_shadow" :style="{ zIndex }" tabindex="-1" @keydown.stop="onKeydown">
+<div ref="root" :class="$style.root" class="_shadow _popup" :style="{ zIndex }" tabindex="-1" @keydown.stop="onKeydown">
 	<div :class="$style.header">
-		<span>{{ title ?? 'Color' }}</span>
+		<b>{{ title ?? 'Color' }}</b>
 		<div :class="$style.actions">
 			<div v-if="EyeDropper" :class="[$style.button, { [$style.busy]: picking }]" title="画面から色を取得" tabindex="0" @click="pickFromScreen" @keydown.enter.prevent="pickFromScreen"><i class="ti ti-color-picker"></i></div>
 			<div :class="$style.button" title="閉じる" tabindex="0" @click="close" @keydown.enter.prevent="close"><i class="ti ti-x"></i></div>
@@ -305,19 +305,17 @@ onBeforeUnmount(() => {
 .root {
 	position: absolute;
 	box-sizing: border-box;
-	width: 700px;
+	width: 600px;
 	max-width: 100vw;
 	max-height: 100dvh;
 	overflow: auto;
 	padding: 14px;
-	border: 1px solid var(--THEME-divider);
 	border-radius: 10px;
-	background: var(--THEME-bg);
 	font-size: 12px;
 	outline: none;
 }
 .header, .actions, .sliderRow { display: flex; align-items: center; gap: 12px; }
-.header { justify-content: space-between; margin-bottom: 6px; }
+.header { justify-content: space-between; margin-bottom: 6px; padding-left: 4px; }
 .actions { gap: 6px; }
 .button { padding: 5px; border-radius: 4px; cursor: pointer; background: var(--THEME-buttonBg); }
 .button:hover { background: var(--THEME-buttonHoverBg); }
@@ -328,10 +326,10 @@ onBeforeUnmount(() => {
 	gap: 16px;
 }
 .leftArea {
-	flex: 1;
+	flex: 0.4;
 }
 .rightArea {
-	flex: 1;
+	flex: 0.6;
 }
 .map {
 	position: relative;

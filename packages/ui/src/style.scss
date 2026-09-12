@@ -289,9 +289,9 @@ hr {
 }
 
 ._popup {
-	background: color(from var(--THEME-panel) srgb r g b / 0.5);
-	-webkit-backdrop-filter: blur(12px);
-	backdrop-filter: blur(12px);
+	background: color(from var(--THEME-bg) srgb r g b / 0.7);
+	-webkit-backdrop-filter: blur(16px);
+	backdrop-filter: blur(16px);
 	contain: content;
 }
 

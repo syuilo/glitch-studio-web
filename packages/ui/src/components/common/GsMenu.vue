@@ -593,6 +593,7 @@ function guardMouseMove(ev: MouseEvent) {
 	min-width: 200px;
 	overflow: auto;
 	overscroll-behavior: contain;
+	border-radius: 8px;
 
 	&:focus-visible {
 		outline: none;
@@ -626,7 +627,7 @@ function guardMouseMove(ev: MouseEvent) {
 		margin: auto;
 		width: calc(100% - 16px);
 		height: 100%;
-		border-radius: 6px;
+		border-radius: 4px;
 	}
 
 	&:focus-visible {
@@ -761,7 +762,7 @@ function guardMouseMove(ev: MouseEvent) {
 
 .divider {
 	margin: 8px 0;
-	border-top: solid 0.5px var(--THEME-divider);
+	border-top: solid 0.5px light-dark(#0002, #fff2);
 }
 
 .radioIcon {
