@@ -1,5 +1,6 @@
 type DragDataMap = {
 	GsDraggable: { item: { id: string }; instanceId: string; group: string; };
+	WorkspacePanel: { id: string; };
 };
 
 // NOTE: dataTransfer の format は大文字小文字区別されないっぽいので toLowerCase が必要

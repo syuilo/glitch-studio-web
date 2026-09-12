@@ -23,13 +23,21 @@
 			@pointermove="onPointerMove"
 			@pointerup="onPointerEnd"
 			@pointercancel="onPointerEnd"
-		></div>
+		>
+			<div
+				v-if="workspacePanelDraggingContext.draggingId.value != null"
+				:class="[$style.dropArea, { [$style.dropReady]: dropReadyIndex === i }]"
+				@dragover.prevent.stop="onDragover($event, i)"
+				@dragleave="onDragleave($event)"
+				@drop.prevent.stop="onDrop($event, i)"
+			></div>
+		</div>
 	</template>
 </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, useTemplateRef } from 'vue';
+import { computed, nextTick, ref, useTemplateRef } from 'vue';
 import type { WorkspaceDivider } from '@/types/workspace.ts';
 import XEmpty from '@/components/GsWorkspacePanel.Empty.vue';
 import XPreview from '@/components/GsWorkspacePanel.Preview.vue';
@@ -43,6 +51,7 @@ import XStats from '@/components/GsWorkspacePanel.Stats.vue';
 import XCommandLog from '@/components/GsWorkspacePanel.CommandLog.vue';
 import XMacros from '@/components/GsWorkspacePanel.Macros.vue';
 import XPlayers from '@/components/GsWorkspacePanel.Players.vue';
+import { workspacePanelDraggingContext } from '@/app.ts';
 
 const panelComponents = {
 	empty: XEmpty,
@@ -135,6 +144,25 @@ function onPointerEnd(ev: PointerEvent) {
 	if (target.hasPointerCapture(pointerId)) target.releasePointerCapture(pointerId);
 }
 
+const dropReadyIndex = ref<number | null>(null);
+
+function onDragover(ev: DragEvent, index: number) {
+	nextTick(() => {
+		dropReadyIndex.value = index;
+	});
+}
+
+function onDragleave(ev: DragEvent) {
+	dropReadyIndex.value = null;
+}
+
+function onDrop(ev: DragEvent, index: number) {
+	dropReadyIndex.value = null;
+	if (workspacePanelDraggingContext.draggingId.value == null) return;
+
+	// TODO
+}
+
 </script>
 
 <style module lang="scss">
@@ -151,8 +179,20 @@ function onPointerEnd(ev: PointerEvent) {
 }
 
 .handle {
+	position: relative;
 	flex: 0 0 5px;
 	touch-action: none;
+}
+
+.dropArea {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 20;
+}
+
+.dropReady {
+	background: color(from var(--THEME-accent) srgb r g b / 0.25);
 }
 
 .horizontal {
@@ -160,6 +200,12 @@ function onPointerEnd(ev: PointerEvent) {
 
 	> .handle {
 		cursor: col-resize;
+
+		> .dropArea { // このコンポーネントが入れ子になってる時に別のインスタンスのクラスに影響されてしまうため > が必要
+			width: calc(100% + 16px);
+			height: 100%;
+			left: -8px;
+		}
 	}
 }
 
@@ -168,6 +214,12 @@ function onPointerEnd(ev: PointerEvent) {
 
 	> .handle {
 		cursor: row-resize;
+
+		> .dropArea { // このコンポーネントが入れ子になってる時に別のインスタンスのクラスに影響されてしまうため > が必要
+			width: 100%;
+			height: calc(100% + 16px);
+			top: -8px;
+		}
 	}
 }
 

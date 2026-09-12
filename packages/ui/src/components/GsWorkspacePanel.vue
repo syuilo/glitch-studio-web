@@ -1,42 +1,83 @@
 <template>
 <div
-	:class="[$style.root, { [$style.active]: active, [$style.draghover]: draghover, [$style.dragging]: dragging, [$style.dropready]: dropready }]"
+	:class="[$style.root]"
 >
-	<header
-		:class="[$style.header]"
-		@click="goTop"
-		@contextmenu.prevent.stop="onContextmenu"
-	>
-		<svg viewBox="0 0 256 128" :class="$style.tabShape">
-			<g transform="matrix(6.2431,0,0,6.2431,-677.417,-29.3839)">
-				<path d="M149.512,4.707L108.507,4.707C116.252,4.719 118.758,14.958 118.758,14.958C118.758,14.958 121.381,25.283 129.009,25.209L149.512,25.209L149.512,4.707Z" style="fill:var(--THEME-bg);"/>
-			</g>
-		</svg>
-		<div :class="$style.color"></div>
-		<button v-if="isStacked" :class="$style.toggleActive" class="_button" @click="toggleActive">
-			<template v-if="active"><i class="ti ti-chevron-up"></i></template>
-			<template v-else><i class="ti ti-chevron-down"></i></template>
-		</button>
-		<span :class="$style.title"><slot name="header"></slot></span>
-		<svg viewBox="0 0 16 16" version="1.1" :class="$style.grabber" draggable="true">
-			<path fill="currentColor" d="M10 13a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm0-4a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm-4 4a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm5-9a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM6 5a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path>
-		</svg>
-		<button :class="$style.menu" class="_button" @click.stop="showSettingsMenu"><i class="ti ti-dots"></i></button>
-	</header>
-	<div v-if="active" ref="body" :class="$style.body">
-		<slot></slot>
+	<div
+		v-if="workspacePanelDraggingContext.draggingId.value != null && workspacePanelDraggingContext.draggingId.value !== panel.id"
+		:class="[$style.dropAreaTop, { [$style.dropReady]: dropReadyArea === 'top' }]"
+		@dragover.prevent.stop="onDragover($event, 'top')"
+		@dragleave="onDragleave($event)"
+		@drop.prevent.stop="onDrop($event, 'top')"
+	></div>
+	<div
+		v-if="workspacePanelDraggingContext.draggingId.value != null && workspacePanelDraggingContext.draggingId.value !== panel.id"
+		:class="[$style.dropAreaBottom, { [$style.dropReady]: dropReadyArea === 'bottom' }]"
+		@dragover.prevent.stop="onDragover($event, 'bottom')"
+		@dragleave="onDragleave($event)"
+		@drop.prevent.stop="onDrop($event, 'bottom')"
+	></div>
+	<div
+		v-if="workspacePanelDraggingContext.draggingId.value != null && workspacePanelDraggingContext.draggingId.value !== panel.id"
+		:class="[$style.dropAreaLeft, { [$style.dropReady]: dropReadyArea === 'left' }]"
+		@dragover.prevent.stop="onDragover($event, 'left')"
+		@dragleave="onDragleave($event)"
+		@drop.prevent.stop="onDrop($event, 'left')"
+	></div>
+	<div
+		v-if="workspacePanelDraggingContext.draggingId.value != null && workspacePanelDraggingContext.draggingId.value !== panel.id"
+		:class="[$style.dropAreaRight, { [$style.dropReady]: dropReadyArea === 'right' }]"
+		@dragover.prevent.stop="onDragover($event, 'right')"
+		@dragleave="onDragleave($event)"
+		@drop.prevent.stop="onDrop($event, 'right')"
+	></div>
+	<div
+		v-if="workspacePanelDraggingContext.draggingId.value != null && workspacePanelDraggingContext.draggingId.value !== panel.id"
+		:class="[$style.dropAreaCenter, { [$style.dropReady]: dropReadyArea === 'center' }]"
+		@dragover.prevent.stop="onDragover($event, 'center')"
+		@dragleave="onDragleave($event)"
+		@drop.prevent.stop="onDrop($event, 'center')"
+	></div>
+
+	<div :class="[$style.main, { [$style.active]: active }]">
+		<header
+			:class="[$style.header]"
+			@click="goTop"
+		>
+			<svg viewBox="0 0 256 128" :class="$style.tabShape">
+				<g transform="matrix(6.2431,0,0,6.2431,-677.417,-29.3839)">
+					<path d="M149.512,4.707L108.507,4.707C116.252,4.719 118.758,14.958 118.758,14.958C118.758,14.958 121.381,25.283 129.009,25.209L149.512,25.209L149.512,4.707Z" style="fill:var(--THEME-bg);"/>
+				</g>
+			</svg>
+			<div :class="$style.color"></div>
+			<button v-if="isStacked" :class="$style.toggleActive" class="_button" @click="toggleActive">
+				<template v-if="active"><i class="ti ti-chevron-up"></i></template>
+				<template v-else><i class="ti ti-chevron-down"></i></template>
+			</button>
+			<span :class="$style.title"><slot name="header"></slot></span>
+			<div :class="$style.grabber" draggable="true" @dragstart.stop="onDragstart">
+				<svg viewBox="0 0 16 16" version="1.1" :class="$style.grabberSvg">
+					<path fill="currentColor" d="M10 13a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm0-4a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm-4 4a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm5-9a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM6 5a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path>
+				</svg>
+			</div>
+			<button :class="$style.menu" class="_button" @click.stop="showSettingsMenu"><i class="ti ti-dots"></i></button>
+		</header>
+		<div v-if="active" ref="body" :class="$style.body">
+			<slot></slot>
+		</div>
 	</div>
 </div>
 </template>
 
 <script lang="ts" setup>
-import { onBeforeUnmount, onMounted, provide, watch, useTemplateRef, ref, computed } from 'vue';
+import { onBeforeUnmount, onMounted, provide, watch, useTemplateRef, ref, computed, nextTick } from 'vue';
 import { genId } from '@glitch/shared/utility/id.ts';
 import type { MenuItem } from '@/types/menu.ts';
-import { workspacePanelChoices, type WorkspaceDivider, type WorkspacePanel } from '@/types/workspace.ts';
+import type { WorkspaceDivider, WorkspacePanel } from '@/types/workspace.ts';
+import { workspacePanelChoices } from '@/types/workspace.ts';
 import * as ui from '@/ui.ts';
 import { i18n } from '@/i18n.ts';
-import { appContext } from '@/app.ts';
+import { appContext, workspacePanelDraggingContext } from '@/app.ts';
+import { getDragData, setDragData } from '@/utility/drag-and-drop.ts';
 //import { checkDragDataType, getDragData, setDragData } from '@/drag-and-drop.ts';
 
 const props = withDefaults(defineProps<{
@@ -55,33 +96,7 @@ const emit = defineEmits<{
 
 const body = useTemplateRef('body');
 
-const dragging = ref(false);
-//watch(dragging, v => deckGlobalEvents.emit(v ? 'column.dragStart' : 'column.dragEnd'));
-
-const draghover = ref(false);
-const dropready = ref(false);
-
 const active = computed(() => props.panel.active !== false);
-
-/*
-onMounted(() => {
-	deckGlobalEvents.on('column.dragStart', onOtherDragStart);
-	deckGlobalEvents.on('column.dragEnd', onOtherDragEnd);
-});
-
-onBeforeUnmount(() => {
-	deckGlobalEvents.off('column.dragStart', onOtherDragStart);
-	deckGlobalEvents.off('column.dragEnd', onOtherDragEnd);
-});
-*/
-
-function onOtherDragStart() {
-	dropready.value = true;
-}
-
-function onOtherDragEnd() {
-	dropready.value = false;
-}
 
 function toggleActive() {
 }
@@ -97,7 +112,7 @@ function findParent(id: string, divider = appContext.workspaceDefinition.value):
 }
 
 // below/aboveかつ親のdirectionがverticalの場合、親のchildrenの自身の位置の下/上にempty typeのWorkspacePanelを追加
-// below/aboveかつ親のdirectionがhorizontalの場合、親のchildrenの自身の位置に新しいdivider(vertical)を追加し、そのdividerに自身を移動・empty typeのWorkspacePanelを追。
+// below/aboveかつ親のdirectionがhorizontalの場合、親のchildrenの自身の位置に新しいdivider(vertical)を追加し、そのdividerに自身を移動・empty typeのWorkspacePanelを追加
 // left/rightかつ親のdirectionがverticalの場合、親のchildrenの自身の位置に新しいdivider(horizontal)を追加し、そのdividerに自身を移動・empty typeのWorkspacePanelを追加
 // left/rightかつ親のdirectionがhorizontalの場合、親のchildrenの自身の位置の左/右にempty typeのWorkspacePanelを追加
 function addPanel(position: 'below' | 'above' | 'left' | 'right') {
@@ -209,94 +224,70 @@ function goTop(ev: PointerEvent) {
 	}
 }
 
+const dropReadyArea = ref<'top' | 'bottom' | 'left' | 'right' | 'center' | null>(null);
+
 function onDragstart(ev: DragEvent) {
 	if (ev.dataTransfer == null) return;
-
 	ev.dataTransfer.effectAllowed = 'move';
-	setDragData(ev, 'deckColumn', props.panel.id);
+	setDragData(ev, 'WorkspacePanel', { id: props.panel.id });
+
+	const target = ev.target as HTMLElement;
+	target.addEventListener('dragend', (ev) => {
+		workspacePanelDraggingContext.draggingId.value = null;
+		dropReadyArea.value = null;
+	}, { once: true });
 
 	// Chromeのバグで、Dragstartハンドラ内ですぐにDOMを変更する(=リアクティブなプロパティを変更する)とDragが終了してしまう
 	// SEE: https://stackoverflow.com/questions/19639969/html5-dragend-event-firing-immediately
+	// SEE: https://issues.chromium.org/issues/41150279
 	window.setTimeout(() => {
-		dragging.value = true;
+		workspacePanelDraggingContext.draggingId.value = props.panel.id;
 	}, 10);
 }
 
-function onDragend(ev: DragEvent) {
-	dragging.value = false;
+function onDragover(ev: DragEvent, area: 'top' | 'bottom' | 'left' | 'right' | 'center') {
+	nextTick(() => {
+		dropReadyArea.value = area;
+	});
 }
 
-function onDragover(ev: DragEvent) {
-	//if (ev.dataTransfer == null) return;
-	//// 自分自身がドラッグされている場合
-	//if (dragging.value) {
-	//	// 自分自身にはドロップさせない
-	//	ev.dataTransfer.dropEffect = 'none';
-	//} else {
-	//	const isDeckColumn = checkDragDataType(ev, ['deckColumn']);
-	//	ev.dataTransfer.dropEffect = isDeckColumn ? 'move' : 'none';
-	//	if (isDeckColumn) draghover.value = true;
-	//}
+function onDragleave(ev: DragEvent) {
+	dropReadyArea.value = null;
 }
 
-function onDragleave() {
-	draghover.value = false;
-}
+function onDrop(ev: DragEvent, area: 'top' | 'bottom' | 'left' | 'right' | 'center') {
+	dropReadyArea.value = null;
+	if (workspacePanelDraggingContext.draggingId.value == null || workspacePanelDraggingContext.draggingId.value === props.panel.id) return;
 
-function onDrop(ev: DragEvent) {
-	//draghover.value = false;
-	//deckGlobalEvents.emit('column.dragEnd');
-	//const id = getDragData(ev, 'deckColumn');
-	//if (id != null) {
-	//	swapColumn(props.panel.id, id);
-	//}
+	if (area === 'top') {
+		// TODO: このパネルを上下に分割し、上にドロップされたパネル、下にこのパネルを配置する。また、ドロップ元パネルを元の位置から削除
+	} else if (area === 'bottom') {
+		// TODO: このパネルを上下に分割し、上にこのパネル、下にドロップされたパネルを配置する。また、ドロップ元パネルを元の位置から削除
+	} else if (area === 'left') {
+		// TODO: このパネルを左右に分割し、左にドロップされたパネル、右にこのパネルを配置する。また、ドロップ元パネルを元の位置から削除
+	} else if (area === 'right') {
+		// TODO: このパネルを左右に分割し、左にこのパネル、右にドロップされたパネルを配置する。また、ドロップ元パネルを元の位置から削除
+	} else if (area === 'center') {
+		// TODO: このパネルとドロップされたパネルを入れ替える
+	}
 }
 </script>
 
 <style lang="scss" module>
 .root {
-	--root-margin: 10px;
-	--headerHeight: 32px;
-
+	position: relative;
 	height: 100%;
 	overflow: clip;
 	contain: strict;
+}
+
+.main {
+	--headerHeight: 32px;
+
+	position: relative;
+	height: 100%;
 	border-radius: 10px;
-
-	&.draghover {
-		&::after {
-			content: "";
-			display: block;
-			position: absolute;
-			z-index: 1000;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 100%;
-			background: var(--THEME-focus);
-		}
-	}
-
-	&.dragging {
-		&::after {
-			content: "";
-			display: block;
-			position: absolute;
-			z-index: 1000;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 100%;
-			background: var(--THEME-focus);
-			opacity: 0.5;
-		}
-	}
-
-	&.dropready {
-		* {
-			pointer-events: none;
-		}
-	}
+	overflow: clip;
 
 	&:not(.active) {
 		flex-basis: var(--headerHeight);
@@ -357,6 +348,7 @@ function onDrop(ev: DragEvent) {
 }
 
 .grabber {
+	display: grid;
 	margin-left: auto;
 	margin-right: 10px;
 	padding: 8px 8px;
@@ -365,6 +357,11 @@ function onDrop(ev: DragEvent) {
 	cursor: move;
 	user-select: none;
 	opacity: 0.5;
+}
+
+.grabberSvg {
+	height: 100%;
+	pointer-events: none;
 }
 
 .menu {
@@ -377,5 +374,48 @@ function onDrop(ev: DragEvent) {
 	box-sizing: border-box;
 	container-type: size;
 	background-color: var(--THEME-workspacePanelBody);
+}
+
+.dropAreaTop, .dropAreaBottom, .dropAreaLeft, .dropAreaRight, .dropAreaCenter {
+	position: absolute;
+	z-index: 10;
+	//background: color(from var(--THEME-accent) srgb r g b / 0.2);
+}
+.dropAreaTop {
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 25%;
+}
+.dropAreaBottom {
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 25%;
+}
+.dropAreaLeft {
+	top: 0;
+	left: 0;
+	width: 25%;
+	height: 100%;
+}
+.dropAreaRight {
+	top: 0;
+	right: 0;
+	width: 25%;
+	height: 100%;
+}
+.dropAreaCenter {
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	margin: auto;
+	width: 55%;
+	height: 50%;
+}
+
+.dropReady {
+	background: color(from var(--THEME-accent) srgb r g b / 0.25);
 }
 </style>
