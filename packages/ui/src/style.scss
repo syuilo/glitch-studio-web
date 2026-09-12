@@ -50,6 +50,16 @@ html {
 	accent-color: var(--THEME-accent);
 	user-select: none;
 	-webkit-user-select: none;
+
+
+	&, * {
+		scrollbar-width: thin;
+
+		&::-webkit-scrollbar {
+			width: 6px;
+			height: 6px;
+		}
+	}
 }
 
 body {
