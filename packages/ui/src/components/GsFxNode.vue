@@ -340,9 +340,9 @@ onMounted(() => {
 
 .paramLabel {
 	place-content: center left;
-	width: 30%;
+	width: 35%;
 	box-sizing: border-box;
-	padding-right: 8px;
+	padding-right: 12px;
 	flex-shrink: 0;
 	white-space: nowrap;
 	text-overflow: ellipsis;
@@ -356,7 +356,7 @@ onMounted(() => {
 }
 
 .paramBody {
-	width: 70%;
+	width: 65%;
 	flex-shrink: 1;
 }
 

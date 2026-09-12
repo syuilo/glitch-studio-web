@@ -1,5 +1,5 @@
 <template>
-<Sortable :modelValue="nodes" class="nodes _gaps_s" itemKey="id" tag="div" :group="{ name: 'nodes' }" handle=".drag-handle" :animation="150" :swapThreshold="0.5" @change="onChange">
+<Sortable :modelValue="nodes" :class="$style.nodes" itemKey="id" tag="div" :group="{ name: 'nodes' }" handle=".drag-handle" :animation="150" :swapThreshold="0.5" @change="onChange">
 	<template #item="{element}">
 		<XGroupNode v-if="element.type === 'group'" :key="element.id" :node="element" :group="group"/>
 		<XFxNode v-else :key="element.id" :node="element" :group="group"/>
@@ -37,6 +37,10 @@ function onChange(event: {
 }
 </script>
 
-<style scoped lang="scss">
-
+<style module lang="scss">
+.nodes {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
 </style>
