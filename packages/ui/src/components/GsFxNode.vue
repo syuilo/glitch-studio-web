@@ -305,6 +305,10 @@ onMounted(() => {
 	padding: 4px 16px;
 	box-sizing: border-box;
 	min-height: 32px;
+
+	&:hover {
+		background: #ffffff08;
+	}
 }
 
 .paramLabel {
