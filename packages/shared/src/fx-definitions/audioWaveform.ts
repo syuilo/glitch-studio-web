@@ -22,7 +22,10 @@ export default defineEffect({
 		duration: { type: 'literal', value: 0.05 },
 		amplitude: { type: 'literal', value: 1 },
 		lineWidth: { type: 'literal', value: 0.003 },
-		color: { type: 'literal', value: [0.2, 0.9, 1] },
-		rightColor: { type: 'literal', value: [1, 0.3, 0.6] },
+		color: { type: 'literal', value: [0.2, 0.9, 1, 1] },
+		rightColor: { type: 'literal', value: [1, 0.3, 0.6, 1] },
 	}),
+	outputs: {
+		output: { dataType: 'color' },
+	},
 });

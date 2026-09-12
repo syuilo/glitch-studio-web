@@ -5,7 +5,7 @@ export default defineEffect({
 	displayName: 'Rain Drops On Window (Type 2)',
 	category: 'effect',
 	paramDefs: {
-		input: { type: 'node', label: 'Input', primary: true },
+		input: { type: 'node', label: 'Input', dataType: 'color', primary: true },
 		density: { type: 'range', min: 0, max: 1, step: 0.01, label: 'Density' },
 		time: { type: 'number', step: 0.01, label: 'Time (s)' },
 		scale: { type: 'range', min: 0.1, max: 5, step: 0.01, label: 'Scale' },
@@ -19,4 +19,7 @@ export default defineEffect({
 		refraction: { type: 'literal', value: 0.6 },
 		seed: { type: 'literal', value: 0 },
 	}),
+	outputs: {
+		output: { dataType: 'color' },
+	},
 });

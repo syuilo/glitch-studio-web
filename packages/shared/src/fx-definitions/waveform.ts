@@ -5,7 +5,7 @@ export default defineEffect({
 	displayName: 'Waveform',
 	category: 'effect',
 	paramDefs: {
-		input: { type: 'node', label: 'Input', primary: true },
+		input: { type: 'node', label: 'Input', dataType: 'color', primary: true },
 		resolution: { type: 'enum', label: 'Resolution', options: [
 			{ label: '1/1', value: 1 },
 			{ label: '1/2', value: 2 },
@@ -24,4 +24,7 @@ export default defineEffect({
 		mode: { type: 'literal', value: 'rgb' },
 		intensity: { type: 'literal', value: 1 },
 	}),
+	outputs: {
+		output: { dataType: 'color' },
+	},
 });

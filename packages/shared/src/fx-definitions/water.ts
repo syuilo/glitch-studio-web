@@ -7,7 +7,7 @@ export default defineEffect({
 	displayName: 'Water',
 	category: 'effect',
 	paramDefs: {
-		input: { type: 'node', label: 'Input', primary: true },
+		input: { type: 'node', label: 'Input', dataType: 'color', primary: true },
 		colorHighlight: { type: 'color', label: 'Highlight color' },
 		colorHighlightAlpha: { type: 'range', label: 'Highlight alpha', min: 0, max: 1, step: 0.01 },
 		highlights: { type: 'range', label: 'Highlights', min: 0, max: 1, step: 0.01 },
@@ -21,7 +21,7 @@ export default defineEffect({
 		frame: { type: 'number', label: 'Frame offset (ms)', step: 1 },
 	},
 	getDefaultParams: () => ({
-		colorHighlight: { type: 'literal', value: [1, 1, 1] },
+		colorHighlight: { type: 'literal', value: [1, 1, 1, 1] },
 		colorHighlightAlpha: { type: 'literal', value: 1 },
 		highlights: { type: 'literal', value: 0.07 },
 		layering: { type: 'literal', value: 0.5 },
@@ -33,4 +33,7 @@ export default defineEffect({
 		speed: { type: 'literal', value: 1 },
 		frame: { type: 'literal', value: 0 },
 	}),
+	outputs: {
+		output: { dataType: 'color' },
+	},
 });

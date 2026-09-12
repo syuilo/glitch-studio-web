@@ -31,4 +31,7 @@ export default defineEffect({
 			flipFrequency: { type: 'literal', value: false },
 		};
 	},
+	outputs: {
+		output: { dataType: 'color' },
+	},
 });

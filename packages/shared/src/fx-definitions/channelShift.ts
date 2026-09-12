@@ -5,7 +5,7 @@ export default defineEffect({
 	displayName: 'Channel Shift',
 	category: 'glitch',
 	paramDefs: {
-		input: { type: 'node', label: 'Input', primary: true },
+		input: { type: 'node', label: 'Input', dataType: 'color', primary: true },
 		amount: { type: 'vector', min: -1, max: 1, step: 0.01, label: 'Amount' },
 		leftSignal: { type: 'signal', label: 'L signal' },
 		rightSignal: { type: 'signal', label: 'R signal' },
@@ -27,4 +27,7 @@ export default defineEffect({
 		blendMode: { type: 'literal', value: 'lighten' },
 		wrap: { type: 'literal', value: 'repeatMirrored' },
 	}),
+	outputs: {
+		output: { dataType: 'color' },
+	},
 });

@@ -5,7 +5,7 @@ export default defineEffect({
 	displayName: 'Symbols',
 	category: 'effect',
 	paramDefs: {
-		input: { type: 'node', label: 'Input', primary: true },
+		input: { type: 'node', label: 'Input', dataType: 'color', primary: true },
 		iconset: { type: 'enum', label: 'Iconset', options: [{
 			value: 'symbols_numbers', label: 'Symbols + Numbers',
 		}, {
@@ -26,7 +26,7 @@ export default defineEffect({
 		colorB: { type: 'color', label: 'Color B' },
 		colorC: { type: 'color', label: 'Color C' },
 		similarityThresholdFactor: { type: 'range', min: 0, max: 32, step: 0.1, label: 'Similarity Threshold Factor' },
-		forceField: { type: 'node', label: 'Force Field' },
+		forceField: { type: 'node', dataType: 'vector', label: 'Force Field' },
 		forceFieldShift: { type: 'bool', label: 'Force Field Shift' },
 		forceFieldWarp: { type: 'bool', label: 'Force Field Warp' },
 	},
@@ -38,13 +38,16 @@ export default defineEffect({
 		margin: { type: 'literal', value: 0.25 },
 		symbolTexturesRangeMin: { type: 'literal', value: 0 },
 		symbolTexturesRangeMax: { type: 'literal', value: 1 },
-		bgColor: { type: 'literal', value: [0, 0, 0] },
-		colorA: { type: 'literal', value: [1, 1, 1] },
-		colorB: { type: 'literal', value: [0.8, 1, 0] },
-		colorC: { type: 'literal', value: [1, 0.3, 0] },
+		bgColor: { type: 'literal', value: [0, 0, 0, 1] },
+		colorA: { type: 'literal', value: [1, 1, 1, 1] },
+		colorB: { type: 'literal', value: [0.8, 1, 0, 1] },
+		colorC: { type: 'literal', value: [1, 0.3, 0, 1] },
 		similarityThresholdFactor: { type: 'literal', value: 2 },
 		forceField: { type: 'literal', value: null },
 		forceFieldShift: { type: 'literal', value: true },
 		forceFieldWarp: { type: 'literal', value: true },
 	}),
+	outputs: {
+		output: { dataType: 'color' },
+	},
 });

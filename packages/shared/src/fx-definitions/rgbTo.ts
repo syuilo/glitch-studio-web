@@ -5,7 +5,7 @@ export default defineEffect({
 	displayName: 'RGB To',
 	category: 'utility',
 	paramDefs: {
-		input: { type: 'node', label: 'Input', primary: true },
+		input: { type: 'node', label: 'Input', dataType: 'color', primary: true },
 		mode: {
 			label: 'Mode',
 			type: 'enum',
@@ -21,4 +21,7 @@ export default defineEffect({
 	getDefaultParams: () => ({
 		mode: { type: 'literal', value: 0 },
 	}),
+	outputs: {
+		output: { dataType: 'scalar' },
+	},
 });

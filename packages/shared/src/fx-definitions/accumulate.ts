@@ -5,7 +5,7 @@ export default defineEffect({
 	displayName: 'Accumulate',
 	category: 'utility',
 	paramDefs: {
-		input: { type: 'node', label: 'Input', primary: true },
+		input: { type: 'node', label: 'Input', dataType: 'any', primary: true },
 		strength: { type: 'range', label: 'Strength', min: 0, max: 10, step: 0.01 },
 		halfLife: { type: 'range', label: 'Half-life (ms, 0 = infinite)', min: 0, max: 10000, step: 1 },
 		reset: { type: 'bool', label: 'Reset' },
@@ -15,4 +15,7 @@ export default defineEffect({
 		halfLife: { type: 'literal', value: 300 },
 		reset: { type: 'literal', value: false },
 	}),
+	outputs: {
+		output: { dataType: 'any' },
+	},
 });

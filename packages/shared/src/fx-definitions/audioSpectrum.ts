@@ -40,7 +40,10 @@ export default defineEffect({
 		logarithmic: { type: 'literal', value: false },
 		minDb: { type: 'literal', value: -80 },
 		maxDb: { type: 'literal', value: 0 },
-		color: { type: 'literal', value: [0.2, 0.9, 1] },
-		rightColor: { type: 'literal', value: [1, 0.3, 0.6] },
+		color: { type: 'literal', value: [0.2, 0.9, 1, 1] },
+		rightColor: { type: 'literal', value: [1, 0.3, 0.6, 1] },
 	}),
+	outputs: {
+		output: { dataType: 'color' },
+	},
 });

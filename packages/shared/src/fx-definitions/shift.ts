@@ -5,7 +5,7 @@ export default defineEffect({
 	displayName: 'Shift',
 	category: 'utility',
 	paramDefs: {
-		input: { type: 'node', label: 'Input', primary: true },
+		input: { type: 'node', label: 'Input', dataType: 'color', primary: true },
 		amount: { type: 'vector', min: -1, max: 1, step: 0.01, label: 'Amount' },
 		wrap: {
 			type: 'enum',
@@ -21,4 +21,7 @@ export default defineEffect({
 		amount: { type: 'literal', value: [0, 0] },
 		wrap: { type: 'literal', value: 'repeatMirrored' },
 	}),
+	outputs: {
+		output: { dataType: 'color' },
+	},
 });

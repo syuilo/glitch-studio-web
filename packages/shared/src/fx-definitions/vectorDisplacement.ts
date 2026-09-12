@@ -5,8 +5,8 @@ export default defineEffect({
 	displayName: 'Vector displacement',
 	category: 'effect',
 	paramDefs: {
-		input: { type: 'node', label: 'Input', primary: true },
-		vector: { type: 'node', label: 'Vector' },
+		input: { type: 'node', label: 'Input', dataType: 'color', primary: true },
+		vector: { type: 'node', label: 'Vector', dataType: 'vector' },
 		amount: { type: 'range', label: 'Amount', min: -1, max: 1, step: 0.001 },
 		flipX: { type: 'bool', label: 'Flip X' },
 		flipY: { type: 'bool', label: 'Flip Y' },
@@ -25,4 +25,7 @@ export default defineEffect({
 		rotation: { type: 'literal', value: 0 },
 		wrap: { type: 'literal', value: 'repeatMirrored' },
 	}),
+	outputs: {
+		output: { dataType: 'color' },
+	},
 });

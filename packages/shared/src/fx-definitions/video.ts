@@ -28,4 +28,7 @@ export default defineEffect({
 		player: { type: 'literal', value: null },
 		sizeMode: { type: 'literal', value: 1 },
 	}),
+	outputs: {
+		output: { dataType: 'color' },
+	},
 });

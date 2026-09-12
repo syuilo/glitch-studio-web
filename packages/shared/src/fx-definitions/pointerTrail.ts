@@ -14,4 +14,7 @@ export default defineEffect({
 		radius: { type: 'literal', value: 0.3 },
 		halfLife: { type: 'literal', value: 300 },
 	}),
+	outputs: {
+		output: { dataType: 'vector' },
+	},
 });

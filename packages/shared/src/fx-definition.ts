@@ -72,6 +72,7 @@ export type PlayerOptionSchema = {
 export type NodeOptionSchema = {
 	type: 'node';
 	label: string;
+	dataType: 'color' | 'scalar' | 'vector' | 'any';
 	primary?: boolean;
 };
 
@@ -128,6 +129,7 @@ export type EffectDefinition<OpSc extends EffectOptionsSchema = EffectOptionsSch
 	category: string;
 	paramDefs: OpSc;
 	getDefaultParams: () => EffectOptionsSchemaDefaultValues<OpSc>;
+	outputs: Record<string, {	dataType: 'color' | 'scalar' | 'vector' | 'any'; }>;
 };
 
 export function defineEffect<const OpSc extends EffectOptionsSchema>(def: EffectDefinition<OpSc>): EffectDefinition<OpSc> {

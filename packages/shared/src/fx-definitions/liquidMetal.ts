@@ -7,7 +7,7 @@ export default defineEffect({
 	displayName: 'Liquid Metal',
 	category: 'effect',
 	paramDefs: {
-		input: { type: 'node', label: 'Input', primary: true },
+		input: { type: 'node', label: 'Input', dataType: 'color', primary: true },
 		colorBack: { type: 'color', label: 'Background color' },
 		colorTint: { type: 'color', label: 'Tint color' },
 		colorBackAlpha: { type: 'range', label: 'Background alpha', min: 0, max: 1, step: 0.01 },
@@ -24,8 +24,8 @@ export default defineEffect({
 		frame: { type: 'number', label: 'Frame offset (ms)', step: 1 },
 	},
 	getDefaultParams: () => ({
-		colorBack: { type: 'literal', value: [170 / 255, 170 / 255, 172 / 255] },
-		colorTint: { type: 'literal', value: [1, 1, 1] },
+		colorBack: { type: 'literal', value: [170 / 255, 170 / 255, 172 / 255, 1] },
+		colorTint: { type: 'literal', value: [1, 1, 1, 1] },
 		colorBackAlpha: { type: 'literal', value: 0 },
 		colorTintAlpha: { type: 'literal', value: 1 },
 		repetition: { type: 'literal', value: 2 },
@@ -39,4 +39,7 @@ export default defineEffect({
 		speed: { type: 'literal', value: 1 },
 		frame: { type: 'literal', value: 0 },
 	}),
+	outputs: {
+		output: { dataType: 'color' },
+	},
 });

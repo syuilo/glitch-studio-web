@@ -12,4 +12,7 @@ export default defineEffect({
 		x: { type: 'literal', value: 0 },
 		y: { type: 'literal', value: 0 },
 	}),
+	outputs: {
+		output: { dataType: 'color' },
+	},
 });

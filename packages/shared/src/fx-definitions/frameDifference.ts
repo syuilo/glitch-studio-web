@@ -5,7 +5,7 @@ export default defineEffect({
 	displayName: 'Frame difference',
 	category: 'effect',
 	paramDefs: {
-		input: { type: 'node', label: 'Input', primary: true },
+		input: { type: 'node', label: 'Input', dataType: 'color', primary: true },
 		mode: { type: 'enum', label: 'Mode', options: [
 			{ label: 'RGB', value: 'rgb' },
 			{ label: 'Luminance', value: 'luminance' },
@@ -18,4 +18,7 @@ export default defineEffect({
 		gain: { type: 'literal', value: 1 },
 		threshold: { type: 'literal', value: 0 },
 	}),
+	outputs: {
+		output: { dataType: 'color' },
+	},
 });

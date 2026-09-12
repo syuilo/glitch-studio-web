@@ -22,4 +22,7 @@ export default defineEffect({
 		angle: { type: 'literal', value: 0 },
 		interpolation: { type: 'literal', value: 'linear' },
 	}),
+	outputs: {
+		output: { dataType: 'scalar' },
+	},
 });

@@ -5,7 +5,7 @@ export default defineEffect({
 	displayName: 'Tearings',
 	category: 'glitch',
 	paramDefs: {
-		input: { type: 'node', label: 'Input', primary: true },
+		input: { type: 'node', label: 'Input', dataType: 'color', primary: true },
 		amount: { type: 'range', min: 0, max: 100, label: 'Amount' },
 		strength: { type: 'range', min: -1, max: 1, step: 0.01, label: 'Strength' },
 		size: { type: 'range', min: 0, max: 100, step: 0.01, label: 'Size' },
@@ -31,4 +31,7 @@ export default defineEffect({
 		seed: { type: 'expression', expression: 'TIME' },
 		wrap: { type: 'literal', value: 'repeatMirrored' },
 	}),
+	outputs: {
+		output: { dataType: 'color' },
+	},
 });

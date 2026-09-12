@@ -5,7 +5,7 @@ export default defineEffect({
 	displayName: 'Chromatic Aberration',
 	category: 'glitch',
 	paramDefs: {
-		input: { type: 'node', label: 'Input', primary: true },
+		input: { type: 'node', label: 'Input', dataType: 'color', primary: true },
 		amount: { type: 'range', min: 0, max: 1, step: 0.01, label: 'Amount' },
 		rStrength: { type: 'range', min: -10, max: 10, step: 0.01, label: 'R strength' },
 		gStrength: { type: 'range', min: -10, max: 10, step: 0.01, label: 'G strength' },
@@ -35,4 +35,7 @@ export default defineEffect({
 		normalize: { type: 'literal', value: false },
 		wrap: { type: 'literal', value: 'repeatMirrored' },
 	}),
+	outputs: {
+		output: { dataType: 'color' },
+	},
 });

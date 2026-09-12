@@ -5,7 +5,7 @@ export default defineEffect({
 	displayName: 'Pixel sort',
 	category: 'glitch',
 	paramDefs: {
-		input: { type: 'node', label: 'Input', primary: true },
+		input: { type: 'node', label: 'Input', dataType: 'color', primary: true },
 		threshold: { type: 'range', label: 'Threshold', min: 0, max: 1, step: 0.001 },
 		shadow: { type: 'bool', label: 'Shadow' },
 		direction: { type: 'enum', label: 'Direction', options: [
@@ -23,4 +23,7 @@ export default defineEffect({
 		direction: { type: 'literal', value: 'horizontal' },
 		order: { type: 'literal', value: 'descending' },
 	}),
+	outputs: {
+		output: { dataType: 'color' },
+	},
 });

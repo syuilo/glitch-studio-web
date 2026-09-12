@@ -10,4 +10,7 @@ export default defineEffect({
 	getDefaultParams: () => ({
 		color: { type: 'literal', value: [1, 1, 1, 1] },
 	}),
+	outputs: {
+		output: { dataType: 'color' },
+	},
 });

@@ -7,8 +7,8 @@ const fitOptions = [
 ] as const;
 
 const paramDefs = {
-	inputA: { type: 'node', label: 'A', primary: true },
-	inputB: { type: 'node', label: 'B' },
+	inputA: { type: 'node', label: 'A', dataType: 'any', primary: true },
+	inputB: { type: 'node', label: 'B', dataType: 'any' },
 	fitModeA: { type: 'enum', label: 'A fit mode', options: fitOptions },
 	fitModeB: { type: 'enum', label: 'B fit mode', options: fitOptions },
 	amount: { type: 'range', label: 'Amount', min: 0, max: 1, step: 0.01, canNode: true },
@@ -40,11 +40,12 @@ const blendMode = {
 	],
 } as const;
 
-export const mix = defineEffect({ name: 'mix', displayName: 'Mix', category: 'effect', paramDefs, getDefaultParams });
-export const dataMix = defineEffect({ name: 'dataMix', displayName: 'Data Mix', category: 'utility', paramDefs, getDefaultParams });
+export const mix = defineEffect({ name: 'mix', displayName: 'Mix', category: 'effect', paramDefs, getDefaultParams, outputs: { output: { dataType: 'color' } } });
+export const dataMix = defineEffect({ name: 'dataMix', displayName: 'Data Mix', category: 'utility', paramDefs, getDefaultParams, outputs: { output: { dataType: 'any' } } });
 export const blend = defineEffect({
 	name: 'blend', displayName: 'Blend', category: 'effect',
 	paramDefs: { ...paramDefs, blendMode },
 	getDefaultParams: () => ({ ...getDefaultParams(), amount: { type: 'literal', value: 1 }, blendMode: { type: 'literal', value: 'add' } }),
+	outputs: { output: { dataType: 'color' } },
 });
 export const dataBlend = defineEffect({ ...blend, name: 'dataBlend', displayName: 'Data Blend', category: 'utility' });
