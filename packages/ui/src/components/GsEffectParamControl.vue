@@ -102,7 +102,12 @@
 		<GsXy :modelValue="value" :step="options.step ?? 0.1" :min="options.min" :max="options.max" @beginChanging="onBeginChanging" @update:modelValue="v => changeContinuous(v)" @changeFinished="onFinishChanging"/>
 	</div>
 	<div v-else-if="type === 'color'">
-		<XColor :color="value" @input="changeValue($event)"/>
+		<GsColorInput
+			:modelValue="normalizeColor(value)"
+			@beginChanging="onBeginChanging"
+			@update:modelValue="changeContinuous"
+			@changeFinished="onFinishChanging"
+		/>
 	</div>
 	<div v-else-if="type === 'seed'" class="seed">
 		<input type="number" :value="value" @change="changeValue(parseInt($event.target.value, 10))"/><button :title="i18n.ts.Random" @click="() => changeValue(Math.floor(Math.random() * 16384))"><i class="ti ti-dice-5"></i></button>
@@ -179,7 +184,7 @@ import { fxDefinitions } from '@glitch/shared/fx-definitions.ts';
 import GsSignal from './common/GsSignal.vue';
 import GsXy from './common/GsXy.vue';
 import XXySlider from './common/xy-slider.vue';
-import XColor from './common/GsColor.vue';
+import GsColorInput from './common/GsColorInput.vue';
 import GsInput from './common/GsInput.vue';
 import GsRange from './common/GsRange.vue';
 import XNodesInput from './nodes-input.vue';
@@ -189,6 +194,7 @@ import GsVideoControls from './common/GsVideoControls.vue';
 import type { GsGroupNode, GsNode } from '@glitch/shared/types.ts';
 import { i18n } from '@/i18n.ts';
 import { appContext, engine, wireMap } from '@/app.ts';
+import { normalizeColor } from '@/utility/color-input.ts';
 
 const props = defineProps<{
 	type: string;

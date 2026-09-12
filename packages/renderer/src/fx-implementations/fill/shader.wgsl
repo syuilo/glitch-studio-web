@@ -1,5 +1,5 @@
 struct Uniforms {
-	color: vec3f,
+	color: vec4f,
 };
 
 @group(0) @binding(1) var<uniform> uniforms: Uniforms;
@@ -11,5 +11,5 @@ struct FragmentIn {
 @fragment
 fn fs(fragData: FragmentIn) -> @location(0) vec4f {
 	let color = uniforms.color;
-	return vec4f(color, 1.0);
+	return color;
 }

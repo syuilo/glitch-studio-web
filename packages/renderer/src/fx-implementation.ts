@@ -5,7 +5,7 @@ type RuntimeEffectOptionValue<T extends EffectOptionsSchema[string]> =
 	T extends { canNode: true } ? GPUTexture :
 	T extends NumberOptionSchema ? number :
 	T extends BooleanOptionSchema ? boolean :
-	T extends ColorOptionSchema ? Readonly<[number, number, number]> :
+	T extends ColorOptionSchema ? Readonly<[number, number, number, number]> :
 	T extends VectorOptionSchema ? Readonly<[number, number]> :
 	T extends SignalOptionSchema ? Readonly<[boolean, boolean, boolean]> :
 	T extends BlendModeOptionSchema ? string :
