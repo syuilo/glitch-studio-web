@@ -26,10 +26,10 @@ struct Uniforms {
 	shadowClipThreshold: f32,
 	enableClippedAreaFill: u32,
 	coverSource: u32,
-	bgColor: vec3f,
-	colorA: vec3f,
-	colorB: vec3f,
-	colorC: vec3f,
+	bgColor: vec4f,
+	colorA: vec4f,
+	colorB: vec4f,
+	colorC: vec4f,
 	similarityThresholdFactor: f32,
 	forceFieldShift: u32,
 	forceFieldWarp: u32,
@@ -147,25 +147,25 @@ fn fs(fragData: FragmentIn) -> @location(0) vec4f {
 	}
 
 	if (sourceColorLuminance > uniforms.highlightClipThreshold) {
-		return premultiplyAlpha(vec4f(uniforms.bgColor, 1.0));
+		return premultiplyAlpha(vec4f(uniforms.bgColor.rgb, 1.0));
 	}
 
 	// fill background dots and blocks
 	if (uniforms.enableClippedAreaFill == 1) {
 		if (sourceColorLuminance < uniforms.shadowClipThreshold * 0.3) {
-			return premultiplyAlpha(vec4f(uniforms.bgColor, 1.0));
+			return premultiplyAlpha(vec4f(uniforms.bgColor.rgb, 1.0));
 		} else if (sourceColorLuminance < uniforms.shadowClipThreshold * 0.7) {
 			if (distance(modUv / cellSize, vec2(0.5, 0.5)) < 0.05) {
-				return premultiplyAlpha(vec4f(mix(uniforms.bgColor, uniforms.colorA, 0.25), 1.0));
+				return premultiplyAlpha(vec4f(mix(uniforms.bgColor.rgb, uniforms.colorA.rgb, 0.25), 1.0));
 			} else {
-				return premultiplyAlpha(vec4f(uniforms.bgColor, 1.0));
+				return premultiplyAlpha(vec4f(uniforms.bgColor.rgb, 1.0));
 			}
 		} else if (sourceColorLuminance < uniforms.shadowClipThreshold) {
-			return premultiplyAlpha(vec4f(mix(uniforms.bgColor, uniforms.colorA, 0.05), 1.0));
+			return premultiplyAlpha(vec4f(mix(uniforms.bgColor.rgb, uniforms.colorA.rgb, 0.05), 1.0));
 		}
 	} else {
 		if (sourceColorLuminance < uniforms.shadowClipThreshold) {
-			return premultiplyAlpha(vec4f(uniforms.bgColor, 1.0));
+			return premultiplyAlpha(vec4f(uniforms.bgColor.rgb, 1.0));
 		}
 	}
 
@@ -177,7 +177,7 @@ fn fs(fragData: FragmentIn) -> @location(0) vec4f {
 	);
 
 	if (!isIn) {
-		return premultiplyAlpha(vec4f(vec3f(uniforms.bgColor), 1.0));
+		return premultiplyAlpha(vec4f(vec3f(uniforms.bgColor.rgb), 1.0));
 	}
 
 	if (uniforms.useOriginalColor == 0) {
