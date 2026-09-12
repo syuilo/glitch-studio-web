@@ -18,8 +18,8 @@ const paramDefs = {
 const getDefaultParams = () => ({
 	inputA: { type: 'literal', value: null },
 	inputB: { type: 'literal', value: null },
-	fitModeA: { type: 'literal', value: 'contain' },
-	fitModeB: { type: 'literal', value: 'contain' },
+	fitModeA: { type: 'literal', value: 'cover' },
+	fitModeB: { type: 'literal', value: 'cover' },
 	amount: { type: 'literal', value: 0.5 },
 	// 数値から作る1×1テクスチャも全域に適用する。
 	fitModeAmount: { type: 'literal', value: 'stretch' },
@@ -45,6 +45,6 @@ export const dataMix = defineEffect({ name: 'dataMix', displayName: 'Data Mix', 
 export const blend = defineEffect({
 	name: 'blend', displayName: 'Blend', category: 'effect',
 	paramDefs: { ...paramDefs, blendMode },
-	getDefaultParams: () => ({ ...getDefaultParams(), amount: { type: 'literal', value: 1 }, blendMode: { type: 'literal', value: 'normal' } }),
+	getDefaultParams: () => ({ ...getDefaultParams(), amount: { type: 'literal', value: 1 }, blendMode: { type: 'literal', value: 'add' } }),
 });
 export const dataBlend = defineEffect({ ...blend, name: 'dataBlend', displayName: 'Data Blend', category: 'utility' });
