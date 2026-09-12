@@ -693,6 +693,25 @@ const changeNodeEnableStateCommandDef = defineCommand<{ nodeId: GsNode['id']; en
 	},
 });
 
+const resetNodeParamCommandDef = defineCommand<{ nodeId: GsNode['id']; param: string }>({
+	label: 'Reset node param',
+	create: (payload) => {
+		let before: GsFxNode['params'][string];
+		return {
+			execute(state) {
+				const node = stateUtility.findNode(state, payload.nodeId) as GsFxNode;
+				before = deepClone(node.params[payload.param]);
+				const defaultValue = fxDefinitions[node.fx].getDefaultParams()[payload.param];
+				node.params[payload.param] = deepClone(defaultValue);
+			},
+			undo(state) {
+				const node = stateUtility.findNode(state, payload.nodeId) as GsFxNode;
+				node.params[payload.param] = deepClone(before);
+			},
+		};
+	},
+});
+
 export const COMMAND_DEFS = {
 	addFxNode: addFxNodeCommandDef,
 	moveNode: moveNodeCommandDef,
@@ -720,4 +739,5 @@ export const COMMAND_DEFS = {
 	updateParamAsAutomation: updateParamAsAutomationCommandDef,
 	updateParamAsNode: updateParamAsNodeCommandDef,
 	changeNodeEnableState: changeNodeEnableStateCommandDef,
+	resetNodeParam: resetNodeParamCommandDef,
 };

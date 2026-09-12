@@ -62,7 +62,7 @@ const props = defineProps<{
 }>();
 
 const name = ref<string>(fxDefinitions[props.node.fx].displayName);
-const paramDefs = ref<ParamDefs>(fxDefinitions[props.node.fx].paramDefs);
+const paramDefs = fxDefinitions[props.node.fx].paramDefs;
 const expanded = ref(true);
 const outPortEl = shallowRef<HTMLElement>();
 const allInPortEl = shallowRef<HTMLElement>();
@@ -138,6 +138,26 @@ async function selectNode(param: string, ev: MouseEvent) {
 async function changeValueType(param: string, ev: MouseEvent) {
 	const type = await new Promise((res) => {
 		ui.popupMenu([{
+			text: 'Copy',
+			action: () => {
+			},
+		}, {
+			text: 'Paste',
+			action: () => {
+			},
+		}, {
+			text: 'Reset',
+			danger: true,
+			action: () => {
+				appContext.commit('resetNodeParam', {
+					nodeId: props.node.id,
+					param: param,
+				});
+			},
+		}, {
+			type: 'label',
+			text: 'Type',
+		}, {
 			text: 'Literal',
 			action: () => {
 				res('literal');
