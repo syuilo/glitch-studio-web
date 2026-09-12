@@ -1,15 +1,15 @@
 <template>
-<div :class="$style.root">
+<div :class="[$style.root, { [$style.isEnabled]: node.isEnabled }]">
 	<div ref="allInPortEl" :class="$style.allInPort">・</div>
 	<div :class="$style.header" class="drag-handle" @dblclick="expanded = !expanded">{{ name }}</div>
-	<div :class="[$style.indicator, { active: node.isEnabled }]"></div>
+	<div :class="[$style.indicator]"></div>
 	<div :class="$style.headerButtons">
 		<GsButton :class="[$style.headerButton]" inline small iconOnly @click="expanded = !expanded"><i class="ti" :class="expanded ? 'ti-chevron-up' : 'ti-chevron-down'"></i></GsButton>
 		<GsButton :class="[$style.headerButton]" inline small iconOnly :primary="node.isEnabled" :title="node.isEnabled ? i18n.ts.ClickToDisable : i18n.ts.ClickToEnable" @click="toggleEnable()"><i class="ti" :class="node.isEnabled ? 'ti-eye' : 'ti-eye-off'"></i></GsButton>
 		<GsButton :class="[$style.headerButton]" inline small iconOnly :title="i18n.ts.RemoveEffect" @click="remove()"><i class="ti ti-x"></i></GsButton>
 	</div>
 
-	<div v-show="expanded" :class="$style.params">
+	<div v-show="expanded" :class="$style.params" :inert="!node.isEnabled">
 		<div v-for="param in Object.keys(paramDefs)" v-show="paramDefs[param].visibility == null || paramDefs[param].visibility(node.params)" :key="param" :class="$style.param">
 			<div :class="[$style.paramLabel, { [$style.expression]: isExpression(param) }]" @click="changeValueType(param, $event)">
 				<GsCondensedLine>{{ paramDefs[param].label }}</GsCondensedLine>
@@ -227,6 +227,12 @@ onMounted(() => {
 	border-radius: 4px;
 	overflow: clip;
 	contain: content;
+
+	&:not(.isEnabled) {
+		.params {
+			opacity: 0.5;
+		}
+	}
 }
 
 .allInPort {
