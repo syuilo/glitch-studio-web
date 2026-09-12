@@ -279,17 +279,7 @@ export class Renderer {
 		}
 
 		for (const node of nodes.filter((n): n is GsFxNode => n.type === 'fx')) {
-			const params = node.params;
 			const paramDefs = fxDefinitions[node.fx].paramDefs;
-
-			// Bake all params
-			const defaults = {} as GsFxNode['params'];
-
-			for (const [k, v] of Object.entries(paramDefs)) {
-				if (v.default != null) defaults[k] = v.default;
-			}
-
-			const mergedParams = { ...defaults, ...params } as GsFxNode['params'];
 
 			const evaluatedParams = {} as Record<string, any>;
 
@@ -299,7 +289,7 @@ export class Renderer {
 				...scope,
 			};
 
-			for (const [k, v] of Object.entries(mergedParams)) {
+			for (const [k, v] of Object.entries(node.params)) {
 				// 無効時はバイパス先だけが必要。使わない式やオートメーションも評価しない。
 				if (!node.isBypass && !(paramDefs[k].type === 'node' && paramDefs[k].primary)) continue;
 				evaluatedParams[k] =

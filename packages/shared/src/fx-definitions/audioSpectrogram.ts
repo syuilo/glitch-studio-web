@@ -9,27 +9,17 @@ export default defineEffect({
 	category: 'draw',
 	paramDefs: {
 		...analysisParams,
-		duration: { type: 'range', label: 'Time span (seconds)', min: 0.5, max: 60, step: 0.5 },
+		channel: { ...analysisParams.channel, default: () => ({ type: 'literal', value: 'mix' }) },
+		smoothing: { ...analysisParams.smoothing, default: () => ({ type: 'literal', value: 0 }) },
+		duration: { type: 'range', label: 'Time span (seconds)', min: 0.5, max: 60, step: 0.5, default: () => ({ type: 'literal', value: 10 }) },
 		orientation: { type: 'enum', label: 'Time axis', options: [
 			{ label: 'Horizontal', value: 'horizontal' }, { label: 'Vertical', value: 'vertical' },
-		] },
+		], default: () => ({ type: 'literal', value: 'horizontal' }) },
 		direction: { type: 'enum', label: 'Flow direction', options: [
 			{ label: 'Right to left / Top to bottom', value: 'forward' },
 			{ label: 'Left to right / Bottom to top', value: 'reverse' },
-		] },
-		flipFrequency: { type: 'bool', label: 'Reverse frequency axis' },
-	},
-	getDefaultParams: () => {
-		const { color, rightColor, ...analysisDefaults } = spectrum.getDefaultParams();
-		return {
-			...analysisDefaults,
-			channel: { type: 'literal', value: 'mix' },
-			smoothing: { type: 'literal', value: 0 },
-			duration: { type: 'literal', value: 10 },
-			orientation: { type: 'literal', value: 'horizontal' },
-			direction: { type: 'literal', value: 'forward' },
-			flipFrequency: { type: 'literal', value: false },
-		};
+		], default: () => ({ type: 'literal', value: 'forward' }) },
+		flipFrequency: { type: 'bool', label: 'Reverse frequency axis', default: () => ({ type: 'literal', value: false }) },
 	},
 	outputs: {
 		output: { dataType: 'color' },

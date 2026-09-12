@@ -72,7 +72,10 @@ test('effect GPU statistics include compute and render passes', async t => {
 			const makeNodes = (patch = {}) => Array.from({ length: count }, (_, i) => ({
 				id: i === count - 1 ? 'effect' : `input-${i}`, type: 'fx', fx, isBypass: true,
 				params: {
-					...fxDefinitions[fx].getDefaultParams(), ...patch,
+					...Object.fromEntries(Object.entries(fxDefinitions[fx].paramDefs).map(([key, param]) => [
+						key, param.default(),
+					])),
+					...patch,
 					input: { type: 'literal', value: i === 0 ? null : `input-${i - 1}` },
 				},
 			}));

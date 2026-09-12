@@ -117,10 +117,13 @@ type EffectOptionsSchemaDefaultValue<T extends EffectOptionsSchema, K extends ke
 	{ type: 'automation'; automationId: string | null } |
 	{ type: 'node'; nodeId: string | null };
 
-type EffectOptionsSchemaDefaultValues<T extends EffectOptionsSchema> = {
-	[K in keyof T as T[K] extends NodeOptionSchema ? never : K]: EffectOptionsSchemaDefaultValue<T, K>;
-} & {
-	[K in keyof T as T[K] extends NodeOptionSchema ? K : never]?: EffectOptionsSchemaDefaultValue<T, K>;
+// コールバックの戻り値にも、パラメータの種類に応じた型を付ける。
+type EffectOptionSchemaWithDefault<T extends EffectOptionsSchema[string]> = T extends unknown ? T & {
+	default: () => EffectOptionsSchemaDefaultValue<{ param: T }, 'param'>;
+} : never;
+
+type EffectOptionsSchemaDefaults<T extends EffectOptionsSchema> = {
+	[K in keyof T]: { default: () => EffectOptionsSchemaDefaultValue<NoInfer<T>, K> };
 };
 
 export type EffectDefinition<OpSc extends EffectOptionsSchema = EffectOptionsSchema> = {
@@ -128,10 +131,11 @@ export type EffectDefinition<OpSc extends EffectOptionsSchema = EffectOptionsSch
 	displayName: string;
 	category: string;
 	paramDefs: OpSc;
-	getDefaultParams: () => EffectOptionsSchemaDefaultValues<OpSc>;
 	outputs: Record<string, {	dataType: 'color' | 'scalar' | 'vector' | 'any'; }>;
 };
 
-export function defineEffect<const OpSc extends EffectOptionsSchema>(def: EffectDefinition<OpSc>): EffectDefinition<OpSc> {
+export function defineEffect<const OpSc extends Record<string, EffectOptionSchemaWithDefault<EffectOptionsSchema[string]>>>(
+	def: EffectDefinition<OpSc> & { paramDefs: EffectOptionsSchemaDefaults<OpSc> },
+): EffectDefinition<OpSc> {
 	return def;
 }

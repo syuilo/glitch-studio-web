@@ -5,24 +5,18 @@ export default defineEffect({
 	displayName: 'Pixel sort',
 	category: 'glitch',
 	paramDefs: {
-		input: { type: 'node', label: 'Input', dataType: 'color', primary: true },
-		threshold: { type: 'range', label: 'Threshold', min: 0, max: 1, step: 0.001 },
-		shadow: { type: 'bool', label: 'Shadow' },
+		input: { type: 'node', label: 'Input', dataType: 'color', primary: true, default: () => ({ type: 'literal', value: null }) },
+		threshold: { type: 'range', label: 'Threshold', min: 0, max: 1, step: 0.001, default: () => ({ type: 'literal', value: 0.5 }) },
+		shadow: { type: 'bool', label: 'Shadow', default: () => ({ type: 'literal', value: false }) },
 		direction: { type: 'enum', label: 'Direction', options: [
 			{ label: 'Horizontal', value: 'horizontal' },
 			{ label: 'Vertical', value: 'vertical' },
-		] },
+		], default: () => ({ type: 'literal', value: 'horizontal' }) },
 		order: { type: 'enum', label: 'Order', options: [
 			{ label: 'A > B', value: 'descending' },
 			{ label: 'B > A', value: 'ascending' },
-		] },
+		], default: () => ({ type: 'literal', value: 'descending' }) },
 	},
-	getDefaultParams: () => ({
-		threshold: { type: 'literal', value: 0.5 },
-		shadow: { type: 'literal', value: false },
-		direction: { type: 'literal', value: 'horizontal' },
-		order: { type: 'literal', value: 'descending' },
-	}),
 	outputs: {
 		output: { dataType: 'color' },
 	},

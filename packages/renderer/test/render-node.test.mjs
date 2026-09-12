@@ -19,7 +19,9 @@ test('renderer graph traversal and frame history', async t => {
 	const fx = (id, name, params = {}) => ({
 		id, type: 'fx', fx: name, isBypass: true,
 		params: {
-			...fxDefinitions[name].getDefaultParams(),
+			...Object.fromEntries(Object.entries(fxDefinitions[name].paramDefs).map(([key, param]) => [
+				key, param.default(),
+			])),
 			...Object.fromEntries(Object.entries(params).map(([key, value]) => [key,
 				fxDefinitions[name].paramDefs[key].canNode && typeof value === 'string'
 					? { type: 'node', nodeId: value }

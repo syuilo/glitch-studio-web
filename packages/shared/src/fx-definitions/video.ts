@@ -8,6 +8,7 @@ export default defineEffect({
 		player: {
 			label: 'Player',
 			type: 'player',
+			default: () => ({ type: 'literal', value: null }),
 		},
 		sizeMode: {
 			label: 'Size mode',
@@ -22,12 +23,9 @@ export default defineEffect({
 				label: 'Contain',
 				value: 2,
 			}],
+			default: () => ({ type: 'literal', value: 1 }),
 		},
 	},
-	getDefaultParams: () => ({
-		player: { type: 'literal', value: null },
-		sizeMode: { type: 'literal', value: 1 },
-	}),
 	outputs: {
 		output: { dataType: 'color' },
 	},

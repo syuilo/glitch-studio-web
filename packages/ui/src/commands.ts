@@ -63,20 +63,13 @@ const addFxNodeCommandDef = defineCommand<{ id: string; fx: string; params?: Rec
 				const group = payload.groupId ? state.nodes.value.find(node => node.type === 'group' && node.id === payload.groupId) as GsGroupNode : undefined;
 
 				const params = {} as GsFxNode['params'];
-				const defaultParams = deepClone(fxDefinitions[payload.fx].getDefaultParams());
 
 				for (const [k, v] of Object.entries(paramDefs)) {
-					if (defaultParams[k] != null) {
-						params[k] = defaultParams[k];
-					} else if (v.type === 'seed') {
-						params[k] = { type: 'literal', value: Math.floor(Math.random() * 16384) };
-					} else if (v.type === 'time') {
-						params[k] = { type: 'expression', expression: 'TIME' };
-					} else if (v.type === 'node' && v.primary) {
+					params[k] = v.default();
+					// primary 入力が未接続なら、直前のノードに自動接続する。
+					if (v.type === 'node' && v.primary && params[k].type === 'literal' && params[k].value === null) {
 						if ((group ? group.nodes : state.nodes.value).length > 0) {
 							params[k] = { type: 'literal', value: (group ? group.nodes : state.nodes.value).at(-1)!.id };
-						} else {
-							params[k] = { type: 'literal', value: null };
 						}
 					}
 				}
@@ -571,7 +564,7 @@ const changeParamValueTypeCommandDef = defineCommand<{ nodeId: GsNode['id']; par
 			execute(state) {
 				const node = stateUtility.findNode(state, payload.nodeId)! as GsFxNode;
 				const currentValue = node.params[payload.param];
-				const defaultValue = deepClone(fxDefinitions[node.fx].getDefaultParams()[payload.param]);
+				const defaultValue: GsFxNode['params'][string] = fxDefinitions[node.fx].paramDefs[payload.param].default();
 				const emptyValue = genEmptyValue(fxDefinitions[node.fx].paramDefs[payload.param]);
 				if (payload.type === 'expression') {
 					node.params[payload.param] = {
@@ -701,7 +694,7 @@ const resetNodeParamCommandDef = defineCommand<{ nodeId: GsNode['id']; param: st
 			execute(state) {
 				const node = stateUtility.findNode(state, payload.nodeId) as GsFxNode;
 				before = deepClone(node.params[payload.param]);
-				const defaultValue = fxDefinitions[node.fx].getDefaultParams()[payload.param];
+				const defaultValue: GsFxNode['params'][string] = fxDefinitions[node.fx].paramDefs[payload.param].default();
 				node.params[payload.param] = deepClone(defaultValue);
 			},
 			undo(state) {

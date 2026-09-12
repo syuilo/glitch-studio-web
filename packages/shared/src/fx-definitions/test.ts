@@ -5,13 +5,9 @@ export default defineEffect({
 	displayName: 'test',
 	category: 'utility',
 	paramDefs: {
-		x: { type: 'range', min: -1, max: 1, step: 0.01, label: 'X' },
-		y: { type: 'range', min: -1, max: 1, step: 0.01, label: 'Y' },
+		x: { type: 'range', min: -1, max: 1, step: 0.01, label: 'X', default: () => ({ type: 'literal', value: 0 }) },
+		y: { type: 'range', min: -1, max: 1, step: 0.01, label: 'Y', default: () => ({ type: 'literal', value: 0 }) },
 	},
-	getDefaultParams: () => ({
-		x: { type: 'literal', value: 0 },
-		y: { type: 'literal', value: 0 },
-	}),
 	outputs: {
 		output: { dataType: 'color' },
 	},

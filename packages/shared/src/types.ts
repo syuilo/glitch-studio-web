@@ -44,7 +44,7 @@ export type Player = {
 export type FxParamDef = Record<string, any> & {
 	type: FxParamDataType;
 	label: string;
-	default?: FxParamValue;
+	default: () => FxParamValue;
 	visibility?: (state: Record<string, FxParamValue>) => boolean;
 };
 
