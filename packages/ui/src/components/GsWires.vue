@@ -2,14 +2,14 @@
 <div ref="rootEl" :class="$style.root">
 	<svg v-for="(wire, index) in wires" :key="wire.key" version="1.1" :viewBox="`0 0 ${width} ${height}`" :class="$style.wire">
 		<defs>
-			<linearGradient :id="`${gradientId}-${index}`" gradientUnits="userSpaceOnUse" :gradientTransform="getGradientTransform(wire)" x1="0" y1="0" x2="120" y2="0" spreadMethod="repeat">
+			<linearGradient :id="`${gradientId}-${index}`" gradientUnits="userSpaceOnUse" :gradientTransform="getGradientTransform(wire)" x1="0" y1="0" x2="1" y2="0" spreadMethod="repeat">
 				<stop offset="0" stop-color="currentColor" stop-opacity="0"/>
 				<stop offset="0.25" stop-color="currentColor" stop-opacity="0"/>
 				<stop offset="0.5" stop-color="currentColor" stop-opacity="0.9"/>
 				<stop offset="0.75" stop-color="currentColor" stop-opacity="0"/>
 				<stop offset="1" stop-color="currentColor" stop-opacity="0"/>
-				<animate attributeName="x1" from="0" to="120" dur="1.6s" repeatCount="indefinite"/>
-				<animate attributeName="x2" from="120" to="240" dur="1.6s" repeatCount="indefinite"/>
+				<animate attributeName="x1" from="0" to="1" dur="1.6s" repeatCount="indefinite"/>
+				<animate attributeName="x2" from="1" to="2" dur="1.6s" repeatCount="indefinite"/>
 			</linearGradient>
 		</defs>
 		<line :x1="wire.from[0]" :y1="wire.from[1]" :x2="wire.to[0]" :y2="wire.to[1]" stroke="currentColor" stroke-width="3" opacity="0.3"/>
@@ -50,11 +50,10 @@ const wires = ref<{
 function getGradientTransform(wire: typeof wires.value[number]): string {
 	const dx = wire.to[0] - wire.from[0];
 	const dy = wire.to[1] - wire.from[1];
-	const length = Math.hypot(dx, dy);
-	const x = length > 0 ? dx / length : 1;
-	const y = length > 0 ? dy / length : 0;
-	// 単位ベクトルで回転させ、配線の長さや方向によらず光の幅と速度を揃える。
-	return `matrix(${x} ${y} ${-y} ${x} ${wire.from[0]} ${wire.from[1]})`;
+	// グラデーションの1周期を配線全長に合わせ、光の幅と速度を長さに比例させる。
+	// 両端が重なる場合も変換行列が特異にならないようにする。
+	const x = dx === 0 && dy === 0 ? 1 : dx;
+	return `matrix(${x} ${dy} ${-dy} ${x} ${wire.from[0]} ${wire.from[1]})`;
 }
 
 function getElementPosition(el: HTMLElement): [number, number] {
