@@ -85,8 +85,6 @@ export default implementEffect<typeof definition>({
 				uniformValues.set({
 					...p,
 					resolution: [resolution.width, resolution.height],
-					colorBack: [...p.colorBack, p.colorBackAlpha],
-					colorTint: [...p.colorTint, p.colorTintAlpha],
 					// Upstream frame is milliseconds. Explicit time makes seeking deterministic.
 					time: p.time * p.speed + p.frame / 1000,
 					repetition: Math.max(1, p.repetition),

@@ -8,10 +8,8 @@ export default defineEffect({
 	category: 'effect',
 	paramDefs: {
 		input: { type: 'node', label: 'Input', dataType: 'color', primary: true, default: () => ({ type: 'literal', value: null }) },
-		colorBack: { type: 'color', label: 'Background color', default: () => ({ type: 'literal', value: [170 / 255, 170 / 255, 172 / 255, 1] }) },
+		colorBack: { type: 'color', label: 'Background color', default: () => ({ type: 'literal', value: [170 / 255, 170 / 255, 172 / 255, 0] }) },
 		colorTint: { type: 'color', label: 'Tint color', default: () => ({ type: 'literal', value: [1, 1, 1, 1] }) },
-		colorBackAlpha: { type: 'range', label: 'Background alpha', min: 0, max: 1, step: 0.01, default: () => ({ type: 'literal', value: 0 }) },
-		colorTintAlpha: { type: 'range', label: 'Tint alpha', min: 0, max: 1, step: 0.01, default: () => ({ type: 'literal', value: 1 }) },
 		repetition: { type: 'range', label: 'Repetition', min: 1, max: 10, step: 0.01, default: () => ({ type: 'literal', value: 2 }) },
 		softness: { type: 'range', label: 'Softness', min: 0, max: 1, step: 0.01, default: () => ({ type: 'literal', value: 0.2 }) },
 		shiftRed: { type: 'range', label: 'Shift red', min: -1, max: 1, step: 0.01, default: () => ({ type: 'literal', value: 0.3 }) },

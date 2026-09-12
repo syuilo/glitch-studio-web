@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'vite';
+import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
 
 import { createDevice } from './helpers/gpu-device.mjs';
 
@@ -19,6 +20,32 @@ test('effect GPU statistics include compute and render passes', async t => {
 		const { Renderer } = await server.ssrLoadModule('/src/renderer.ts');
 		const { fxDefinitions } = await server.ssrLoadModule('@glitch/shared/fx-definitions.ts');
 		const { default: TimingHelper } = await server.ssrLoadModule('/src/utility/TimingHelper.ts');
+		await t.test('liquidMetal uploads RGBA colors unchanged', async () => {
+			const { default: effect } = await server.ssrLoadModule('/src/fx-implementations/liquidMetal/main.ts');
+			const { default: shader } = await server.ssrLoadModule('/src/fx-implementations/liquidMetal/shader.wgsl?raw');
+			const uniforms = makeShaderDataDefinitions(shader).uniforms.uniforms;
+			const device = createDevice(false);
+			let uploaded;
+			device.queue.writeBuffer = (_, offset, data) => { uploaded = data.slice(0); };
+			const params = Object.fromEntries(Object.entries(fxDefinitions.liquidMetal.paramDefs).map(([key, param]) => [key, param.default().value]));
+			params.time = 0;
+			const instance = effect.init({ wgpu: { device, defaultVertexShaderModule: device.createShaderModule() }, resolution: { width: 64, height: 64 }, params, fallbackTexture: device.createTexture() });
+			try {
+				for (const alpha of [1, 0.5, 0]) {
+					instance.render({
+						params: { ...params, colorBack: [0.25, 0.5, 0.75, alpha], colorTint: [0.75, 0.5, 0.25, alpha] },
+						commandEncoder: device.createCommandEncoder(),
+						createComputePassEncoder: encoder => encoder.beginComputePass(),
+						createPassEncoder: encoder => encoder.beginRenderPass(),
+					});
+					const { views } = makeStructuredView(uniforms, uploaded);
+					assert.deepEqual(Array.from(views.colorBack), [0.25, 0.5, 0.75, alpha]);
+					assert.deepEqual(Array.from(views.colorTint), [0.75, 0.5, 0.25, alpha]);
+				}
+			} finally {
+				instance.dispose();
+			}
+		});
 		await t.test('worker publishes memory every second even when GPU timing is disabled', async t => {
 			const callbacks = new Map();
 			const messages = [];
@@ -75,11 +102,6 @@ test('effect GPU statistics include compute and render passes', async t => {
 					...Object.fromEntries(Object.entries(fxDefinitions[fx].paramDefs).map(([key, param]) => [
 						key, param.default(),
 					])),
-					// 現行のliquidMetal実装はRGBに別パラメータのalphaを追加する。
-					...(fx === 'liquidMetal' ? {
-						colorBack: { type: 'literal', value: [170 / 255, 170 / 255, 172 / 255] },
-						colorTint: { type: 'literal', value: [1, 1, 1] },
-					} : {}),
 					...patch,
 					input: { type: 'literal', value: i === 0 ? null : `input-${i - 1}` },
 				},
