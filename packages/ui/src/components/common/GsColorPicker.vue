@@ -1,43 +1,48 @@
 <template>
 <div ref="root" :class="$style.root" class="_shadow" :style="{ zIndex }" tabindex="-1" @keydown.stop="onKeydown">
 	<div :class="$style.header">
-		<span>カラー</span>
+		<span>{{ title ?? 'Color' }}</span>
 		<div :class="$style.actions">
 			<div v-if="EyeDropper" :class="[$style.button, { [$style.busy]: picking }]" title="画面から色を取得" tabindex="0" @click="pickFromScreen" @keydown.enter.prevent="pickFromScreen"><i class="ti ti-color-picker"></i></div>
 			<div :class="$style.button" title="閉じる" tabindex="0" @click="close" @keydown.enter.prevent="close"><i class="ti ti-x"></i></div>
 		</div>
 	</div>
-	<div :class="$style.map" :style="{ backgroundColor: `hsl(${hue} 100% 50%)` }" @pointerdown="startDrag($event, 'map')" @pointermove="moveDrag" @pointerup="endDrag" @pointercancel="endDrag" @lostpointercapture="endDrag">
-		<div :class="$style.thumb" :style="{ left: `${saturation * 100}%`, top: `${(1 - brightness) * 100}%`, background: colorCss(color) }"></div>
-	</div>
-	<div :class="$style.sliderRow">
-		<span>H</span>
-		<div :class="[$style.track, $style.hue]" @pointerdown="startDrag($event, 'hue')" @pointermove="moveDrag" @pointerup="endDrag" @pointercancel="endDrag" @lostpointercapture="endDrag">
-			<div :class="$style.thumb" :style="{ left: `${hue / 360 * 100}%` }"></div>
+	<div :class="$style.body">
+		<div :class="$style.leftArea">
+			<div :class="$style.map" :style="{ backgroundColor: `hsl(${hue} 100% 50%)` }" @pointerdown="startDrag($event, 'map')" @pointermove="moveDrag" @pointerup="endDrag" @pointercancel="endDrag" @lostpointercapture="endDrag">
+				<div :class="$style.thumb" :style="{ left: `${saturation * 100}%`, top: `${(1 - brightness) * 100}%`, background: colorCss(color) }"></div>
+			</div>
+			<div :class="$style.sliderRow">
+				<div :class="[$style.track, $style.hue]" @pointerdown="startDrag($event, 'hue')" @pointermove="moveDrag" @pointerup="endDrag" @pointercancel="endDrag" @lostpointercapture="endDrag">
+					<div :class="$style.thumb" :style="{ left: `${hue / 360 * 100}%` }"></div>
+				</div>
+			</div>
+			<div :class="$style.sliderRow">
+				<div :class="[$style.track, $style.checker]" @pointerdown="startDrag($event, 'alpha')" @pointermove="moveDrag" @pointerup="endDrag" @pointercancel="endDrag" @lostpointercapture="endDrag">
+					<div :class="$style.alpha" :style="{ background: `linear-gradient(to right, ${colorCss([color[0], color[1], color[2], 0])}, ${colorCss([color[0], color[1], color[2], 1])})` }"></div>
+					<div :class="$style.thumb" :style="{ left: `${color[3] * 100}%` }"></div>
+				</div>
+			</div>
+		</div>
+		<div :class="$style.rightArea">
+			<div v-for="row in rows" :key="row.name" :class="$style.row">
+				<span :class="$style.format">{{ row.name }}</span>
+				<div v-for="field in row.fields" :key="field.key" :class="$style.field">
+					<span :class="$style.label">{{ field.label }}</span>
+					<div
+						:class="[$style.editor, { [$style.invalid]: invalid === field.key }]"
+						class="_monospace"
+						contenteditable="plaintext-only" :spellcheck="false" :inputmode="row.name === 'HEX' ? 'text' : 'decimal'"
+						@focus="editing = field.key" @input="editField($event, row.name, field.index, field.key)"
+						@blur="finishEdit($event, field.key)" @keydown.enter.prevent="blurEditor" @keydown.esc.stop.prevent="blurEditor"
+						v-text="drafts[field.key]"
+					></div>
+				</div>
+			</div>
+			<div v-if="error" :class="$style.error">{{ error }}</div>
 		</div>
 	</div>
-	<div :class="$style.sliderRow">
-		<span>A</span>
-		<div :class="[$style.track, $style.checker]" @pointerdown="startDrag($event, 'alpha')" @pointermove="moveDrag" @pointerup="endDrag" @pointercancel="endDrag" @lostpointercapture="endDrag">
-			<div :class="$style.alpha" :style="{ background: `linear-gradient(to right, ${colorCss([color[0], color[1], color[2], 0])}, ${colorCss([color[0], color[1], color[2], 1])})` }"></div>
-			<div :class="$style.thumb" :style="{ left: `${color[3] * 100}%` }"></div>
-		</div>
-	</div>
-	<div v-for="row in rows" :key="row.name" :class="$style.row">
-		<span :class="$style.format">{{ row.name }}</span>
-		<div v-for="field in row.fields" :key="field.key" :class="$style.field">
-			<span :class="$style.label">{{ field.label }}</span>
-			<div
-				:class="[$style.editor, { [$style.invalid]: invalid === field.key }]"
-				contenteditable="plaintext-only" :spellcheck="false" :inputmode="row.name === 'HEX' ? 'text' : 'decimal'"
-				@focus="editing = field.key" @input="editField($event, row.name, field.index, field.key)"
-				@blur="finishEdit($event, field.key)" @keydown.enter.prevent="blurEditor" @keydown.esc.stop.prevent="blurEditor"
-				v-text="drafts[field.key]"
-			></div>
-		</div>
-	</div>
-	<div v-if="error" :class="$style.error">{{ error }}</div>
-	<div :class="$style.recentTitle">最近使った色</div>
+	<div :class="$style.recentTitle">Recent colors</div>
 	<div :class="$style.recent">
 		<div v-for="(recentColor, index) in recent" :key="index" :class="[$style.swatch, $style.checker]" :title="colorHex(recentColor)" tabindex="0" @click="setColor(recentColor)" @keydown.enter.prevent="setColor(recentColor)">
 			<div :class="$style.fill" :style="{ background: colorCss(recentColor) }"></div>
@@ -54,7 +59,12 @@ import { clampColorValue, colorCss, colorHex, hsvToHsl, hsvToRgb, normalizeColor
 import { calcPopupPosition } from '@/utility/popup-position.ts';
 import * as ui from '@/ui.ts';
 
-const props = defineProps<{ modelValue: RgbaColor; anchorElement: HTMLElement }>();
+const props = defineProps<{
+	modelValue: RgbaColor;
+	anchorElement: HTMLElement;
+	title?: string;
+}>();
+
 const emit = defineEmits<{
 	(ev: 'update:modelValue', value: RgbaColor): void;
 	(ev: 'closed'): void;
@@ -167,6 +177,7 @@ function blurEditor(event: KeyboardEvent) {
 }
 
 let drag: { id: number; element: HTMLElement; kind: 'map' | 'hue' | 'alpha' } | null = null;
+
 function startDrag(event: PointerEvent, kind: 'map' | 'hue' | 'alpha') {
 	if (event.button !== 0 || drag) return;
 	const element = event.currentTarget as HTMLElement;
@@ -258,6 +269,7 @@ function outsidePointer(event: PointerEvent) {
 }
 
 let frame = 0;
+
 function position() {
 	const el = root.value;
 	if (!el || closed) return;
@@ -293,15 +305,14 @@ onBeforeUnmount(() => {
 .root {
 	position: absolute;
 	box-sizing: border-box;
-	width: 320px;
+	width: 700px;
 	max-width: 100vw;
 	max-height: 100dvh;
 	overflow: auto;
 	padding: 14px;
 	border: 1px solid var(--THEME-divider);
 	border-radius: 10px;
-	background: var(--THEME-panel);
-	color: var(--THEME-fg);
+	background: var(--THEME-bg);
 	font-size: 12px;
 	outline: none;
 }
@@ -311,6 +322,17 @@ onBeforeUnmount(() => {
 .button { padding: 5px; border-radius: 4px; cursor: pointer; background: var(--THEME-buttonBg); }
 .button:hover { background: var(--THEME-buttonHoverBg); }
 .busy { opacity: 0.5; cursor: wait; }
+.body {
+	display: flex;
+	flex-direction: row;
+	gap: 16px;
+}
+.leftArea {
+	flex: 1;
+}
+.rightArea {
+	flex: 1;
+}
 .map {
 	position: relative;
 	height: 170px;
@@ -344,12 +366,9 @@ onBeforeUnmount(() => {
 .editor {
 	padding: 6px 4px;
 	min-height: 15px;
-	border: 1px solid var(--THEME-divider);
 	border-radius: 4px;
-	background: var(--THEME-bg);
-	font-family: monospace;
+	background: var(--THEME-panel);
 	white-space: pre;
-	overflow-x: auto;
 	user-select: text;
 	cursor: text;
 	outline: none;
@@ -357,7 +376,7 @@ onBeforeUnmount(() => {
 .editor:focus { border-color: var(--THEME-accent); }
 .editor.invalid { border-color: var(--THEME-error); }
 .error { color: var(--THEME-error); margin-top: 8px; }
-.recentTitle { margin: 14px 0 8px; opacity: 0.7; }
+.recentTitle { margin: 0 0 8px 0; opacity: 0.7; }
 .recent { display: flex; flex-wrap: wrap; gap: 6px; }
 .swatch { width: 28px; height: 24px; border-radius: 4px; border: 1px solid var(--THEME-divider); cursor: pointer; }
 .empty { opacity: 0.5; }

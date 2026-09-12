@@ -104,6 +104,7 @@
 	<div v-else-if="type === 'color'">
 		<GsColorInput
 			:modelValue="normalizeColor(value)"
+			:title="title"
 			@beginChanging="onBeginChanging"
 			@update:modelValue="changeContinuous"
 			@changeFinished="onFinishChanging"
@@ -203,6 +204,7 @@ const props = defineProps<{
 	node?: GsNode;
 	group?: GsGroupNode | null;
 	name?: string;
+	title?: string;
 }>();
 
 const emit = defineEmits<{

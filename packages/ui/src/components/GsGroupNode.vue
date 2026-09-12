@@ -22,7 +22,18 @@
 			<div v-if="isExpression(macro)" :class="$style.paramBody">
 				<input type="text" :class="$style.expression" :value="macro.value.value" @change="updateMacroAsExpression(macro.id, $event.target.value)"/>
 			</div>
-			<GsEffectParamControl v-else :class="$style.paramBody" :type="macro.type" :node="node" :group="group" :options="macro.typeOptions" :value="macro.value.value" @input="updateMacroAsLiteral(macro.id, $event)" @changeContinuous="updateMacroAsLiteral(macro.id, $event)"/>
+			<GsEffectParamControl
+				v-else
+				:class="$style.paramBody"
+				:type="macro.type"
+				:node="node"
+				:group="group"
+				:options="macro.typeOptions"
+				:value="macro.value.value"
+				:title="macro.label"
+				@input="updateMacroAsLiteral(macro.id, $event)"
+				@changeContinuous="updateMacroAsLiteral(macro.id, $event)"
+			/>
 		</div>
 	</div>
 

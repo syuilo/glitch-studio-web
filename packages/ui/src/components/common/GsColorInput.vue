@@ -1,7 +1,7 @@
 <template>
 <div ref="preview" :class="[$style.root, { [$style.disabled]: disabled }]" tabindex="0" @click="open" @keydown.enter.prevent="open" @keydown.space.prevent="open">
 	<div :class="$style.color" :style="{ background: colorCss(modelValue) }"></div>
-	<div>{{ colorHex(modelValue) }}</div>
+	<div class="_monospace">{{ colorHex(modelValue) }}</div>
 </div>
 </template>
 
@@ -15,6 +15,7 @@ import * as ui from '@/ui.ts';
 const props = defineProps<{
 	modelValue: RgbaColor;
 	disabled?: boolean;
+	title?: string;
 }>();
 
 const emit = defineEmits<{
@@ -41,6 +42,7 @@ function open() {
 	dispose = ui.popup(GsColorPicker, {
 		modelValue: computed(() => props.modelValue),
 		anchorElement: preview.value,
+		title: props.title,
 	}, {
 		'update:modelValue': value => {
 			if (!changing) {
@@ -69,7 +71,7 @@ onBeforeUnmount(close);
 }
 
 .color {
-	width: 48px;
+	width: 24px;
 	height: 24px;
 	border-radius: 4px;
 	overflow: clip;

@@ -12,6 +12,7 @@
 				:type="macro.type"
 				:value="macro.value.value"
 				:options="macro.typeOptions"
+				:title="macro.label"
 				@input="updateMacroAsLiteral(macro, $event)"
 				@beginChanging="onBeginChanging(macro)"
 				@changeContinuous="changeContinuous(macro, $event)"

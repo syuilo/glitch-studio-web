@@ -24,6 +24,7 @@
 					:group="group"
 					:node="node"
 					:name="param"
+					:title="paramDefs[param].label"
 					:options="paramDefs[param]"
 					:value="getParam(param)"
 					@input="updateParamAsLiteral(param, $event)"
