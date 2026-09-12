@@ -1,3 +1,7 @@
+fn premultiplyAlpha(color: vec4f) -> vec4f {
+	return vec4f(color.rgb * color.a, color.a);
+}
+
 struct Uniforms {
 	color: vec4f,
 };
@@ -11,5 +15,5 @@ struct FragmentIn {
 @fragment
 fn fs(fragData: FragmentIn) -> @location(0) vec4f {
 	let color = uniforms.color;
-	return color;
+	return premultiplyAlpha(color);
 }
