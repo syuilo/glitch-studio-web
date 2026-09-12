@@ -40,6 +40,12 @@ export type BlendModeOptionSchema = {
 	canNode?: false;
 };
 
+export type FitModeOptionSchema = {
+	type: 'fitMode';
+	label: string;
+	canNode?: false;
+};
+
 export type SeedOptionSchema = {
 	type: 'seed';
 	label: string;
@@ -92,6 +98,7 @@ export type EffectOptionsSchema = Record<string,
 	VectorOptionSchema |
 	SignalOptionSchema |
 	BlendModeOptionSchema |
+	FitModeOptionSchema |
 	SeedOptionSchema |
 	EnumOptionSchema |
 	RangeOptionSchema |
@@ -108,6 +115,7 @@ type EffectOptionValue<T extends EffectOptionsSchema[string]> =
 	T extends VectorOptionSchema ? Readonly<[number, number]> :
 	T extends SignalOptionSchema ? Readonly<[boolean, boolean, boolean]> :
 	T extends BlendModeOptionSchema ? string :
+	T extends FitModeOptionSchema ? 'stretch' | 'cover' | 'contain' :
 	T extends SeedOptionSchema ? number :
 	T extends EnumOptionSchema ? T['options'][number]['value'] :
 	T extends RangeOptionSchema ? number :

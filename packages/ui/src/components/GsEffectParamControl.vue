@@ -25,6 +25,18 @@
 	<div v-else-if="type === 'enum'">
 		<GsSelect small :modelValue="value" :items="options.options" @update:modelValue="v => changeValue(v)"/>
 	</div>
+	<div v-else-if="type === 'fitMode'">
+		<GsSelect
+			small
+			:modelValue="value"
+			:items="[
+				{ label: 'Stretch', value: 'stretch' },
+				{ label: 'Cover', value: 'cover' },
+				{ label: 'Contain', value: 'contain' },
+			]"
+			@update:modelValue="v => changeValue(v)"
+		/>
+	</div>
 	<div v-else-if="type === 'blendMode'">
 		<GsSelect
 			small

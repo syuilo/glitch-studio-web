@@ -1,4 +1,4 @@
-import type { BlendModeOptionSchema, BooleanOptionSchema, ColorOptionSchema, EffectDefinition, EffectOptionsSchema, EnumOptionSchema, ImageOptionSchema, NodeOptionSchema, NumberOptionSchema, RangeOptionSchema, SeedOptionSchema, SignalOptionSchema, VectorOptionSchema, PlayerOptionSchema } from '@glitch/shared/fx-definition.ts';
+import type { BlendModeOptionSchema, FitModeOptionSchema, BooleanOptionSchema, ColorOptionSchema, EffectDefinition, EffectOptionsSchema, EnumOptionSchema, ImageOptionSchema, NodeOptionSchema, NumberOptionSchema, RangeOptionSchema, SeedOptionSchema, SignalOptionSchema, VectorOptionSchema, PlayerOptionSchema } from '@glitch/shared/fx-definition.ts';
 import type { AudioHistory } from '@glitch/shared/audio-history.ts';
 
 type RuntimeEffectOptionValue<T extends EffectOptionsSchema[string]> =
@@ -9,6 +9,7 @@ type RuntimeEffectOptionValue<T extends EffectOptionsSchema[string]> =
 	T extends VectorOptionSchema ? Readonly<[number, number]> :
 	T extends SignalOptionSchema ? Readonly<[boolean, boolean, boolean]> :
 	T extends BlendModeOptionSchema ? string :
+	T extends FitModeOptionSchema ? 'stretch' | 'cover' | 'contain' :
 	T extends SeedOptionSchema ? number :
 	T extends EnumOptionSchema ? T['options'][number]['value'] :
 	T extends RangeOptionSchema ? number :
