@@ -1,6 +1,6 @@
-globalThis.GPUQueue = class { submit() {} writeBuffer() {} };
+globalThis.GPUQueue = class { submit() {} writeBuffer() {} writeTexture() {} };
 globalThis.GPUBufferUsage = { QUERY_RESOLVE: 1, COPY_SRC: 2, COPY_DST: 4, MAP_READ: 8, UNIFORM: 16, STORAGE: 32 };
-globalThis.GPUTextureUsage = { TEXTURE_BINDING: 1, RENDER_ATTACHMENT: 2, STORAGE_BINDING: 4 };
+globalThis.GPUTextureUsage = { TEXTURE_BINDING: 1, RENDER_ATTACHMENT: 2, STORAGE_BINDING: 4, COPY_SRC: 8, COPY_DST: 16 };
 globalThis.GPUShaderStage = { COMPUTE: 1, VERTEX: 2, FRAGMENT: 4 };
 globalThis.GPUMapMode = { READ: 1 };
 

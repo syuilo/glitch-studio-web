@@ -50,10 +50,6 @@ function getFxNodes(nodes: GsNode[]): GsFxNode[] {
 	return nodes.flatMap(node => node.type === 'group' ? getFxNodes(node.nodes) : [node]);
 }
 
-function getActualOutputNodeId(node: GsNode): string | undefined {
-	return node.type === 'group' ? node.nodes.at(-1)?.id : node.id;
-}
-
 export class Renderer {
 	private gpuContext: GPUCanvasContext;
 	private gpuDevice: GPUDevice;
@@ -229,6 +225,27 @@ export class Renderer {
 		return search(nodes);
 	}
 
+	// 無効なFXは主入力をそのまま公開する。テクスチャの所有権や履歴は元のノードに残す。
+	// 描画・入力参照・キャッシュが同じ接続関係を扱うよう、ここで共通して解決する。
+	private getOutputNode(node: GsNode | undefined, visited: GsNode['id'][] = []): GsFxNode | undefined {
+		if (node == null) return;
+		if (visited.includes(node.id)) throw new Error('circular dependency detected');
+		const nextVisited = [...visited, node.id];
+		if (node.type === 'group') {
+			// グループには主入力がないため、無効時は子の出力も公開しない。
+			return node.isEnabled ? this.getOutputNode(node.nodes.at(-1), nextVisited) : undefined;
+		}
+		if (node.isEnabled) return node;
+		const primary = Object.entries(fxDefinitions[node.fx].paramDefs).find(([, def]) => def.type === 'node' && def.primary);
+		const inputId = primary ? this.evaledNodeParams.get(node.id)?.[primary[0]] : null;
+		return inputId == null ? undefined : this.getOutputNode(this.findNode(inputId), nextVisited);
+	}
+
+	private getOutputTexture(node: GsNode | undefined): GPUTexture | undefined {
+		const output = this.getOutputNode(node);
+		return output == null ? undefined : this.effectOuts.get(output.id)?.texture;
+	}
+
 	private evalNodeParams(nodes: GsNode[], provideVars: Record<string, any> = {}) {
 		const scope = {
 			WIDTH: this.resolution.width,
@@ -283,6 +300,8 @@ export class Renderer {
 			};
 
 			for (const [k, v] of Object.entries(mergedParams)) {
+				// 無効時はバイパス先だけが必要。使わない式やオートメーションも評価しない。
+				if (!node.isEnabled && !(paramDefs[k].type === 'node' && paramDefs[k].primary)) continue;
 				evaluatedParams[k] =
 					v.type === 'literal'
 						? v.value
@@ -344,16 +363,15 @@ export class Renderer {
 			throw new Error('circular dependency detected');
 		}
 
-		let key = `isEnabled=${node.isEnabled};`;
+		let key = `node=${JSON.stringify(node.id)};isEnabled=${node.isEnabled};`;
 
-		if (node.type === 'group') {
-			for (const n of node.nodes) {
-				const childKey = this.evalCacheKey(n, [...visited, node.id]);
-				if (childKey == null) return null;
-				key += `childKey=${childKey};`;
-			}
-
-			// TODO: macro
+		if (node.type === 'group' || !node.isEnabled) {
+			// 出力に寄与しない入力やdisableCacheには依存しない。
+			// 出力元のIDもキーに含め、同じパラメータの別ノードへの切り替えを検出する。
+			const output = this.getOutputNode(node);
+			if (output == null) return `${key}output=none;`;
+			const outputKey = this.evalCacheKey(output, [...visited, node.id]);
+			return outputKey == null ? null : `${key}output=${outputKey};`;
 		} else {
 			if (fxImplementations[node.fx].disableCache) {
 				return null;
@@ -403,7 +421,7 @@ export class Renderer {
 		for (const [k, v] of Object.entries(params)) {
 			const typeDef = fxDefinitions[node.fx].paramDefs[k].type;
 			if (typeDef === 'node') {
-				resolvedParams[k] = v == null ? this.fallbackTexture : this.effectOuts.get(getActualOutputNodeId(this.findNode(v)!)!)!.texture;
+				resolvedParams[k] = this.getOutputTexture(v == null ? undefined : this.findNode(v)) ?? this.fallbackTexture;
 			} else if (typeDef === 'image') {
 				resolvedParams[k] = this.assetTextures.get(v)!;
 			} else if (typeDef === 'player') {
@@ -413,7 +431,8 @@ export class Renderer {
 				};
 			} else {
 				if (fxDefinitions[node.fx].paramDefs[k].canNode) {
-					resolvedParams[k] = v == null ? this.fallbackScalarFieldTexture : node.params[k].type === 'node' ? this.effectOuts.get(getActualOutputNodeId(this.findNode(v)!)!)!.texture : this.effectScalarFieldTextures.get(node.id)![k];
+					// 出力なしの扱いは参照側の型で決める（画像は透明、スカラー場は0）。
+					resolvedParams[k] = v == null ? this.fallbackScalarFieldTexture : node.params[k].type === 'node' ? this.getOutputTexture(this.findNode(v)) ?? this.fallbackScalarFieldTexture : this.effectScalarFieldTextures.get(node.id)![k];
 				} else {
 					resolvedParams[k] = v;
 				}
@@ -430,9 +449,11 @@ export class Renderer {
 			return;
 		}
 
-		if (node.type === 'group') {
-			if (node.nodes.length === 0) return;
-			return this.renderNode(node.nodes.at(-1)!, commandEncoder, {
+		if (node.type === 'group' || !node.isEnabled) {
+			// 無効中は自身を描画せず、主入力だけを更新する。履歴は保持して再有効化時に再開する。
+			const output = this.getOutputNode(node);
+			if (output == null) return;
+			return this.renderNode(output, commandEncoder, {
 				visited: new Set([...context.visited, node.id]),
 				rendered: context.rendered,
 			});
@@ -580,12 +601,10 @@ export class Renderer {
 		});
 
 		//#region nodeのoutをcanvasに描画
-		const actualOutputNodeId = getActualOutputNodeId(node);
-		if (actualOutputNodeId == null) return;
-		const out = this.effectOuts.get(actualOutputNodeId);
-		if (out == null) return;
-		if (this.finalRenderBindGroup == null || this.finalRenderInputTexture !== out.texture) {
-			this.finalRenderInputTexture = out.texture;
+		// 末尾が無効でもバイパス先を表示する。出力なしでも描画し、前の画像を残さない。
+		const outputTexture = this.getOutputTexture(node) ?? this.fallbackTexture;
+		if (this.finalRenderBindGroup == null || this.finalRenderInputTexture !== outputTexture) {
+			this.finalRenderInputTexture = outputTexture;
 			this.finalRenderBindGroup = this.gpuDevice.createBindGroup({
 				layout: this.finalRenderPipeline.getBindGroupLayout(0),
 				entries: [

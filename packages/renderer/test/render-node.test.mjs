@@ -20,7 +20,11 @@ test('renderer graph traversal and frame history', async t => {
 		id, type: 'fx', fx: name, isEnabled: true,
 		params: {
 			...fxDefinitions[name].getDefaultParams(),
-			...Object.fromEntries(Object.entries(params).map(([key, value]) => [key, { type: 'literal', value }])),
+			...Object.fromEntries(Object.entries(params).map(([key, value]) => [key,
+				fxDefinitions[name].paramDefs[key].canNode && typeof value === 'string'
+					? { type: 'node', nodeId: value }
+					: { type: 'literal', value },
+			])),
 		},
 	});
 	const group = (id, nodes) => ({ id, type: 'group', isEnabled: true, macros: [], nodes });
@@ -28,6 +32,7 @@ test('renderer graph traversal and frame history', async t => {
 	function setup(t, nodes) {
 		const device = createDevice(false);
 		const passes = [];
+		let canvasInput;
 		// Keep the real Renderer and effects; record texture bindings at the GPU boundary.
 		device.createBindGroup = descriptor => descriptor;
 		const createEncoder = device.createCommandEncoder;
@@ -46,6 +51,7 @@ test('renderer graph traversal and frame history', async t => {
 				pass.draw = () => {
 					assert.ok(!inputs.includes(output), 'a render pass must not read its output texture');
 					if (!output.canvas) passes.push({ output, inputs: [...inputs] });
+					else if (inputs.length > 0) canvasInput = inputs[0];
 				};
 				return pass;
 			};
@@ -64,6 +70,7 @@ test('renderer graph traversal and frame history', async t => {
 		let time = performance.now();
 		return {
 			renderer,
+			get canvasInput() { return canvasInput; },
 			frame(id = 'root') {
 				passes.length = 0;
 				renderer.render(id, { time: time += 16 });
@@ -71,6 +78,101 @@ test('renderer graph traversal and frame history', async t => {
 			},
 		};
 	}
+
+	const disabled = node => ({ ...node, isEnabled: false });
+
+	await t.test('bypasses middle and final nodes, follows live input and restores cached output', t => {
+		const a = fx('a', 'multiply', { v: 2 });
+		const b = fx('b', 'multiply', { input: 'a', v: 3 });
+		const c = fx('root', 'multiply', { input: 'b', v: 4 });
+		const run = setup(t, [a, b, c]);
+		const initial = run.frame();
+		run.renderer.updateNodes([a, disabled(b), c]);
+		const bypass = run.frame();
+		assert.equal(bypass.length, 1);
+		assert.equal(bypass[0].inputs[0], initial[0].output);
+		run.renderer.updateNodes([a, b, disabled(c)]);
+		run.frame();
+		assert.equal(run.canvasInput, initial[1].output);
+		run.renderer.updateNodes([a, disabled(b), disabled(c)]);
+		run.frame();
+		assert.equal(run.canvasInput, initial[0].output);
+		run.renderer.updateNodes([fx('a', 'multiply', { v: 5 }), disabled(b), c]);
+		assert.equal(run.frame().length, 2, 'input changes invalidate downstream cache');
+		run.renderer.updateNodes([a, b, c]);
+		assert.equal(run.frame().length, 1, 'unchanged enabled effects may reuse their retained output');
+		assert.equal(run.canvasInput, initial[2].output);
+		assert.equal(run.frame().length, 0);
+	});
+
+	await t.test('retains frame history while an effect is disabled', t => {
+		const trail = fx('root', 'pointerTrail');
+		const run = setup(t, [trail]);
+		const first = run.frame()[0];
+		run.renderer.updateNodes([disabled(trail)]);
+		assert.equal(run.frame().length, 0);
+		run.renderer.updateNodes([trail]);
+		const resumed = run.frame()[0];
+		assert.equal(resumed.inputs[0], first.output);
+		assert.equal(resumed.output, first.inputs[0]);
+	});
+
+	await t.test('disabled unconnected effects and groups supply fallback to downstream nodes', t => {
+		for (const input of [fx('input', 'multiply'), group('input', [fx('child', 'pointerTrail')])]) {
+			const run = setup(t, [disabled(input), fx('root', 'multiply', { input: 'input' })]);
+			const passes = run.frame();
+			assert.equal(passes.length, 1);
+			assert.equal(passes[0].inputs[0].width, 1);
+			assert.equal(run.frame().length, 0, 'disabled dynamic descendants do not invalidate cache');
+		}
+	});
+
+	await t.test('switching a group output to an identical node invalidates downstream cache', t => {
+		const a = fx('a', 'multiply');
+		const b = fx('b', 'multiply');
+		const root = fx('root', 'multiply', { input: 'g' });
+		const run = setup(t, [group('g', [a, b]), root]);
+		const first = run.frame();
+		run.renderer.updateNodes([group('g', [b, a]), root]);
+		const second = run.frame();
+		assert.equal(second.length, 2);
+		assert.notEqual(second[1].inputs[0], first[1].inputs[0]);
+	});
+
+	await t.test('disabled blur ignores secondary dependencies and their cycles', t => {
+		const run = setup(t, [fx('a', 'pointerTrail'), disabled(fx('b', 'blur', { input: 'a', amount: 'b' })), fx('root', 'multiply', { input: 'b' })]);
+		for (let i = 0; i < 2; i++) {
+			const passes = run.frame();
+			assert.equal(passes.length, 2);
+			assert.equal(passes[1].inputs[0], passes[0].output);
+		}
+	});
+
+	await t.test('disabled generators and groups publish fallback instead of stale output', t => {
+		for (const root of [fx('root', 'pointerTrail'), group('root', [fx('child', 'pointerTrail')])]) {
+			const run = setup(t, [root]);
+			run.frame();
+			const previous = run.canvasInput;
+			run.renderer.updateNodes([disabled(root)]);
+			assert.equal(run.frame().length, 0);
+			assert.notEqual(run.canvasInput, previous);
+			assert.equal(run.canvasInput.width, 1);
+		}
+	});
+
+	await t.test('nested groups resolve disabled final children and scalar inputs use fallback', t => {
+		const run = setup(t, [fx('a', 'multiply'), group('g', [group('inner', [disabled(fx('b', 'multiply', { input: 'a' }))])]), disabled(fx('empty', 'pointerTrail')), fx('root', 'blur', { input: 'g', amount: 'empty' })]);
+		const passes = run.frame();
+		assert.equal(passes.length, 2);
+		assert.equal(passes[1].inputs[0], passes[0].output);
+		assert.equal(passes[1].inputs[1].format, 'r16float');
+		assert.equal(passes[1].inputs[1].width, 1);
+	});
+
+	await t.test('disabled primary cycles are rejected', t => {
+		const { frame } = setup(t, [disabled(fx('root', 'multiply', { input: 'other' })), disabled(fx('other', 'multiply', { input: 'root' }))]);
+		assert.throws(() => frame(), /circular dependency detected/);
+	});
 
 	for (const grouped of [false, true]) {
 		await t.test(`shared ${grouped ? 'group' : 'node'} renders once per frame and publishes alternating history`, t => {
