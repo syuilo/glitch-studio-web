@@ -1,13 +1,14 @@
 <template>
 <div ref="preview" :class="[$style.root, { [$style.disabled]: disabled }]" tabindex="0" @click="open" @keydown.enter.prevent="open" @keydown.space.prevent="open">
 	<div :class="$style.color" :style="{ background: colorCss(modelValue) }"></div>
+	<div>{{ colorHex(modelValue) }}</div>
 </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, useTemplateRef, watch } from 'vue';
 import type { RgbaColor } from '@/utility/color-input.ts';
-import { colorCss } from '@/utility/color-input.ts';
+import { colorCss, colorHex } from '@/utility/color-input.ts';
 import GsColorPicker from '@/components/common/GsColorPicker.vue';
 import * as ui from '@/ui.ts';
 
@@ -61,16 +62,19 @@ onBeforeUnmount(close);
 
 <style module lang="scss">
 .root {
-	display: inline-block;
-	width: 48px;
-	height: 28px;
-	border: 1px solid var(--THEME-divider);
-	border-radius: 6px;
-	overflow: hidden;
+	display: flex;
+	align-items: center;
+	gap: 16px;
 	cursor: pointer;
-	vertical-align: middle;
+}
+
+.color {
+	width: 48px;
+	height: 24px;
+	border-radius: 4px;
+	overflow: clip;
 	background: repeating-conic-gradient(#888 0% 25%, #ccc 0% 50%) 0 / 12px 12px;
 }
-.color { width: 100%; height: 100%; }
+
 .disabled { opacity: 0.5; cursor: default; }
 </style>
