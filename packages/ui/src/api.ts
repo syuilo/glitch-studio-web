@@ -62,7 +62,7 @@ export function encodeAssets(assets: Asset[]): Omit<Asset, 'data'>[] {
 	}));
 }
 
-export function openMediaFile(options: { multiple?: boolean } = {}): Promise<{
+export function openMediaFile(options: { multiple?: boolean; file?: File } = {}): Promise<{
 	width: number;
 	height: number;
 	data: Uint8Array | null;
@@ -77,8 +77,7 @@ export function openMediaFile(options: { multiple?: boolean } = {}): Promise<{
 		input.accept = 'image/*,video/*,audio/*';
 		input.multiple = options.multiple ?? false;
 		input.addEventListener('cancel', () => resolve(null), { once: true });
-		input.onchange = () => {
-			const file = input.files?.[0];
+		const loadFile = (file: File | undefined) => {
 			if (file == null) { resolve(null); return; }
 			if (file.type.startsWith('audio/') || file.type.startsWith('video/')) {
 				const media = document.createElement(file.type.startsWith('audio/') ? 'audio' : 'video');
@@ -134,7 +133,12 @@ export function openMediaFile(options: { multiple?: boolean } = {}): Promise<{
 			};
 			reader.readAsDataURL(file);
 		};
-		input.click();
+		if (options.file != null) {
+			loadFile(options.file);
+		} else {
+			input.onchange = () => loadFile(input.files?.[0]);
+			input.click();
+		}
 	});
 }
 

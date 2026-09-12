@@ -368,8 +368,8 @@ export async function newProject() {
 	});
 }
 
-export async function newProjectFromImageOrVideo() {
-	const result = await api.openMediaFile({});
+export async function newProjectFromImageOrVideo(file?: File) {
+	const result = await api.openMediaFile({ file });
 	if (result == null) return;
 
 	const assetId = genId();

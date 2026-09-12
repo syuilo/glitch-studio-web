@@ -1,5 +1,5 @@
 <template>
-<GsModal ref="modal" preferType="dialog" @closed="emit('closed')">
+<GsModal ref="modal" preferType="dialog" @closed="emit('closed')" @dragover.prevent.stop @drop.prevent.stop="onDrop">
 	<div :class="$style.root" class="_gaps_s">
 		<div>
 			<div><b>Glitch Studio</b></div>
@@ -39,6 +39,13 @@ async function _newProject() {
 
 async function _newProjectFromImageOrVideo() {
 	await newProjectFromImageOrVideo();
+	modal.value!.close();
+}
+
+async function onDrop(event: DragEvent) {
+	const file = event.dataTransfer?.files[0];
+	if (file == null) return;
+	await newProjectFromImageOrVideo(file);
 	modal.value!.close();
 }
 
