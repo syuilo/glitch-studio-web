@@ -4,9 +4,11 @@
 		<div :class="$style.zoom">ZOOM: {{ Math.round(zoom * 100) }}%</div>
 	</template>
 	<template #default="{ detached }">
-		<div :class="$style.time" class="_monospace">{{ formatTime(time) }}</div>
-		<div ref="containerContainer" :class="[$style.containerContainer, { [$style.animatedBg]: prefer.r.animatedBgInPreview.value }]" @wheel="onViewWheel" @click="onViewClick(detached)" @pointermove="onPointermove">
-			<div ref="canvasContainer" :class="$style.canvasContainer" :style="{ scale: zoom }"></div>
+		<div :class="$style.root" @dragover.prevent.stop @drop.prevent.stop="onDrop">
+			<div :class="$style.time" class="_monospace">{{ formatTime(time) }}</div>
+			<div ref="containerContainer" :class="[$style.containerContainer, { [$style.animatedBg]: prefer.r.animatedBgInPreview.value }]" @wheel="onViewWheel" @click="onViewClick(detached)" @pointermove="onPointermove">
+				<div ref="canvasContainer" :class="$style.canvasContainer" :style="{ scale: zoom }"></div>
+			</div>
 		</div>
 	</template>
 </GsDetachableView>
@@ -50,47 +52,57 @@ onBeforeUnmount(() => {
 async function onViewClick(detached: boolean) {
 	if (detached) return;
 	if (appContext.state.nodes.value.length === 0) {
-		const result = await api.openMediaFile({});
-		if (result == null) return;
+		await addMedia();
+	}
+}
 
-		const assetId = genId();
-		appContext.commit('addAsset', {
-			id: assetId,
+async function onDrop(event: DragEvent) {
+	const file = event.dataTransfer?.files[0];
+	if (file == null) return;
+	await addMedia(file);
+}
+
+async function addMedia(file?: File) {
+	const result = await api.openMediaFile({ file });
+	if (result == null) return;
+
+	const assetId = genId();
+	appContext.commit('addAsset', {
+		id: assetId,
+		name: result.name,
+		width: result.width,
+		height: result.height,
+		data: result.data,
+		fileDataType: result.type,
+		fileData: result.fileData,
+		hash: result.hash,
+	});
+
+	if (result.type.startsWith('image/')) {
+		appContext.commit('addFxNode', {
+			fx: 'image',
+			id: genId(),
+			params: {
+				image: { type: 'literal', value: assetId },
+			},
+		});
+	} else if (result.type.startsWith('video/') || result.type.startsWith('audio/')) {
+		const playerId = genId();
+
+		appContext.commit('addPlayer', {
+			id: playerId,
 			name: result.name,
-			width: result.width,
-			height: result.height,
-			data: result.data,
-			fileDataType: result.type,
-			fileData: result.fileData,
-			hash: result.hash,
+			type: 'asset',
+			assetId: assetId,
 		});
 
-		if (result.type.startsWith('image/')) {
-			appContext.commit('addFxNode', {
-				fx: 'image',
-				id: genId(),
-				params: {
-					image: { type: 'literal', value: assetId },
-				},
-			});
-		} else if (result.type.startsWith('video/') || result.type.startsWith('audio/')) {
-			const playerId = genId();
-
-			appContext.commit('addPlayer', {
-				id: playerId,
-				name: result.name,
-				type: 'asset',
-				assetId: assetId,
-			});
-
-			appContext.commit('addFxNode', {
-				fx: result.type.startsWith('audio/') ? 'audioWaveform' : 'video',
-				id: genId(),
-				params: {
-					player: { type: 'literal', value: playerId },
-				},
-			});
-		}
+		appContext.commit('addFxNode', {
+			fx: result.type.startsWith('audio/') ? 'audioWaveform' : 'video',
+			id: genId(),
+			params: {
+				player: { type: 'literal', value: playerId },
+			},
+		});
 	}
 }
 
@@ -123,6 +135,11 @@ function formatTime(timeMs: number): string {
 </script>
 
 <style module lang="scss">
+.root {
+	width: 100%;
+	height: 100%;
+}
+
 .containerContainer {
 	width: 100%;
 	height: 100%;
