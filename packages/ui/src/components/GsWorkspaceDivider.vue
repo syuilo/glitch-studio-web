@@ -51,7 +51,8 @@ import XStats from '@/components/GsWorkspacePanel.Stats.vue';
 import XCommandLog from '@/components/GsWorkspacePanel.CommandLog.vue';
 import XMacros from '@/components/GsWorkspacePanel.Macros.vue';
 import XPlayers from '@/components/GsWorkspacePanel.Players.vue';
-import { workspacePanelDraggingContext } from '@/app.ts';
+import { appContext, workspacePanelDraggingContext } from '@/app.ts';
+import { cleanupWorkspaceDefinition, findWorkspaceParent } from '@/utility/workspace.ts';
 
 const panelComponents = {
 	empty: XEmpty,
@@ -158,9 +159,28 @@ function onDragleave(ev: DragEvent) {
 
 function onDrop(ev: DragEvent, index: number) {
 	dropReadyIndex.value = null;
-	if (workspacePanelDraggingContext.draggingId.value == null) return;
+	const draggingId = workspacePanelDraggingContext.draggingId.value;
+	workspacePanelDraggingContext.draggingId.value = null;
+	if (draggingId == null) return;
 
-	// TODO
+	const workspace = appContext.workspaceDefinition.value;
+	const sourceParent = findWorkspaceParent(workspace, draggingId);
+	if (!sourceParent) return;
+
+	const sourceIndex = sourceParent.children.findIndex(child => child.id === draggingId);
+	const panel = sourceParent.children[sourceIndex];
+	if (panel.type === null) return;
+
+	let insertionIndex = index + 1;
+	if (sourceParent === props.divider) {
+		if (sourceIndex < insertionIndex) insertionIndex--;
+	} else {
+		// 別のdividerから移す場合は、移動先の子の平均サイズを割り当てる。
+		panel.ratio = totalRatio.value / props.divider.children.length;
+	}
+	sourceParent.children.splice(sourceIndex, 1);
+	props.divider.children.splice(insertionIndex, 0, panel);
+	cleanupWorkspaceDefinition(workspace);
 }
 
 </script>

@@ -72,12 +72,13 @@
 import { onBeforeUnmount, onMounted, provide, watch, useTemplateRef, ref, computed, nextTick } from 'vue';
 import { genId } from '@glitch/shared/utility/id.ts';
 import type { MenuItem } from '@/types/menu.ts';
-import type { WorkspaceDivider, WorkspacePanel } from '@/types/workspace.ts';
+import type { WorkspacePanel } from '@/types/workspace.ts';
 import { workspacePanelChoices } from '@/types/workspace.ts';
 import * as ui from '@/ui.ts';
 import { i18n } from '@/i18n.ts';
 import { appContext, workspacePanelDraggingContext } from '@/app.ts';
 import { getDragData, setDragData } from '@/utility/drag-and-drop.ts';
+import { cleanupWorkspaceDefinition, findWorkspaceParent, splitWorkspacePanel } from '@/utility/workspace.ts';
 //import { checkDragDataType, getDragData, setDragData } from '@/drag-and-drop.ts';
 
 const props = withDefaults(defineProps<{
@@ -101,59 +102,26 @@ const active = computed(() => props.panel.active !== false);
 function toggleActive() {
 }
 
-function findParent(id: string, divider = appContext.workspaceDefinition.value): WorkspaceDivider | undefined {
-	for (const child of divider.children) {
-		if (child.id === id) return divider;
-		if (child.type === null) {
-			const parent = findParent(id, child);
-			if (parent) return parent;
-		}
-	}
-}
-
-// below/aboveかつ親のdirectionがverticalの場合、親のchildrenの自身の位置の下/上にempty typeのWorkspacePanelを追加
-// below/aboveかつ親のdirectionがhorizontalの場合、親のchildrenの自身の位置に新しいdivider(vertical)を追加し、そのdividerに自身を移動・empty typeのWorkspacePanelを追加
-// left/rightかつ親のdirectionがverticalの場合、親のchildrenの自身の位置に新しいdivider(horizontal)を追加し、そのdividerに自身を移動・empty typeのWorkspacePanelを追加
-// left/rightかつ親のdirectionがhorizontalの場合、親のchildrenの自身の位置の左/右にempty typeのWorkspacePanelを追加
 function addPanel(position: 'below' | 'above' | 'left' | 'right') {
-	const parent = findParent(props.panel.id);
+	const workspace = appContext.workspaceDefinition.value;
+	const parent = findWorkspaceParent(workspace, props.panel.id);
 	if (!parent) return;
 
-	const index = parent.children.findIndex(child => child.id === props.panel.id);
 	const direction = position === 'below' || position === 'above' ? 'vertical' : 'horizontal';
 	const before = position === 'above' || position === 'left';
-	const panel: WorkspacePanel = { id: genId(), type: 'empty', ratio: props.panel.ratio };
-
-	if (parent.direction === direction) {
-		props.panel.ratio /= 2;
-		panel.ratio = props.panel.ratio;
-		parent.children.splice(index + (before ? 0 : 1), 0, panel);
-	} else {
-		parent.children.splice(index, 1, {
-			id: genId(),
-			type: null,
-			ratio: props.panel.ratio,
-			direction,
-			children: before ? [panel, props.panel] : [props.panel, panel],
-		});
-	}
+	const panel: WorkspacePanel = { id: genId(), type: 'empty', ratio: 1 };
+	splitWorkspacePanel(parent, props.panel, panel, direction, before);
+	cleanupWorkspaceDefinition(workspace);
 }
 
-// closeしたとき、親のdividerのchildrenが1つのpanelのみになった場合、dividerは不要なので親のdividerを削除し、children内にあったその1つのpanelを、削除した親のdividerが入っていたchildren内に移動
 function closePanel() {
-	const parent = findParent(props.panel.id);
+	const workspace = appContext.workspaceDefinition.value;
+	const parent = findWorkspaceParent(workspace, props.panel.id);
 	if (!parent) return;
 
 	const index = parent.children.findIndex(child => child.id === props.panel.id);
 	parent.children.splice(index, 1);
-	if (parent.children.length !== 1) return;
-
-	const grandparent = findParent(parent.id);
-	if (!grandparent) return;
-
-	const remaining = parent.children[0];
-	remaining.ratio = parent.ratio;
-	grandparent.children.splice(grandparent.children.findIndex(child => child.id === parent.id), 1, remaining);
+	cleanupWorkspaceDefinition(workspace);
 }
 
 function getMenu() {
@@ -257,19 +225,31 @@ function onDragleave(ev: DragEvent) {
 
 function onDrop(ev: DragEvent, area: 'top' | 'bottom' | 'left' | 'right' | 'center') {
 	dropReadyArea.value = null;
-	if (workspacePanelDraggingContext.draggingId.value == null || workspacePanelDraggingContext.draggingId.value === props.panel.id) return;
+	const draggingId = workspacePanelDraggingContext.draggingId.value;
+	workspacePanelDraggingContext.draggingId.value = null;
+	if (draggingId == null || draggingId === props.panel.id) return;
 
-	if (area === 'top') {
-		// TODO: このパネルを上下に分割し、上にドロップされたパネル、下にこのパネルを配置する。また、ドロップ元パネルを元の位置から削除
-	} else if (area === 'bottom') {
-		// TODO: このパネルを上下に分割し、上にこのパネル、下にドロップされたパネルを配置する。また、ドロップ元パネルを元の位置から削除
-	} else if (area === 'left') {
-		// TODO: このパネルを左右に分割し、左にドロップされたパネル、右にこのパネルを配置する。また、ドロップ元パネルを元の位置から削除
-	} else if (area === 'right') {
-		// TODO: このパネルを左右に分割し、左にこのパネル、右にドロップされたパネルを配置する。また、ドロップ元パネルを元の位置から削除
-	} else if (area === 'center') {
-		// TODO: このパネルとドロップされたパネルを入れ替える
+	const workspace = appContext.workspaceDefinition.value;
+	const sourceParent = findWorkspaceParent(workspace, draggingId);
+	const targetParent = findWorkspaceParent(workspace, props.panel.id);
+	if (!sourceParent || !targetParent) return;
+
+	const sourceIndex = sourceParent.children.findIndex(child => child.id === draggingId);
+	const panel = sourceParent.children[sourceIndex];
+	if (panel.type === null) return;
+
+	if (area === 'center') {
+		const targetIndex = targetParent.children.findIndex(child => child.id === props.panel.id);
+		// パネルのサイズではなく、移動先の領域のサイズを維持する。
+		[panel.ratio, props.panel.ratio] = [props.panel.ratio, panel.ratio];
+		sourceParent.children[sourceIndex] = props.panel;
+		targetParent.children[targetIndex] = panel;
+	} else {
+		sourceParent.children.splice(sourceIndex, 1);
+		const direction = area === 'top' || area === 'bottom' ? 'vertical' : 'horizontal';
+		splitWorkspacePanel(targetParent, props.panel, panel, direction, area === 'top' || area === 'left');
 	}
+	cleanupWorkspaceDefinition(workspace);
 }
 </script>
 
