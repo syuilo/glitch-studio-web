@@ -16,21 +16,25 @@
 		<GsWorkspaceDivider style="flex: 1" :divider="appContext.workspaceDefinition.value"/>
 	</div>
 	<div :class="$style.footer">
-		<div @click="openResolutionMenu">{{ appContext.state.resolution.value.width }} x {{ appContext.state.resolution.value.height }} px ({{ resolutionFactor }}x) | {{ Math.round(engine.fpsDisplay.value) }}fps</div>
-		<div :class="$style.previewVolume" title="Preview volume — speakers / headphones only">
-			<i :class="engine.previewVolume.value === 0 ? 'ti ti-volume-off' : 'ti ti-volume'"></i>
-			<span>Preview</span>
-			<input type="range" min="0" max="1" step="0.01" :value="engine.previewVolume.value" @input="setPreviewVolume">
-			<span :class="$style.volumeValue">{{ Math.round(engine.previewVolume.value * 100) }}%</span>
+		<div :class="$style.footerLeft">
+			<div @click="openResolutionMenu">{{ appContext.state.resolution.value.width }} x {{ appContext.state.resolution.value.height }} px ({{ resolutionFactor }}x) | {{ Math.round(engine.fpsDisplay.value) }}fps</div>
+			<div :class="$style.previewVolume">
+				<i :class="engine.previewVolume.value === 0 ? 'ti ti-volume-off' : 'ti ti-volume'"></i>
+				<span>Preview</span>
+				<input type="range" min="0" max="1" step="0.01" :value="engine.previewVolume.value" @input="setPreviewVolume">
+				<span :class="$style.volumeValue">{{ Math.round(engine.previewVolume.value * 100) }}%</span>
+			</div>
 		</div>
-		<div :class="$style.outputLevelMeter" title="Project output level — before preview volume">
-			<GsAudioLevelMeter :levels="engine.audioOutputLevels"/>
-		</div>
-		<div :class="$style.footerStats">
-			<div :class="$style.footerStatsItem">{{ (engine.gpuAverageDisplayFast.value / 1000).toFixed(1) }}ms</div>
-			<div :class="$style.footerStatsItem">{{ (engine.gpuAverageDisplayMedium.value / 1000).toFixed(1) }}ms</div>
-			<div :class="$style.footerStatsItem">{{ (engine.gpuAverageDisplaySlow.value / 1000).toFixed(1) }}ms</div>
-			<div v-if="engine.gpuMemoryUsage.value" v-tooltip="gpuMemoryTooltip" :class="$style.footerMemory">{{ (engine.gpuMemoryUsage.value.total / 1000 ** 2).toFixed(1) }} MB</div>
+		<div :class="$style.footerRight">
+			<div :class="$style.footerStats">
+				<div :class="$style.footerStatsItem">{{ (engine.gpuAverageDisplayFast.value / 1000).toFixed(1) }}ms</div>
+				<div :class="$style.footerStatsItem">{{ (engine.gpuAverageDisplayMedium.value / 1000).toFixed(1) }}ms</div>
+				<div :class="$style.footerStatsItem">{{ (engine.gpuAverageDisplaySlow.value / 1000).toFixed(1) }}ms</div>
+				<div v-if="engine.gpuMemoryUsage.value" v-tooltip="gpuMemoryTooltip" :class="$style.footerMemory">{{ (engine.gpuMemoryUsage.value.total / 1000 ** 2).toFixed(1) }} MB</div>
+			</div>
+			<div :class="$style.outputLevelMeter">
+				<GsAudioLevelMeter :levels="engine.audioOutputLevels"/>
+			</div>
 		</div>
 	</div>
 </div>
@@ -221,8 +225,17 @@ onMounted(() => {
 	background: var(--THEME-workspacePanelBody);
 }
 
-.footerStats {
+.footerLeft {
+	display: flex;
+}
+
+.footerRight {
+	display: flex;
 	margin-left: auto;
+	gap: 16px;
+}
+
+.footerStats {
 	display: flex;
 	gap: 8px;
 }
@@ -246,7 +259,6 @@ onMounted(() => {
 	align-self: center;
 	flex: 0 0 100px;
 	height: 14px;
-	margin-right: 16px;
 }
 
 .volumeValue {
