@@ -317,7 +317,7 @@ onBeforeUnmount(() => {
 	outline: none;
 }
 .header, .actions, .sliderRow { display: flex; align-items: center; gap: 12px; }
-.header { justify-content: space-between; margin-bottom: 12px; }
+.header { justify-content: space-between; margin-bottom: 6px; }
 .actions { gap: 6px; }
 .button { padding: 5px; border-radius: 4px; cursor: pointer; background: var(--THEME-buttonBg); }
 .button:hover { background: var(--THEME-buttonHoverBg); }
