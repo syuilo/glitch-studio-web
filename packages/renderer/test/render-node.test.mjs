@@ -268,6 +268,57 @@ test('renderer graph traversal and frame history', async t => {
 		});
 	}
 
+	await t.test('bloom scales its fine detail with resolution while retaining the halo pyramid', t => {
+		const run = setup(t, [fx('input', 'fill'), fx('root', 'bloom', { input: 'input' })]);
+		t.mock.method(run.renderer, 'startRenderLoop', () => {});
+		let previous = run.frame();
+		assert.equal(previous.length, 13);
+		assert.equal(run.frame().length, 0);
+		for (const [width, height, gridWidth, gridHeight] of [
+			[1920, 1080, 960, 540], [3840, 2160, 1920, 1080],
+			[1080, 1920, 540, 960], [270, 480, 288, 512], [64, 64, 512, 512],
+		]) {
+			run.renderer.resize({ width, height });
+			const passes = run.frame();
+			assert.ok(passes.length >= 13);
+			for (const pass of passes) {
+				assert.ok(!previous.some(old => old.output === pass.output), 'resize replaces render targets');
+			}
+			for (const pass of [passes[0], passes.at(-1)]) {
+				assert.deepEqual([pass.output.width, pass.output.height], [width, height]);
+			}
+			assert.deepEqual([passes[1].output.width, passes[1].output.height], [gridWidth, gridHeight]);
+			const coarsest = passes[(passes.length - 1) / 2].output;
+			assert.equal(Math.max(coarsest.width, coarsest.height), 16, 'halo extent does not shrink at higher resolutions');
+			assert.equal(passes[1].inputs[0], passes[0].output, 'prefilter uses the resized input');
+			assert.deepEqual(passes.at(-1).inputs, [passes[0].output, passes[1].output]);
+			assert.equal(run.canvasInput, passes.at(-1).output);
+			assert.equal(run.frame().length, 0, 'new output is cached only after rendering');
+			previous = passes;
+		}
+	});
+
+	await t.test('bloom changes quality live, releases the previous pyramid and reuses unchanged resources', t => {
+		const nodes = quality => [fx('input', 'fill'), fx('root', 'bloom', { input: 'input', quality })];
+		const run = setup(t, nodes(0.5));
+		t.mock.method(run.renderer, 'startRenderLoop', () => {});
+		run.renderer.resize({ width: 2048, height: 1024 });
+		let previous = run.frame().slice(1);
+		for (const [quality, expectedWidth] of [[1, 2048], [0.25, 512], [0.5, 1024], [NaN, 1024], [0, 512], [2, 2048]]) {
+			const oldTargets = [...new Set(previous.slice(0, -1).map(pass => pass.output))];
+			const destroys = oldTargets.map(texture => t.mock.method(texture, 'destroy'));
+			run.renderer.updateNodes(nodes(quality));
+			const passes = run.frame();
+			assert.deepEqual([passes[0].output.width, passes[0].output.height], [expectedWidth, expectedWidth / 2]);
+			const changed = expectedWidth !== previous[0].output.width;
+			for (const destroy of destroys) assert.equal(destroy.mock.callCount(), changed ? 1 : 0);
+			assert.equal(passes.at(-1).output, previous.at(-1).output, 'quality does not replace the full resolution output');
+			assert.equal(passes.at(-1).inputs[1], passes[0].output, 'composite binds the current pyramid');
+			assert.equal(passes[0].inputs[0], previous[0].inputs[0], 'input remains unchanged');
+			previous = passes;
+		}
+	});
+
 	await t.test('empty groups and absent output nodes do not draw', t => {
 		const { frame } = setup(t, [group('root', [])]);
 		assert.deepEqual(frame(), []);

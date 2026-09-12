@@ -3,10 +3,9 @@ import type definition from '@glitch/shared/fx-definitions/bloom.ts';
 import { implementEffect } from '../../fx-implementation.ts';
 import code from './shader.wgsl?raw';
 
-// A fixed working grid AND level count keep the normalized bloom footprint
-// unchanged when rendering the same composition at another output resolution.
-const workingSize = 512;
-const levelCount = 6;
+// 光の広がりを決める段階は固定し、Qualityに応じて細部用の段階を手前に追加する。
+const haloSize = 512;
+const haloLevelCount = 6;
 
 export default implementEffect<typeof definition>({
 	getOut: ({ wgpu, resolution }) => wgpu.device.createTexture({
@@ -46,15 +45,8 @@ export default implementEffect<typeof definition>({
 		const upsamplePipeline = makePipeline('upsample', 'rgba16float', { color: blend, alpha: blend });
 		const compositePipeline = makePipeline('composite', navigator.gpu.getPreferredCanvasFormat());
 		const longestSide = Math.max(resolution.width, resolution.height);
-		const levels = Array.from({ length: levelCount }, (_, i) => {
-			const scale = workingSize / longestSide / 2 ** i;
-			const texture = device.createTexture({
-				size: [Math.max(1, Math.round(resolution.width * scale)), Math.max(1, Math.round(resolution.height * scale))],
-				format: 'rgba16float',
-				usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
-			});
-			return { texture, view: texture.createView() };
-		});
+		const clamp = (value: number, max: number, fallback: number) => Number.isFinite(value) ? Math.min(max, Math.max(0, value)) : fallback;
+		const getWorkingSize = (quality: number) => Math.min(device.limits.maxTextureDimension2D, Math.max(haloSize, Math.round(longestSide * Math.max(0.1, clamp(quality, 1, 0.5)))));
 		const makeBindGroup = (source: GPUTextureView, detail = source) => device.createBindGroup({
 			layout: bindGroupLayout,
 			entries: [
@@ -67,10 +59,30 @@ export default implementEffect<typeof definition>({
 		const makePass = (view: GPUTextureView, loadOp: GPULoadOp = 'clear'): GPURenderPassDescriptor => ({
 			colorAttachments: [{ view, loadOp, storeOp: 'store', clearValue: [0, 0, 0, 0] }],
 		});
-		const downPasses = levels.map(({ view }) => makePass(view));
-		const upPasses = levels.slice(0, -1).map(({ view }) => makePass(view, 'load'));
-		const downGroups = levels.slice(0, -1).map(({ view }) => makeBindGroup(view));
-		const upGroups = levels.slice(1).map(({ view }) => makeBindGroup(view));
+		const makePyramid = (workingSize: number) => {
+			const sizes: number[] = [];
+			// 一度に大きく縮小すると細い光を取りこぼすため、最大でも約1/2ずつ縮小する。
+			for (let size = workingSize; size > haloSize; size /= 2) sizes.push(size);
+			const detailLevelCount = sizes.length;
+			for (let i = 0; i < haloLevelCount; i++) sizes.push(haloSize / 2 ** i);
+			const levels = sizes.map(size => {
+				const scale = size / longestSide;
+				const texture = device.createTexture({
+					size: [Math.max(1, Math.round(resolution.width * scale)), Math.max(1, Math.round(resolution.height * scale))],
+					format: 'rgba16float',
+					usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
+				});
+				return { texture, view: texture.createView() };
+			});
+			return {
+				workingSize, detailLevelCount, levels,
+				downPasses: levels.map(({ view }) => makePass(view)),
+				upPasses: levels.slice(0, -1).map(({ view }) => makePass(view, 'load')),
+				downGroups: levels.slice(0, -1).map(({ view }) => makeBindGroup(view)),
+				upGroups: levels.slice(1).map(({ view }) => makeBindGroup(view)),
+			};
+		};
+		let pyramid = makePyramid(getWorkingSize(params.quality));
 		let inputTexture: GPUTexture | null | undefined;
 		let prefilterGroup: GPUBindGroup;
 		let compositeGroup: GPUBindGroup;
@@ -78,7 +90,7 @@ export default implementEffect<typeof definition>({
 			inputTexture = input;
 			const view = (input ?? fallbackTexture).createView();
 			prefilterGroup = makeBindGroup(view);
-			compositeGroup = makeBindGroup(view, levels[0].view);
+			compositeGroup = makeBindGroup(view, pyramid.levels[0].view);
 		};
 		updateInput(params.input);
 		const draw = (pass: GPURenderPassEncoder, pipeline: GPURenderPipeline, group: GPUBindGroup) => {
@@ -87,11 +99,17 @@ export default implementEffect<typeof definition>({
 			pass.draw(6);
 			pass.end();
 		};
-		const clamp = (value: number, max: number, fallback: number) => Number.isFinite(value) ? Math.min(max, Math.max(0, value)) : fallback;
 
 		return {
 			render: (ctx) => {
-				if (ctx.params.input !== inputTexture) updateInput(ctx.params.input);
+				const workingSize = getWorkingSize(ctx.params.quality);
+				const resized = workingSize !== pyramid.workingSize;
+				if (resized) {
+					for (const { texture } of pyramid.levels) texture.destroy();
+					pyramid = makePyramid(workingSize);
+				}
+				if (resized || ctx.params.input !== inputTexture) updateInput(ctx.params.input);
+				const { levels, downPasses, upPasses, downGroups, upGroups } = pyramid;
 				const strength = inputTexture == null ? 0 : clamp(ctx.params.strength, 5, 1);
 				const radius = clamp(ctx.params.radius, 1, 0.7);
 				uniformValues.set({
@@ -104,14 +122,15 @@ export default implementEffect<typeof definition>({
 				if (strength > 0) {
 					draw(ctx.createPassEncoder(ctx.commandEncoder, downPasses[0]), prefilterPipeline, prefilterGroup);
 					if (radius > 0) {
-						for (let i = 1; i < levelCount; i++) {
+						for (let i = 1; i < levels.length; i++) {
 							draw(ctx.createPassEncoder(ctx.commandEncoder, downPasses[i]), downsamplePipeline, downGroups[i - 1]);
 						}
-						for (let i = levelCount - 2; i >= 0; i--) {
+						for (let i = levels.length - 2; i >= 0; i--) {
 							const pass = ctx.createPassEncoder(ctx.commandEncoder, upPasses[i]);
-							// Normalized weights preserve brightness while shifting energy
-							// toward coarser scales as radius increases.
-							pass.setBlendConstant([radius, radius, radius, radius]);
+							// 細部用の中間段階では光をそのまま拡大し、最上段でだけ細部と混ぜる。
+							// 段階が増えてもRadiusが繰り返し掛かって光が弱まったり狭まったりしない。
+							const weight = i === 0 || i > pyramid.detailLevelCount ? radius : 1;
+							pass.setBlendConstant([weight, weight, weight, weight]);
 							draw(pass, upsamplePipeline, upGroups[i]);
 						}
 					}
@@ -120,7 +139,7 @@ export default implementEffect<typeof definition>({
 			},
 			dispose: () => {
 				uniformBuffer.destroy();
-				for (const { texture } of levels) texture.destroy();
+				for (const { texture } of pyramid.levels) texture.destroy();
 			},
 		};
 	},

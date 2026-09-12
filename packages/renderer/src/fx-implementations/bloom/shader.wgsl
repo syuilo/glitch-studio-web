@@ -38,7 +38,9 @@ fn highlight(uv: vec2f) -> vec4f {
 @fragment
 fn prefilter(frag: FragmentIn) -> @location(0) vec4f {
 	let uv = texCoords(frag.uv);
-	let d = uniforms.prefilterTexel * 0.5;
+	// 等倍なら画素中心を読む。半画素ずらすと細い光が抽出前に薄まってしまう。
+	let sourceTexel = 1.0 / vec2f(textureDimensions(sourceTexture));
+	let d = max(uniforms.prefilterTexel - sourceTexel, vec2f(0.0)) * 0.5;
 	// Extract before averaging so small highlights aren't lost to the threshold.
 	return (highlight(uv + vec2f(-d.x, -d.y))
 		+ highlight(uv + vec2f(d.x, -d.y))
