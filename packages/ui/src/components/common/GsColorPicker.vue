@@ -359,13 +359,12 @@ onBeforeUnmount(() => {
 .hue { background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00); }
 .checker { background: repeating-conic-gradient(#888 0% 25%, #ccc 0% 50%) 0 / 10px 10px; }
 .alpha, .fill { width: 100%; height: 100%; border-radius: inherit; }
-.row { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+.row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
 .format { width: 30px; flex-shrink: 0; font-size: 11px; }
 .field { flex: 1; min-width: 0; }
 .label { display: block; font-size: 10px; opacity: 0.6; margin-bottom: 3px; }
 .editor {
-	padding: 6px 4px;
-	min-height: 15px;
+	padding: 6px 8px;
 	border-radius: 4px;
 	background: var(--THEME-panel);
 	white-space: pre;
