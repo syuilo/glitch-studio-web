@@ -2,7 +2,7 @@
 <div :class="$style.root">
 	<div ref="allInPortEl" :class="$style.allInPort">・</div>
 	<header class="drag-handle" :class="$style.header" @dblclick="expanded = !expanded">Group: {{ node.name }}</header>
-	<div :class="[$style.indicator, { [$style.active]: node.isEnabled }]"></div>
+	<div :class="[$style.indicator, { [$style.active]: node.isBypass }]"></div>
 	<div :class="$style.buttons">
 		<GsButton :class="$style.headerButton" @click="expanded = !expanded"><i class="ti" :class="expanded ? 'ti-chevron-up' : 'ti-chevron-down'"></i></GsButton>
 		<GsButton :class="$style.headerButton" @click="showSettings = !showSettings"><i class="ti ti-settings"></i></GsButton>

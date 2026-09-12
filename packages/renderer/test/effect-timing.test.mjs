@@ -70,7 +70,7 @@ test('effect GPU statistics include compute and render passes', async t => {
 		});
 		for (const [fx, expected, count] of [['pixelSort', 7.1, 1], ['liquidMetal', 83.1, 1], ['bloom', 1.2, 1], ['bloom', 2.4, 2]]) {
 			const makeNodes = (patch = {}) => Array.from({ length: count }, (_, i) => ({
-				id: i === count - 1 ? 'effect' : `input-${i}`, type: 'fx', fx, isEnabled: true,
+				id: i === count - 1 ? 'effect' : `input-${i}`, type: 'fx', fx, isBypass: true,
 				params: {
 					...fxDefinitions[fx].getDefaultParams(), ...patch,
 					input: { type: 'literal', value: i === 0 ? null : `input-${i - 1}` },

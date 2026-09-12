@@ -233,9 +233,9 @@ export class Renderer {
 		const nextVisited = [...visited, node.id];
 		if (node.type === 'group') {
 			// グループには主入力がないため、無効時は子の出力も公開しない。
-			return node.isEnabled ? this.getOutputNode(node.nodes.at(-1), nextVisited) : undefined;
+			return node.isBypass ? this.getOutputNode(node.nodes.at(-1), nextVisited) : undefined;
 		}
-		if (node.isEnabled) return node;
+		if (node.isBypass) return node;
 		const primary = Object.entries(fxDefinitions[node.fx].paramDefs).find(([, def]) => def.type === 'node' && def.primary);
 		const inputId = primary ? this.evaledNodeParams.get(node.id)?.[primary[0]] : null;
 		return inputId == null ? undefined : this.getOutputNode(this.findNode(inputId), nextVisited);
@@ -301,7 +301,7 @@ export class Renderer {
 
 			for (const [k, v] of Object.entries(mergedParams)) {
 				// 無効時はバイパス先だけが必要。使わない式やオートメーションも評価しない。
-				if (!node.isEnabled && !(paramDefs[k].type === 'node' && paramDefs[k].primary)) continue;
+				if (!node.isBypass && !(paramDefs[k].type === 'node' && paramDefs[k].primary)) continue;
 				evaluatedParams[k] =
 					v.type === 'literal'
 						? v.value
@@ -363,9 +363,9 @@ export class Renderer {
 			throw new Error('circular dependency detected');
 		}
 
-		let key = `node=${JSON.stringify(node.id)};isEnabled=${node.isEnabled};`;
+		let key = `node=${JSON.stringify(node.id)};isBypass=${node.isBypass};`;
 
-		if (node.type === 'group' || !node.isEnabled) {
+		if (node.type === 'group' || !node.isBypass) {
 			// 出力に寄与しない入力やdisableCacheには依存しない。
 			// 出力元のIDもキーに含め、同じパラメータの別ノードへの切り替えを検出する。
 			const output = this.getOutputNode(node);
@@ -449,7 +449,7 @@ export class Renderer {
 			return;
 		}
 
-		if (node.type === 'group' || !node.isEnabled) {
+		if (node.type === 'group' || !node.isBypass) {
 			// 無効中は自身を描画せず、主入力だけを更新する。履歴は保持して再有効化時に再開する。
 			const output = this.getOutputNode(node);
 			if (output == null) return;

@@ -84,7 +84,7 @@ const addFxNodeCommandDef = defineCommand<{ id: string; fx: string; params?: Rec
 				if (group) {
 					group.nodes.push({
 						id: payload.id,
-						isEnabled: true,
+						isBypass: true,
 						type: 'fx',
 						fx: payload.fx,
 						params: {
@@ -96,7 +96,7 @@ const addFxNodeCommandDef = defineCommand<{ id: string; fx: string; params?: Rec
 				} else {
 					state.nodes.value.push({
 						id: payload.id,
-						isEnabled: true,
+						isBypass: true,
 						type: 'fx',
 						fx: payload.fx,
 						params: {
@@ -239,7 +239,7 @@ const addGroupNodeCommandDef = defineCommand<{ id: string; groupId?: GsGroupNode
 					const group = state.nodes.value.find(node => node.id === payload.groupId) as GsGroupNode;
 					group.nodes.push({
 						id: payload.id,
-						isEnabled: true,
+						isBypass: true,
 						type: 'group',
 						nodes: [],
 						macros: [],
@@ -249,7 +249,7 @@ const addGroupNodeCommandDef = defineCommand<{ id: string; groupId?: GsGroupNode
 				} else {
 					state.nodes.value.push({
 						id: payload.id,
-						isEnabled: true,
+						isBypass: true,
 						type: 'group',
 						nodes: [],
 						macros: [],
@@ -677,17 +677,17 @@ const updateParamAsNodeCommandDef = defineCommand<{ nodeId: GsNode['id']; param:
 	},
 });
 
-const changeNodeEnableStateCommandDef = defineCommand<{ nodeId: GsNode['id']; enabled: boolean }>({
-	label: 'Change node enable state',
+const changeNodeBypassStateCommandDef = defineCommand<{ nodeId: GsNode['id']; bypass: boolean }>({
+	label: 'Change node bypass state',
 	create: (payload) => {
 		return {
 			execute(state) {
 				const node = stateUtility.findNode(state, payload.nodeId) as GsFxNode;
-				node.isEnabled = payload.enabled;
+				node.isBypass = payload.bypass;
 			},
 			undo(state) {
 				const node = stateUtility.findNode(state, payload.nodeId) as GsFxNode;
-				node.isEnabled = !payload.enabled;
+				node.isBypass = !payload.bypass;
 			},
 		};
 	},
@@ -738,6 +738,6 @@ export const COMMAND_DEFS = {
 	updateParamAsExpression: updateParamAsExpressionCommandDef,
 	updateParamAsAutomation: updateParamAsAutomationCommandDef,
 	updateParamAsNode: updateParamAsNodeCommandDef,
-	changeNodeEnableState: changeNodeEnableStateCommandDef,
+	changeNodeBypassState: changeNodeBypassStateCommandDef,
 	resetNodeParam: resetNodeParamCommandDef,
 };

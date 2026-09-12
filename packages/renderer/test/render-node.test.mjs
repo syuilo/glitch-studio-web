@@ -17,7 +17,7 @@ test('renderer graph traversal and frame history', async t => {
 	const { Renderer } = await server.ssrLoadModule('/src/renderer.ts');
 	const { fxDefinitions } = await server.ssrLoadModule('@glitch/shared/fx-definitions.ts');
 	const fx = (id, name, params = {}) => ({
-		id, type: 'fx', fx: name, isEnabled: true,
+		id, type: 'fx', fx: name, isBypass: true,
 		params: {
 			...fxDefinitions[name].getDefaultParams(),
 			...Object.fromEntries(Object.entries(params).map(([key, value]) => [key,
@@ -27,7 +27,7 @@ test('renderer graph traversal and frame history', async t => {
 			])),
 		},
 	});
-	const group = (id, nodes) => ({ id, type: 'group', isEnabled: true, macros: [], nodes });
+	const group = (id, nodes) => ({ id, type: 'group', isBypass: true, macros: [], nodes });
 
 	function setup(t, nodes) {
 		const device = createDevice(false);
@@ -79,7 +79,7 @@ test('renderer graph traversal and frame history', async t => {
 		};
 	}
 
-	const disabled = node => ({ ...node, isEnabled: false });
+	const disabled = node => ({ ...node, isBypass: false });
 
 	for (const name of ['blend', 'mix', 'dataBlend', 'dataMix']) {
 		await t.test(`${name} preserves output precision and renders node-driven amount`, t => {

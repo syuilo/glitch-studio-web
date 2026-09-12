@@ -88,7 +88,7 @@ export type GsFxNode = {
 	id: string;
 	type: 'fx';
 	fx: string;
-	isEnabled: boolean;
+	isBypass: boolean;
 	params: Record<string, FxParamValue>;
 
 	// 2D平面上でノードを配置できるようになった時のため
@@ -98,7 +98,7 @@ export type GsFxNode = {
 export type GsGroupNode = {
 	id: string;
 	type: 'group';
-	isEnabled: boolean;
+	isBypass: boolean;
 	name: string;
 	nodes: GsNode[];
 	macros: Macro[];
