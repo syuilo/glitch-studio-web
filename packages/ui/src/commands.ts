@@ -639,6 +639,22 @@ const updateParamAsNodeCommandDef = defineCommand<{ nodeId: GsNode['id']; param:
 	},
 });
 
+const changeNodeEnableStateCommandDef = defineCommand<{ nodeId: GsNode['id']; enabled: boolean }>({
+	label: 'Change node enable state',
+	create: (payload) => {
+		return {
+			execute(state) {
+				const node = stateUtility.findNode(state, payload.nodeId) as GsFxNode;
+				node.isEnabled = payload.enabled;
+			},
+			undo(state) {
+				const node = stateUtility.findNode(state, payload.nodeId) as GsFxNode;
+				node.isEnabled = !payload.enabled;
+			},
+		};
+	},
+});
+
 export const COMMAND_DEFS = {
 	addFxNode: addFxNodeCommandDef,
 	moveNode: moveNodeCommandDef,
@@ -665,4 +681,5 @@ export const COMMAND_DEFS = {
 	updateParamAsExpression: updateParamAsExpressionCommandDef,
 	updateParamAsAutomation: updateParamAsAutomationCommandDef,
 	updateParamAsNode: updateParamAsNodeCommandDef,
+	changeNodeEnableState: changeNodeEnableStateCommandDef,
 };

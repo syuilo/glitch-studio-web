@@ -207,7 +207,10 @@ function remove() {
 }
 
 function toggleEnable() {
-
+	appContext.commit('changeNodeEnableState', {
+		nodeId: props.node.id,
+		enabled: !props.node.isEnabled,
+	});
 }
 
 onMounted(() => {
