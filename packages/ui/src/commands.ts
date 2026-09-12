@@ -164,8 +164,46 @@ const moveNodeCommandDef = defineCommand<{ nodeId: string; groupId: string | nul
 const removeNodeCommandDef = defineCommand<{ nodeId: string }>({
 	label: 'Remove node',
 	create: (payload) => {
+		let before: GsNode[];
 		return {
 			execute(state) {
+				// ノードの削除と接続の変更を一つの操作としてUndoできるように保存する。
+				before = deepClone(state.nodes.value);
+				const removedNode = stateUtility.findNode(state, payload.nodeId);
+				if (removedNode == null) return;
+				const primary = removedNode.type === 'fx'
+					? Object.entries(fxDefinitions[removedNode.fx].paramDefs).find(([, def]) => def.type === 'node' && def.primary)
+					: undefined;
+				const input = removedNode.type === 'fx' && primary ? removedNode.params[primary[0]] : undefined;
+				// UIでは式を評価できないため、静的に指定されている主入力だけを接続先に使う。
+				const inputId = input?.type === 'literal' ? input.value : input?.type === 'node' ? input.nodeId : null;
+				const replacementId = typeof inputId === 'string' && inputId !== payload.nodeId ? inputId : null;
+				const removedIds = new Set<string>();
+				const collectRemovedIds = (node: GsNode) => {
+					removedIds.add(node.id);
+					if (node.type === 'group') node.nodes.forEach(collectRemovedIds);
+				};
+				collectRemovedIds(removedNode);
+				const reconnect = (nodes: GsNode[]) => {
+					for (const node of nodes) {
+						if (removedIds.has(node.id)) continue;
+						if (node.type === 'group') {
+							reconnect(node.nodes);
+							continue;
+						}
+						for (const [key, param] of Object.entries(node.params)) {
+							const def = fxDefinitions[node.fx].paramDefs[key];
+							// A → B → CのBを削除したら、Cの参照をAへ書き換える。
+							// 主入力のないFXやグループ（子も含む）の削除では未接続にする。
+							if (def.type === 'node' && param.type === 'literal' && removedIds.has(param.value)) {
+								node.params[key] = { type: 'literal', value: replacementId };
+							} else if ((def.type === 'node' || def.canNode) && param.type === 'node' && param.nodeId != null && removedIds.has(param.nodeId)) {
+								node.params[key] = { type: 'node', nodeId: replacementId };
+							}
+						}
+					}
+				};
+				reconnect(state.nodes.value);
 				const treat = (src: GsNode) => {
 					if (src.type === 'group') {
 						for (const node of src.nodes) {
@@ -186,7 +224,7 @@ const removeNodeCommandDef = defineCommand<{ nodeId: string }>({
 				}
 			},
 			undo(state) {
-				// TODO
+				state.nodes.value = deepClone(before);
 			},
 		};
 	},
