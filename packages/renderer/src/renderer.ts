@@ -690,6 +690,8 @@ export class Renderer {
 		}
 
 		for (const node of removedNodes) {
+			// 出力を破棄するため、リサイズや同じIDでの復元後は再描画が必要。
+			this.effectCacheKeys.delete(node.id);
 			const out = this.effectOuts.get(node.id);
 			if (out) {
 				out.texture.destroy();

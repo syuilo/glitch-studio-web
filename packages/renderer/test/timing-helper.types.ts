@@ -1,4 +1,4 @@
-import TimingHelper from '../src/TimingHelper.ts';
+import TimingHelper from '../src/utility/TimingHelper.ts';
 
 declare const device: GPUDevice;
 declare const encoder: GPUCommandEncoder;

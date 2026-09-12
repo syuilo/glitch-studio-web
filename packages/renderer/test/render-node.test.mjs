@@ -83,7 +83,7 @@ test('renderer graph traversal and frame history', async t => {
 
 	const disabled = node => ({ ...node, isBypass: false });
 
-	for (const name of ['blend', 'mix', 'dataBlend', 'dataMix']) {
+	for (const name of ['colorBlend', 'colorMix', 'dataBlend', 'dataMix']) {
 		await t.test(`${name} preserves output precision and renders node-driven amount`, t => {
 			const run = setup(t, [fx('a', 'fill'), fx('b', 'fill'), fx('weight', 'multiply'), fx('root', name, { inputA: 'a', inputB: 'b', amount: 'weight' })]);
 			const passes = run.frame();
@@ -235,6 +235,38 @@ test('renderer graph traversal and frame history', async t => {
 		assert.equal(changed.length, 1);
 		assert.equal(changed[0].output, first[0].output, 'ordinary effects retain their output');
 	});
+
+	for (const operation of ['resize', 'remove and restore']) {
+		await t.test(`${operation} redraws static image output and downstream effects`, t => {
+			const nodes = [fx('image', 'image', { image: 'asset' }), fx('root', 'multiply', { input: 'image', v: 2 })];
+			const run = setup(t, nodes);
+			run.renderer.updateAssets([{ id: 'asset', fileDataType: 'image/png', width: 1, height: 1, data: new Uint8Array([255, 0, 0, 255]) }]);
+			t.mock.method(run.renderer, 'startRenderLoop', () => {});
+			let previous = run.frame();
+			assert.equal(previous.length, 2);
+			assert.equal(run.frame().length, 0);
+			for (const size of [32, 64]) {
+				if (operation === 'resize') {
+					run.renderer.resize({ width: size, height: size });
+				} else {
+					run.renderer.updateNodes([]);
+					run.renderer.updateNodes(nodes);
+				}
+				const passes = run.frame();
+				assert.equal(passes.length, 2, 'new output textures must be drawn before they can be cached');
+				for (let i = 0; i < passes.length; i++) {
+					assert.notEqual(passes[i].output, previous[i].output);
+					assert.equal(passes[i].output.width, operation === 'resize' ? size : 64);
+					assert.equal(passes[i].output.height, operation === 'resize' ? size : 64);
+				}
+				assert.equal(passes[0].inputs[0], previous[0].inputs[0], 'the source asset is retained');
+				assert.equal(passes[1].inputs[0], passes[0].output);
+				assert.equal(run.canvasInput, passes[1].output);
+				assert.equal(run.frame().length, 0, 'unchanged frames reuse the new output');
+				previous = passes;
+			}
+		});
+	}
 
 	await t.test('empty groups and absent output nodes do not draw', t => {
 		const { frame } = setup(t, [group('root', [])]);

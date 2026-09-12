@@ -18,7 +18,7 @@ test('effect GPU statistics include compute and render passes', async t => {
 	try {
 		const { Renderer } = await server.ssrLoadModule('/src/renderer.ts');
 		const { fxDefinitions } = await server.ssrLoadModule('@glitch/shared/fx-definitions.ts');
-		const { default: TimingHelper } = await server.ssrLoadModule('/src/TimingHelper.ts');
+		const { default: TimingHelper } = await server.ssrLoadModule('/src/utility/TimingHelper.ts');
 		await t.test('worker publishes memory every second even when GPU timing is disabled', async t => {
 			const callbacks = new Map();
 			const messages = [];
@@ -75,6 +75,11 @@ test('effect GPU statistics include compute and render passes', async t => {
 					...Object.fromEntries(Object.entries(fxDefinitions[fx].paramDefs).map(([key, param]) => [
 						key, param.default(),
 					])),
+					// 現行のliquidMetal実装はRGBに別パラメータのalphaを追加する。
+					...(fx === 'liquidMetal' ? {
+						colorBack: { type: 'literal', value: [170 / 255, 170 / 255, 172 / 255] },
+						colorTint: { type: 'literal', value: [1, 1, 1] },
+					} : {}),
 					...patch,
 					input: { type: 'literal', value: i === 0 ? null : `input-${i - 1}` },
 				},

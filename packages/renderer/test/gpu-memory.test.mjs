@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { GpuMemoryTracker } from '../src/GpuMemoryTracker.ts';
+import { GpuMemoryTracker } from '../src/utility/GpuMemoryTracker.ts';
 
 function createDevice() {
 	const device = {
