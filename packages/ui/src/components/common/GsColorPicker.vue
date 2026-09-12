@@ -335,7 +335,7 @@ onBeforeUnmount(() => {
 }
 .map {
 	position: relative;
-	height: 170px;
+	height: 150px;
 	margin: 6px;
 	background-image: linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent);
 	cursor: crosshair;
