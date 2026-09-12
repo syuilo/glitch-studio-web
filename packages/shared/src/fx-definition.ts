@@ -10,11 +10,13 @@ export type NumberOptionSchema = {
 export type BooleanOptionSchema = {
 	type: 'bool';
 	label: string;
+	canNode?: false;
 };
 
 export type ColorOptionSchema = {
 	type: 'color';
 	label: string;
+	canNode?: false;
 };
 
 export type VectorOptionSchema = {
@@ -29,16 +31,19 @@ export type VectorOptionSchema = {
 export type SignalOptionSchema = {
 	type: 'signal';
 	label: string;
+	canNode?: false;
 };
 
 export type BlendModeOptionSchema = {
 	type: 'blendMode';
 	label: string;
+	canNode?: false;
 };
 
 export type SeedOptionSchema = {
 	type: 'seed';
 	label: string;
+	canNode?: false;
 };
 
 export type EnumOptionSchema = {
@@ -48,6 +53,7 @@ export type EnumOptionSchema = {
 		value: string | number | null;
 		label: string;
 	}[];
+	canNode?: false;
 };
 
 export type RangeOptionSchema = {
@@ -62,11 +68,13 @@ export type RangeOptionSchema = {
 export type ImageOptionSchema = {
 	type: 'image';
 	label: string;
+	canNode?: false;
 };
 
 export type PlayerOptionSchema = {
 	type: 'player';
 	label: string;
+	canNode?: false;
 };
 
 export type NodeOptionSchema = {
@@ -74,6 +82,7 @@ export type NodeOptionSchema = {
 	label: string;
 	dataType: 'color' | 'scalar' | 'vector' | 'any';
 	primary?: boolean;
+	canNode?: false;
 };
 
 export type EffectOptionsSchema = Record<string,

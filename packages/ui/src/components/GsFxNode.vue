@@ -11,7 +11,7 @@
 
 	<div v-show="expanded" :class="$style.params" :inert="!node.isBypass">
 		<div v-for="param in Object.keys(paramDefs)" v-show="paramDefs[param].visibility == null || paramDefs[param].visibility(node.params)" :key="param" :class="$style.param">
-			<div :class="[$style.paramLabel, { [$style.expression]: isExpression(param) }]" @click="changeValueType(param, $event)">
+			<div :class="[$style.paramLabel, { [$style.expression]: isExpression(param) }]" @click="showPerParamMenu(param, $event)">
 				<GsCondensedLine>{{ paramDefs[param].label }}</GsCondensedLine>
 			</div>
 			<div :class="$style.paramBody">
@@ -52,6 +52,7 @@ import GsButton from './common/GsButton.vue';
 import GsInput from './common/GsInput.vue';
 import GsCondensedLine from './common/GsCondensedLine.vue';
 import type { GsAutomation, GsFxNode, GsGroupNode, GsNode } from '@glitch/shared/types.ts';
+import type { MenuItem } from '@/types/menu.ts';
 import { i18n } from '@/i18n.ts';
 import { appContext, wireMap } from '@/app.ts';
 import * as ui from '@/ui.ts';
@@ -135,56 +136,70 @@ async function selectNode(param: string, ev: MouseEvent) {
 	});
 }
 
-async function changeValueType(param: string, ev: MouseEvent) {
-	const type = await new Promise((res) => {
-		ui.popupMenu([{
-			text: 'Copy',
-			action: () => {
-			},
-		}, {
-			text: 'Paste',
-			action: () => {
-			},
-		}, {
-			text: 'Reset',
-			danger: true,
-			action: () => {
-				appContext.commit('resetNodeParam', {
-					nodeId: props.node.id,
-					param: param,
-				});
-			},
-		}, {
-			type: 'label',
-			text: 'Type',
-		}, {
-			text: 'Literal',
-			action: () => {
-				res('literal');
-			},
-		}, {
-			text: 'Automation',
-			action: () => {
-				res('automation');
-			},
-		}, {
-			text: 'Expression',
-			action: () => {
-				res('expression');
-			},
-		}, { // TODO: 対応している場合のみ
+async function showPerParamMenu(param: string, ev: PointerEvent) {
+	const menuItems: MenuItem[] = [{
+		text: 'Copy',
+		action: () => {
+		},
+	}, {
+		text: 'Paste',
+		action: () => {
+		},
+	}, {
+		text: 'Reset',
+		danger: true,
+		action: () => {
+			appContext.commit('resetNodeParam', {
+				nodeId: props.node.id,
+				param: param,
+			});
+		},
+	}, {
+		type: 'label',
+		text: 'Type',
+	}, {
+		text: 'Literal',
+		action: () => {
+			appContext.commit('changeParamValueType', {
+				nodeId: props.node.id,
+				param: param,
+				type: 'literal',
+			});
+		},
+	}, {
+		text: 'Automation',
+		action: () => {
+			appContext.commit('changeParamValueType', {
+				nodeId: props.node.id,
+				param: param,
+				type: 'automation',
+			});
+		},
+	}, {
+		text: 'Expression',
+		action: () => {
+			appContext.commit('changeParamValueType', {
+				nodeId: props.node.id,
+				param: param,
+				type: 'expression',
+			});
+		},
+	}];
+
+	if (paramDefs[param].canNode) {
+		menuItems.push({
 			text: 'Node',
 			action: () => {
-				res('node');
+				appContext.commit('changeParamValueType', {
+					nodeId: props.node.id,
+					param: param,
+					type: 'node',
+				});
 			},
-		}], ev.currentTarget ?? ev.target);
-	});
+		});
+	}
 
-	appContext.commit('changeParamValueType', {
-		nodeId: props.node.id,
-		param: param,
-		type: type,
-	});
+	ui.popupMenu(menuItems, ev.currentTarget ?? ev.target);
 }
 
 let commandMergeKey: string | null = null;
