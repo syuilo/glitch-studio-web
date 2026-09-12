@@ -34,6 +34,8 @@ test('renderer graph traversal and frame history', async t => {
 	function setup(t, nodes) {
 		const device = createDevice(false);
 		const passes = [];
+		const clears = [];
+		device.importExternalTexture = ({ source }) => ({ source });
 		let canvasInput;
 		// Keep the real Renderer and effects; record texture bindings at the GPU boundary.
 		device.createBindGroup = descriptor => descriptor;
@@ -44,6 +46,9 @@ test('renderer graph traversal and frame history', async t => {
 			encoder.beginRenderPass = descriptor => {
 				const pass = beginPass(descriptor);
 				const output = descriptor.colorAttachments[0].view.texture;
+				if (!output.canvas && descriptor.colorAttachments[0].loadOp === 'clear') {
+					clears.push(descriptor.colorAttachments[0]);
+				}
 				const inputs = [];
 				pass.setBindGroup = (_, bindGroup) => {
 					for (const { resource } of bindGroup.entries) {
@@ -72,9 +77,11 @@ test('renderer graph traversal and frame history', async t => {
 		let time = performance.now();
 		return {
 			renderer,
+			clears,
 			get canvasInput() { return canvasInput; },
 			frame(id = 'root') {
 				passes.length = 0;
+				clears.length = 0;
 				renderer.render(id, { time: time += 16 });
 				return [...passes];
 			},
@@ -82,6 +89,42 @@ test('renderer graph traversal and frame history', async t => {
 	}
 
 	const disabled = node => ({ ...node, isBypass: false });
+
+	await t.test('video caches shared player frames and invalidates downstream on updates', t => {
+		const nodes = (player = 'player', sizeMode = 1) => [
+			fx('a', 'video', { player, sizeMode }), fx('b', 'video', { player }),
+			fx('root', 'colorMix', { inputA: 'a', inputB: 'b' }),
+		];
+		const run = setup(t, nodes());
+		let closes = 0;
+		const newFrame = () => ({ timestamp: 0, close() { closes++; } });
+		run.renderer.updateVideoFrame('player', newFrame());
+		assert.equal(run.frame().length, 3);
+		assert.equal(run.frame().length, 0, 'unchanged frame and downstream output are cached');
+		run.renderer.updateVideoFrame('other', newFrame());
+		assert.equal(run.frame().length, 0, 'unreferenced players do not invalidate output');
+		run.renderer.updateVideoFrame('player', newFrame());
+		assert.equal(closes, 1);
+		assert.equal(run.frame().length, 3, 'new frames invalidate both consumers even with the same timestamp');
+		assert.equal(run.frame().length, 0);
+		run.renderer.updateNodes(nodes('player', 2));
+		assert.equal(run.frame().length, 2, 'size mode invalidates video and downstream');
+		run.renderer.updateNodes(nodes('other', 2));
+		assert.equal(run.frame().length, 3, 'switching players invalidates output');
+		assert.equal(run.frame().length, 0);
+	});
+
+	await t.test('video clears absent frames once and redraws after removal and restoration', t => {
+		const run = setup(t, [fx('video', 'video', { player: 'player' }), fx('root', 'multiply', { input: 'video' })]);
+		for (const frame of [null, { close() {} }, null, { close() {} }]) {
+			run.renderer.updateVideoFrame('player', frame);
+			assert.equal(run.frame().length, frame ? 2 : 1);
+			assert.equal(run.clears.length, 2, 'video output is cleared even without a frame');
+			if (!frame) assert.deepEqual(run.clears[0].clearValue, { r: 0, g: 0, b: 0, a: 0 });
+			assert.equal(run.frame().length, 0);
+			assert.equal(run.clears.length, 0, 'transparent output is cached too');
+		}
+	});
 
 	for (const name of ['colorBlend', 'colorMix', 'dataBlend', 'dataMix']) {
 		await t.test(`${name} preserves output precision and renders node-driven amount`, t => {

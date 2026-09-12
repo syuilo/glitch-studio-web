@@ -64,6 +64,7 @@ export class Renderer {
 	private automations: GsAutomation[] = [];
 	private assetTextures: Map<string, GPUTexture> = new Map();
 	private videoFrames: Map<Player['id'], VideoFrame> = new Map();
+	private videoFrameVersions: Map<Player['id'], number> = new Map();
 	private audioSources = new Map<AudioSourceId, AudioHistory>();
 	private audioPorts = new Map<AudioSourceId, MessagePort>();
 	private effectInstances: Map<GsFxNode['id'], EffectInstance | null> = new Map();
@@ -371,6 +372,9 @@ export class Renderer {
 
 			for (const [k, v] of Object.entries(this.evaledNodeParams.get(node.id)!)) {
 				key += `${k}=${JSON.stringify(v)};`;
+				if (node.fx === 'video' && paramDefs[k].type === 'player') {
+					key += `${k}:videoFrameVersion=${v == null ? 0 : this.videoFrameVersions.get(v) ?? 0};`;
+				}
 
 				if (paramDefs[k].type === 'node') {
 					if (v) {
@@ -533,6 +537,7 @@ export class Renderer {
 			params: resolvedParams,
 			previousFrameTexture,
 			previousFrameTextureView,
+			outputTextureView,
 			commandEncoder: commandEncoder,
 			createPassEncoder: (commandEncoder, descriptor) => {
 				const _descriptor = descriptor ?? {
@@ -769,6 +774,8 @@ export class Renderer {
 	}
 
 	public updateVideoFrame(playerId: Player['id'], videoFrame: VideoFrame | null) {
+		// 同じtimestampでも別のフレームとして扱う。削除・再追加でも更新番号を戻さない。
+		this.videoFrameVersions.set(playerId, (this.videoFrameVersions.get(playerId) ?? 0) + 1);
 		this.videoFrames.get(playerId)?.close();
 		if (videoFrame) {
 			this.videoFrames.set(playerId, videoFrame);
@@ -870,6 +877,7 @@ export class Renderer {
 		for (const id of this.audioPorts.keys()) this.resetAudioSource(id, null);
 		for (const frame of this.videoFrames.values()) frame.close();
 		this.videoFrames.clear();
+		this.videoFrameVersions.clear();
 		this.gpuHistogram.dispose();
 		this.gpuWaveform.dispose();
 

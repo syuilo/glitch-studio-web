@@ -4,7 +4,6 @@ import code from './shader.wgsl?raw';
 import type definition from '@glitch/shared/fx-definitions/video.ts';
 
 export default implementEffect<typeof definition>({
-	disableCache: true,
 	getOut: ({ wgpu, resolution }) => {
 		const out = wgpu.device.createTexture({
 			size: resolution,
@@ -58,6 +57,15 @@ export default implementEffect<typeof definition>({
 			render: (ctx) => {
 				if (!ctx.params.player?.videoFrame) {
 					bindGroup = null;
+					// フレーム削除後に以前の映像がキャッシュとして残らないよう透明にする。
+					ctx.createPassEncoder(ctx.commandEncoder, {
+						colorAttachments: [{
+							view: ctx.outputTextureView,
+							clearValue: { r: 0, g: 0, b: 0, a: 0 },
+							loadOp: 'clear',
+							storeOp: 'store',
+						}],
+					}).end();
 					return;
 				}
 				if (ctx.params.player.videoFrame) {
