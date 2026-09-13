@@ -10,6 +10,6 @@ export default defineEffect({
 		halfLife: { type: 'range', min: 1, max: 5000, step: 1, label: 'Half-life (ms)', default: { type: 'literal', value: 300 }, default: () => ({ type: 'literal', value: 300 }) },
 	},
 	outputs: {
-		output: { dataType: 'vector' },
+		output: { primary: true, dataType: 'vector' },
 	},
 });

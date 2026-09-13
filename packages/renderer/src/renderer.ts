@@ -551,21 +551,21 @@ export class Renderer {
 
 		const outDataMap = this.outDataMapPerNodes.get(node.id)!;
 
-		const texturesContextMap = {} as Record<string, {
+		const resolvedOutputDataMap = {} as Record<string, {
 			previousFrameTexture: GPUTexture | undefined;
 			previousFrameTextureView: GPUTextureView | undefined;
-			outputTexture: GPUTexture;
-			outputTextureView: GPUTextureView;
+			texture: GPUTexture;
+			textureView: GPUTextureView;
 		}>;
 		for (const [k, v] of Object.entries(outDataMap)) {
-			texturesContextMap[k] = {
+			resolvedOutputDataMap[k] = {
 				// 現在公開されている出力を、前回の結果として読む
 				previousFrameTexture: effect.needsPreviousFrame ? v.texture : undefined,
 				previousFrameTextureView: effect.needsPreviousFrame ? v.textureView : undefined,
 
 				// もう1枚へ書く
-				outputTexture: effect.needsPreviousFrame ? v.previousFrameTexture! : v.texture,
-				outputTextureView: effect.needsPreviousFrame ? v.previousFrameTextureView! : v.textureView,
+				texture: effect.needsPreviousFrame ? v.previousFrameTexture! : v.texture,
+				textureView: effect.needsPreviousFrame ? v.previousFrameTextureView! : v.textureView,
 			};
 		}
 
@@ -578,7 +578,7 @@ export class Renderer {
 				y: this.pointerPositionPrev.y === -99999 ? 0 : this.pointerPosition.y - this.pointerPositionPrev.y,
 			},
 			params: resolvedParams,
-			texturesContextMap,
+			outputDataMap: resolvedOutputDataMap,
 			commandEncoder: commandEncoder,
 			createPassEncoderFor: (commandEncoder, view) => {
 				const descriptor = {
@@ -602,12 +602,12 @@ export class Renderer {
 		if (effect.needsPreviousFrame) {
 			for (const [k, v] of Object.entries(outDataMap)) {
 				// 今回書いた結果を後段へ公開
-				v.texture = texturesContextMap[k].outputTexture;
-				v.textureView = texturesContextMap[k].outputTextureView;
+				v.texture = resolvedOutputDataMap[k].texture;
+				v.textureView = resolvedOutputDataMap[k].textureView;
 
 				// 今回読んだものを次回の書き込み先として保持
-				v.previousFrameTexture = texturesContextMap[k].previousFrameTexture!;
-				v.previousFrameTextureView = texturesContextMap[k].previousFrameTextureView!;
+				v.previousFrameTexture = resolvedOutputDataMap[k].previousFrameTexture!;
+				v.previousFrameTextureView = resolvedOutputDataMap[k].previousFrameTextureView!;
 			}
 		}
 

@@ -10,6 +10,6 @@ export default defineEffect({
 		time: { type: 'range', min: 0, max: 100, step: 0.01, label: 'Time', default: () => ({ type: 'expression', expression: 'TIME' }) },
 	},
 	outputs: {
-		output: { dataType: 'scalar' },
+		output: { primary: true, dataType: 'scalar' },
 	},
 });

@@ -138,7 +138,7 @@ export default implementEffect<typeof definition>({
 						}
 					}
 				}
-				draw(ctx.createPassEncoder(ctx.commandEncoder), compositePipeline, compositeGroup);
+				draw(ctx.createPassEncoderFor(ctx.commandEncoder, ctx.outputDataMap.output.textureView), compositePipeline, compositeGroup);
 			},
 			dispose: () => {
 				uniformBuffer.destroy();

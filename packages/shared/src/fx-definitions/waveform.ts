@@ -20,6 +20,6 @@ export default defineEffect({
 		intensity: { type: 'range', label: 'Intensity', min: 0, max: 10, step: 0.01, default: () => ({ type: 'literal', value: 1 }) },
 	},
 	outputs: {
-		output: { dataType: 'color' },
+		output: { primary: true, dataType: 'color' },
 	},
 });

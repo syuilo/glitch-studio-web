@@ -18,6 +18,6 @@ export default defineEffect({
 		},
 	},
 	outputs: {
-		output: { dataType: 'scalar' },
+		output: { primary: true, dataType: 'scalar' },
 	},
 });

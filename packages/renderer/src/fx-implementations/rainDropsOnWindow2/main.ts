@@ -71,7 +71,7 @@ export default implementEffect<typeof definition>({
 					refraction: Math.max(0, ctx.params.refraction),
 				});
 				wgpu.device.queue.writeBuffer(uniformBuffer, 0, uniformValues.arrayBuffer);
-				const passEncoder = ctx.createPassEncoder(ctx.commandEncoder);
+				const passEncoder = ctx.createPassEncoderFor(ctx.commandEncoder, ctx.outputDataMap.output.textureView);
 				passEncoder.setPipeline(pipeline);
 				passEncoder.setBindGroup(0, bindGroup);
 				passEncoder.draw(6);

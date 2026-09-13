@@ -93,7 +93,7 @@ export default implementEffect<typeof definition>({
 				}
 				if (waveform == null || inputGroup == null || outputGroup == null) {
 					// Clear stale output while unsupported, and retry when the internal size changes.
-					ctx.createPassEncoder(ctx.commandEncoder).end();
+					ctx.createPassEncoderFor(ctx.commandEncoder, ctx.outputDataMap.output.textureView).end();
 					return;
 				}
 				integers[0] = ctx.params.mode === 'luminance' ? 1 : 0;
@@ -108,7 +108,7 @@ export default implementEffect<typeof definition>({
 					compute.dispatchWorkgroups(Math.ceil(size.width / 16), Math.ceil(size.height / 16));
 					compute.end();
 				}
-				const render = ctx.createPassEncoder(ctx.commandEncoder);
+				const render = ctx.createPassEncoderFor(ctx.commandEncoder, ctx.outputDataMap.output.textureView);
 				render.setPipeline(output);
 				render.setBindGroup(0, outputGroup);
 				render.draw(6);

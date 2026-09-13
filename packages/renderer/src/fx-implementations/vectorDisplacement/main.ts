@@ -54,7 +54,7 @@ export default implementEffect<typeof definition>({
 				values[2] = ctx.params.flipX ? -1 : 1;
 				values[3] = ctx.params.flipY ? -1 : 1;
 				device.queue.writeBuffer(uniforms, 0, values);
-				const render = ctx.createPassEncoder(ctx.commandEncoder);
+				const render = ctx.createPassEncoderFor(ctx.commandEncoder, ctx.outputDataMap.output.textureView);
 				if (input != null) {
 					render.setPipeline(pipeline);
 					render.setBindGroup(0, group);

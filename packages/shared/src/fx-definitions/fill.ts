@@ -8,6 +8,6 @@ export default defineEffect({
 		color: { type: 'color', label: 'Color', default: () => ({ type: 'literal', value: [1, 1, 1, 1] }) },
 	},
 	outputs: {
-		output: { dataType: 'color' },
+		output: { primary: true, dataType: 'color' },
 	},
 });

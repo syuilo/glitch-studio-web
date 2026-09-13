@@ -27,6 +27,6 @@ export default defineEffect({
 		},
 	},
 	outputs: {
-		output: { dataType: 'color' },
+		output: { primary: true, dataType: 'color' },
 	},
 });

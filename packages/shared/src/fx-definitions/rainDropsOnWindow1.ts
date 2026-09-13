@@ -14,6 +14,6 @@ export default defineEffect({
 		seed: { type: 'seed', label: 'Seed', default: () => ({ type: 'literal', value: 0 }) },
 	},
 	outputs: {
-		output: { dataType: 'color' },
+		output: { primary: true, dataType: 'color' },
 	},
 });

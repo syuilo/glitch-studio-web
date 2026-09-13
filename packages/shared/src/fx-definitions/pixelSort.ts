@@ -18,6 +18,6 @@ export default defineEffect({
 		], default: () => ({ type: 'literal', value: 'descending' }) },
 	},
 	outputs: {
-		output: { dataType: 'color' },
+		output: { primary: true, dataType: 'color' },
 	},
 });

@@ -14,6 +14,6 @@ export default defineEffect({
 		threshold: { type: 'range', label: 'Threshold', min: 0, max: 1, step: 0.001, default: () => ({ type: 'literal', value: 0 }) },
 	},
 	outputs: {
-		output: { dataType: 'color' },
+		output: { primary: true, dataType: 'color' },
 	},
 });

@@ -11,6 +11,6 @@ export default defineEffect({
 		smoothing: { type: 'range', label: 'Smoothing', min: 0, max: 3, step: 0.1, default: () => ({ type: 'literal', value: 1 }) },
 	},
 	outputs: {
-		output: { dataType: 'vector' },
+		output: { primary: true, dataType: 'vector' },
 	},
 });

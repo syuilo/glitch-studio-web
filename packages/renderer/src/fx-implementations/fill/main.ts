@@ -1,7 +1,7 @@
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
-import type definition from '@glitch/shared/fx-definitions/fill.ts';
 import { implementEffect } from '../../fx-implementation.ts';
 import code from './shader.wgsl?raw';
+import type definition from '@glitch/shared/fx-definitions/fill.ts';
 
 export default implementEffect<typeof definition>({
 	getOut: ({ wgpu, resolution }) => {
@@ -56,7 +56,7 @@ export default implementEffect<typeof definition>({
 				});
 				wgpu.device.queue.writeBuffer(uniformBuffer, 0, uniformValues.arrayBuffer);
 
-				const passEncoder = ctx.createPassEncoder(ctx.commandEncoder);
+				const passEncoder = ctx.createPassEncoderFor(ctx.commandEncoder, ctx.outputDataMap.output.textureView);
 				passEncoder.setPipeline(pipeline);
 				passEncoder.setBindGroup(0, bindGroup);
 				passEncoder.draw(6);

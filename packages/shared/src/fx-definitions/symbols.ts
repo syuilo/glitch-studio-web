@@ -31,6 +31,6 @@ export default defineEffect({
 		forceFieldWarp: { type: 'bool', label: 'Force Field Warp', default: () => ({ type: 'literal', value: true }) },
 	},
 	outputs: {
-		output: { dataType: 'color' },
+		output: { primary: true, dataType: 'color' },
 	},
 });

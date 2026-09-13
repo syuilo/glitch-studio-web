@@ -16,7 +16,7 @@ export default implementEffect<typeof definition>({
 		const spectrogram = createAudioSpectrogram(device, defaultVertexShaderModule);
 		return {
 			render(ctx) {
-				const pass = ctx.createPassEncoder(ctx.commandEncoder);
+				const pass = ctx.createPassEncoderFor(ctx.commandEncoder, ctx.outputDataMap.output.textureView);
 				spectrogram.render(ctx.params.player?.audio ?? null, ctx.params, pass);
 				pass.end();
 			},

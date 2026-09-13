@@ -9,6 +9,6 @@ export default defineEffect({
 		v: { type: 'range', min: -10, max: 10, step: 0.01, label: 'Value', default: () => ({ type: 'literal', value: 2 }) },
 	},
 	outputs: {
-		output: { dataType: 'scalar' },
+		output: { primary: true, dataType: 'scalar' },
 	},
 });

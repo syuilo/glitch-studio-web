@@ -45,7 +45,7 @@ test('multiple output rendering', async t => {
 					return [port, texture];
 				})),
 				init: () => ({ dispose() {}, render(ctx) {
-					const outputs = Object.fromEntries(Object.entries(ctx.texturesContextMap).map(([port, data]) => [port, { ...data }]));
+					const outputs = Object.fromEntries(Object.entries(ctx.outputDataMap).map(([port, data]) => [port, { ...data }]));
 					for (const data of Object.values(outputs)) {
 						assert.equal(data.outputTextureView?.texture, data.outputTexture, 'view must belong to the write texture');
 						if (data.previousFrameTexture) {

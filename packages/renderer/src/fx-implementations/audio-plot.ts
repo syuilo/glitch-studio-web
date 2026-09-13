@@ -23,12 +23,12 @@ export function createAudioPlot(device: GPUDevice, vertex: GPUShaderModule, colu
 			spectrum: boolean; lineWidth: number; aspectRatio: number; valid: boolean;
 		}) {
 			uniforms.set([options.color[0], options.color[1], options.color[2], 1,
-				options.rightColor[0], options.rightColor[1], options.rightColor[2], 1,
-				columns, Number(options.stereo), Number(options.spectrum), options.lineWidth,
-				options.aspectRatio, Number(options.valid), 0, 0]);
+																	options.rightColor[0], options.rightColor[1], options.rightColor[2], 1,
+																	columns, Number(options.stereo), Number(options.spectrum), options.lineWidth,
+																	options.aspectRatio, Number(options.valid), 0, 0]);
 			device.queue.writeBuffer(uniformBuffer, 0, uniforms);
 			device.queue.writeBuffer(dataBuffer, 0, data);
-			const pass = ctx.createPassEncoder(ctx.commandEncoder);
+			const pass = ctx.createPassEncoderFor(ctx.commandEncoder, ctx.outputDataMap.output.textureView);
 			pass.setPipeline(pipeline);
 			pass.setBindGroup(0, bindGroup);
 			pass.draw(6);

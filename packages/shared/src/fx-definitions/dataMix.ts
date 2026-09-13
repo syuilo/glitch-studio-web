@@ -13,6 +13,6 @@ export default defineEffect({
 		fitModeAmount: { type: 'fitMode', label: 'Amount fit mode', default: () => ({ type: 'literal', value: 'stretch' }) },
 	},
 	outputs: {
-		output: { dataType: 'any' },
+		output: { primary: true, dataType: 'any' },
 	},
 });

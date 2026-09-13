@@ -69,7 +69,7 @@ export default implementEffect<typeof definition>({
 				values[0] = hasPrevious && !ctx.params.reset ? decay : 0;
 				values[1] = input != null && !ctx.params.reset ? integration * Math.max(0, ctx.params.strength) : 0;
 				device.queue.writeBuffer(uniforms, 0, values);
-				const render = ctx.createPassEncoder(ctx.commandEncoder);
+				const render = ctx.createPassEncoderFor(ctx.commandEncoder, ctx.outputDataMap.output.textureView);
 				render.setPipeline(pipeline);
 				render.setBindGroup(0, group);
 				render.draw(6);

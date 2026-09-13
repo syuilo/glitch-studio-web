@@ -22,6 +22,6 @@ export default defineEffect({
 		flipFrequency: { type: 'bool', label: 'Reverse frequency axis', default: () => ({ type: 'literal', value: false }) },
 	},
 	outputs: {
-		output: { dataType: 'color' },
+		output: { primary: true, dataType: 'color' },
 	},
 });

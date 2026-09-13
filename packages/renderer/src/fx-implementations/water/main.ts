@@ -61,7 +61,7 @@ export default implementEffect<typeof definition>({
 					size: Math.max(0.01, p.size),
 				});
 				device.queue.writeBuffer(uniformBuffer, 0, uniformValues.arrayBuffer);
-				const pass = ctx.createPassEncoder(ctx.commandEncoder);
+				const pass = ctx.createPassEncoderFor(ctx.commandEncoder, ctx.outputDataMap.output.textureView);
 				pass.setPipeline(pipeline);
 				pass.setBindGroup(0, bindGroup);
 				pass.draw(6);

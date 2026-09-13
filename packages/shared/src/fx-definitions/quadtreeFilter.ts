@@ -13,6 +13,6 @@ export default defineEffect({
 		borderAbsolute: { type: 'bool', label: 'Border absolute', default: () => ({ type: 'literal', value: false }) },
 	},
 	outputs: {
-		output: { dataType: 'color' },
+		output: { primary: true, dataType: 'color' },
 	},
 });

@@ -68,7 +68,7 @@ export default implementEffect<typeof definition>({
 					blendMode: blendModes[p.blendMode] ?? blendModes.normal,
 				});
 				device.queue.writeBuffer(buffer, 0, values.arrayBuffer);
-				const pass = ctx.createPassEncoder(ctx.commandEncoder);
+				const pass = ctx.createPassEncoderFor(ctx.commandEncoder, ctx.outputDataMap.output.textureView);
 				pass.setPipeline(pipeline);
 				pass.setBindGroup(0, bindGroup);
 				pass.draw(6);

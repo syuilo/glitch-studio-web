@@ -11,6 +11,6 @@ export default defineEffect({
 		reset: { type: 'bool', label: 'Reset', default: () => ({ type: 'literal', value: false }) },
 	},
 	outputs: {
-		output: { dataType: 'any' },
+		output: { primary: true, dataType: 'any' },
 	},
 });

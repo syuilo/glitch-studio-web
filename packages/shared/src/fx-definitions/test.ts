@@ -9,6 +9,6 @@ export default defineEffect({
 		y: { type: 'range', min: -1, max: 1, step: 0.01, label: 'Y', default: () => ({ type: 'literal', value: 0 }) },
 	},
 	outputs: {
-		output: { dataType: 'color' },
+		output: { primary: true, dataType: 'color' },
 	},
 });

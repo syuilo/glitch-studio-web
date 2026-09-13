@@ -10,6 +10,6 @@ export default defineEffect({
 		samples: { type: 'range', label: 'Samples', min: 4, max: 256, step: 1, default: () => ({ type: 'literal', value: 16 }) },
 	},
 	outputs: {
-		output: { dataType: 'color' },
+		output: { primary: true, dataType: 'color' },
 	},
 });

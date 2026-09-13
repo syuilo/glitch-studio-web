@@ -66,7 +66,7 @@ export default implementEffect<typeof definition>({
 			render: ctx => {
 				if (ctx.params.input == null) {
 					hasPrevious = false;
-					ctx.createPassEncoder(ctx.commandEncoder).end();
+					ctx.createPassEncoderFor(ctx.commandEncoder, ctx.outputDataMap.output.textureView).end();
 					return;
 				}
 				if (input !== ctx.params.input) {
@@ -90,7 +90,7 @@ export default implementEffect<typeof definition>({
 					solve.draw(6);
 					solve.end();
 				}
-				const render = ctx.createPassEncoder(ctx.commandEncoder);
+				const render = ctx.createPassEncoderFor(ctx.commandEncoder, ctx.outputDataMap.output.textureView);
 				if (hasPrevious) {
 					render.setPipeline(output);
 					render.setBindGroup(0, outputGroup);

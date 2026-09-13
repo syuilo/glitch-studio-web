@@ -1,4 +1,4 @@
-import type { BlendModeOptionSchema, FitModeOptionSchema, BooleanOptionSchema, ColorOptionSchema, EffectDefinition, EffectOptionsSchema, EnumOptionSchema, ImageOptionSchema, NodeOptionSchema, NumberOptionSchema, RangeOptionSchema, SeedOptionSchema, SignalOptionSchema, VectorOptionSchema, PlayerOptionSchema } from '@glitch/shared/fx-definition.ts';
+import type { BlendModeOptionSchema, FitModeOptionSchema, BooleanOptionSchema, ColorOptionSchema, EffectDefinition, EffectOptionsSchema, EnumOptionSchema, ImageOptionSchema, NodeOptionSchema, NumberOptionSchema, RangeOptionSchema, SeedOptionSchema, SignalOptionSchema, VectorOptionSchema, PlayerOptionSchema, EffectOutputsSchema } from '@glitch/shared/fx-definition.ts';
 import type { AudioHistory } from '@glitch/shared/audio-history.ts';
 import type { EffectStatus } from '@glitch/shared/effect-status.ts';
 
@@ -23,19 +23,21 @@ export type GetRuntimeEffectOptionsSchemaValues<T extends EffectOptionsSchema> =
 	[K in keyof T]: RuntimeEffectOptionValue<T[K]>;
 };
 
-export type EffectInstance<Options extends EffectOptionsSchema = any> = {
+type EffectInstance<Options extends EffectOptionsSchema = any, Outputs extends EffectOutputsSchema = any> = {
 	readonly cacheVersion?: number;
 	render: (ctx: {
 		time: number;
 		timeDelta: number;
 		pointerPosition: { x: number; y: number; };
 		pointerVector: { x: number; y: number; };
-		texturesContextMap: Record<string, {
-			previousFrameTexture?: GPUTexture;
-			previousFrameTextureView?: GPUTextureView;
-			outputTexture: GPUTexture;
-			outputTextureView: GPUTextureView;
-		}>;
+		outputDataMap: {
+			[K in keyof Outputs]: {
+				previousFrameTexture?: GPUTexture;
+				previousFrameTextureView?: GPUTextureView;
+				texture: GPUTexture;
+				textureView: GPUTextureView;
+			};
+		};
 		commandEncoder: GPUCommandEncoder;
 		createPassEncoderFor: (commandEncoder: GPUCommandEncoder, view: GPUTextureView) => GPURenderPassEncoder;
 		createPassEncoder: (commandEncoder: GPUCommandEncoder, descriptor: GPURenderPassDescriptor) => GPURenderPassEncoder;
@@ -69,7 +71,7 @@ export type EffectImplementation<Definition extends Pick<EffectDefinition, 'para
 		};
 		params: GetRuntimeEffectOptionsSchemaValues<Options>;
 		fallbackTexture: GPUTexture;
-	}) => EffectInstance<Options>;
+	}) => EffectInstance<Options, Definition['outputs']>;
 };
 
 export function implementEffect<Definition extends Pick<EffectDefinition, 'paramDefs' | 'outputs'>>(def: EffectImplementation<Definition>): EffectImplementation<Definition> {

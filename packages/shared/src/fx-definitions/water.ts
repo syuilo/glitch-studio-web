@@ -21,6 +21,6 @@ export default defineEffect({
 		frame: { type: 'number', label: 'Frame offset (ms)', step: 1, default: () => ({ type: 'literal', value: 0 }) },
 	},
 	outputs: {
-		output: { dataType: 'color' },
+		output: { primary: true, dataType: 'color' },
 	},
 });

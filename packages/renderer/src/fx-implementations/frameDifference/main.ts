@@ -68,7 +68,7 @@ export default implementEffect<typeof definition>({
 			render: ctx => {
 				if (ctx.params.input == null) {
 					hasPrevious = false;
-					ctx.createPassEncoder(ctx.commandEncoder).end();
+					ctx.createPassEncoderFor(ctx.commandEncoder, ctx.outputDataMap.output.textureView).end();
 					return;
 				}
 				if (input !== ctx.params.input) {
@@ -79,7 +79,7 @@ export default implementEffect<typeof definition>({
 				floats[1] = Math.max(0, ctx.params.gain);
 				floats[2] = Math.max(0, ctx.params.threshold);
 				device.queue.writeBuffer(uniforms, 0, values);
-				const render = ctx.createPassEncoder(ctx.commandEncoder);
+				const render = ctx.createPassEncoderFor(ctx.commandEncoder, ctx.outputDataMap.output.textureView);
 				if (hasPrevious) {
 					render.setPipeline(difference);
 					render.setBindGroup(0, inputGroup);

@@ -18,6 +18,6 @@ export default defineEffect({
 		], default: () => ({ type: 'literal', value: 'repeatMirrored' }) },
 	},
 	outputs: {
-		output: { dataType: 'color' },
+		output: { primary: true, dataType: 'color' },
 	},
 });

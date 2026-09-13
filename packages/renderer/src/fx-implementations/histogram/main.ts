@@ -73,7 +73,7 @@ export default implementEffect<typeof definition>({
 					|| sampleCount > Math.floor(0xffffffff / 255)
 					|| Math.ceil(width / 16) > device.limits.maxComputeWorkgroupsPerDimension
 					|| Math.ceil(height / 16) > device.limits.maxComputeWorkgroupsPerDimension) {
-					ctx.createPassEncoder(ctx.commandEncoder).end();
+					ctx.createPassEncoderFor(ctx.commandEncoder, ctx.outputDataMap.output.textureView).end();
 					return;
 				}
 				if (input !== ctx.params.input) {
@@ -92,7 +92,7 @@ export default implementEffect<typeof definition>({
 				compute.setBindGroup(0, maxGroup);
 				compute.dispatchWorkgroups(1);
 				compute.end();
-				const render = ctx.createPassEncoder(ctx.commandEncoder);
+				const render = ctx.createPassEncoderFor(ctx.commandEncoder, ctx.outputDataMap.output.textureView);
 				render.setPipeline(output);
 				render.setBindGroup(0, outputGroup);
 				render.draw(6);

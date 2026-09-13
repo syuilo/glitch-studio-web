@@ -13,6 +13,6 @@ export default defineEffect({
 		quality: { type: 'range', label: 'Quality', min: 0.1, max: 1, step: 0.05, default: () => ({ type: 'literal', value: 0.5 }) },
 	},
 	outputs: {
-		output: { dataType: 'color' },
+		output: { primary: true, dataType: 'color' },
 	},
 });

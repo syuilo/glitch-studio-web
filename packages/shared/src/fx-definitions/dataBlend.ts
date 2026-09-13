@@ -14,6 +14,6 @@ export default defineEffect({
 		blendMode: { type: 'blendMode', label: 'Blend mode', default: () => ({ type: 'literal', value: 'add' }) },
 	},
 	outputs: {
-		output: { dataType: 'any' },
+		output: { primary: true, dataType: 'any' },
 	},
 });

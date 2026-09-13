@@ -111,7 +111,7 @@ export default implementEffect<typeof definition>({
 				dispatch(findMaximum);
 				dispatch(finish);
 				compute.end();
-				const pass = ctx.createPassEncoder(ctx.commandEncoder);
+				const pass = ctx.createPassEncoderFor(ctx.commandEncoder, ctx.outputDataMap.output.textureView);
 				pass.setPipeline(pipeline);
 				pass.setBindGroup(0, renderGroup);
 				pass.draw(6);

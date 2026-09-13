@@ -17,6 +17,6 @@ export default defineEffect({
 		rightColor: { type: 'color', label: 'Color (R)', default: () => ({ type: 'literal', value: [1, 0.3, 0.6, 1] }) },
 	},
 	outputs: {
-		output: { dataType: 'color' },
+		output: { primary: true, dataType: 'color' },
 	},
 });

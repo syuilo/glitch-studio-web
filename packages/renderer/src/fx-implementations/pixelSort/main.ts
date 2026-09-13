@@ -124,7 +124,7 @@ export default implementEffect<typeof definition>({
 					}
 				}
 				compute.end();
-				const render = ctx.createPassEncoder(ctx.commandEncoder);
+				const render = ctx.createPassEncoderFor(ctx.commandEncoder, ctx.outputDataMap.output.textureView);
 				render.setPipeline(output);
 				for (const [batchIndex, batch] of batches.entries()) {
 					render.setScissorRect(vertical ? batch.lineOffset : 0, vertical ? 0 : batch.lineOffset,
