@@ -19,13 +19,10 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref, useId, useTemplateRef, watch } from 'vue';
+import { onMounted, onUnmounted, ref, useId, useTemplateRef, watch } from 'vue';
 import { fxDefinitions } from '@glitch/shared/fx-definitions.ts';
 import type { GsNode } from '@glitch/shared/types.ts';
 import { appContext, wireMap } from '@/app.ts';
-
-const props = defineProps<{
-}>();
 
 const rootEl = useTemplateRef('rootEl');
 const gradientId = useId();
@@ -33,12 +30,13 @@ const width = ref(0);
 const height = ref(0);
 
 const ro = new ResizeObserver(() => {
+	if (rootEl.value == null) return;
 	width.value = rootEl.value.clientWidth;
 	height.value = rootEl.value.clientHeight;
 });
 
 onMounted(() => {
-	ro.observe(rootEl.value);
+	if (rootEl.value) ro.observe(rootEl.value);
 });
 
 const wires = ref<{
@@ -57,7 +55,7 @@ function getGradientTransform(wire: typeof wires.value[number]): string {
 }
 
 function getElementPosition(el: HTMLElement): [number, number] {
-	const rootElRect = rootEl.value.getBoundingClientRect();
+	const rootElRect = rootEl.value!.getBoundingClientRect();
 	const rect = el.getBoundingClientRect();
 	return [
 		rect.left - rootElRect.left + rect.width / 2,
@@ -80,23 +78,22 @@ function draw() {
 				} else {
 					const fx = fxDefinitions[node.fx];
 					for (const [k, v] of Object.entries(fx.paramDefs)) {
-						if (v.type === 'node' && node.params[k].value != null) {
-							const to = isHidden(wireMap.in[node.id][k]) ? getElementPosition(wireMap.allIn[node.id]) : getElementPosition(wireMap.in[node.id][k]);
+						const param = node.params[k];
+						const connections = param.type === 'node'
+							? [param.nodeId == null ? null : param]
+							: param.type === 'literal' && v.type === 'node' ? [param.value]
+								: param.type === 'literal' && v.type === 'nodes' ? param.value : [];
+						for (const [index, connection] of connections.entries()) {
+							if (connection == null) continue;
+							const from = wireMap.out[connection.nodeId]?.[connection.outputPort];
+							const input = v.type === 'nodes' ? wireMap.in[node.id]?.[k]?.[index] : wireMap.in[node.id]?.[k];
+							const to = input && !isHidden(input) ? input : wireMap.allIn[node.id];
+							if (!from || !to || isHidden(from) || isHidden(to)) continue;
 							wires.value.push({
-								key: JSON.stringify([node.id, k, node.params[k].value]),
-								from: getElementPosition(wireMap.out[node.params[k].value]),
-								to,
+								key: JSON.stringify([node.id, k, index, connection.nodeId, connection.outputPort]),
+								from: getElementPosition(from),
+								to: getElementPosition(to),
 							});
-						} else if (v.type === 'nodes') {
-							for (let i = 0; i < node.params[k].value.length; i++) {
-								const n = node.params[k].value[i];
-								const to = isHidden(wireMap.in[node.id][k][i]) ? getElementPosition(wireMap.allIn[node.id]) : getElementPosition(wireMap.in[node.id][k][i]);
-								wires.value.push({
-									key: JSON.stringify([node.id, k, i, n]),
-									from: getElementPosition(wireMap.out[n]),
-									to,
-								});
-							}
 						}
 					}
 				}
@@ -113,10 +110,15 @@ watch(wireMap, () => {
 	draw();
 }, { deep: true, immediate: true });
 
+let drawInterval: ReturnType<typeof window.setInterval>;
 onMounted(() => {
-	window.setInterval(() => {
+	drawInterval = window.setInterval(() => {
 		draw();
 	}, 10);
+});
+onUnmounted(() => {
+	window.clearInterval(drawInterval);
+	ro.disconnect();
 });
 </script>
 

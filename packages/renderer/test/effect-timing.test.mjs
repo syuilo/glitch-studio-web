@@ -36,7 +36,8 @@ test('effect GPU statistics include compute and render passes', async t => {
 						params: { ...params, colorBack: [0.25, 0.5, 0.75, alpha], colorTint: [0.75, 0.5, 0.25, alpha] },
 						commandEncoder: device.createCommandEncoder(),
 						createComputePassEncoder: encoder => encoder.beginComputePass(),
-						createPassEncoder: encoder => encoder.beginRenderPass(),
+						createPassEncoderFor: encoder => encoder.beginRenderPass(),
+						outputDataMap: { output: { textureView: device.createTexture().createView() } },
 					});
 					const { views } = makeStructuredView(uniforms, uploaded);
 					assert.deepEqual(Array.from(views.colorBack), [0.25, 0.5, 0.75, alpha]);
@@ -110,7 +111,7 @@ test('effect GPU statistics include compute and render passes', async t => {
 						key, param.default(),
 					])),
 					...patch,
-					input: { type: 'literal', value: i === 0 ? null : `input-${i - 1}` },
+					input: { type: 'literal', value: i === 0 ? null : { nodeId: `input-${i - 1}`, outputPort: 'output' } },
 				},
 			}));
 			for (const [enableStats, canTimestamp] of [[true, true], [false, true], [true, false]]) {

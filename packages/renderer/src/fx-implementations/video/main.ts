@@ -60,7 +60,7 @@ export default implementEffect<typeof definition>({
 					// フレーム削除後に以前の映像がキャッシュとして残らないよう透明にする。
 					ctx.createPassEncoder(ctx.commandEncoder, {
 						colorAttachments: [{
-							view: ctx.outputTextureView,
+							view: ctx.outputDataMap.output.textureView,
 							clearValue: { r: 0, g: 0, b: 0, a: 0 },
 							loadOp: 'clear',
 							storeOp: 'store',

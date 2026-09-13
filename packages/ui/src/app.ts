@@ -164,7 +164,7 @@ export const appContext = new AppContext();
 
 export const wireMap = reactive<{
 	in: Record<string, any>;
-	out: Record<string, HTMLElement>;
+	out: Record<string, Record<string, HTMLElement>>;
 	allIn: Record<string, HTMLElement>;
 }>({
 	in: {},

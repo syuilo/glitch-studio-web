@@ -19,7 +19,15 @@
 			<div :class="$style.paramBody">
 				<GsInput v-if="isExpression(param)" type="text" :modelValue="getParam(param)" @update:modelValue="updateParamAsExpression(param, $event)"/>
 				<GsButton v-else-if="isAutomation(param)" @click="selectAutomation(param, $event)">{{ node.params[param].automationId ? appContext.state.automations.value.find(a => a.id === node.params[param].automationId).name : '(none)' }}</GsButton>
-				<GsButton v-else-if="isNode(param)" @click="selectNode(param, $event)">{{ node.params[param].nodeId ? appContext.state.nodes.value.find(n => n.id === node.params[param].nodeId).id : '(none)' }}</GsButton>
+				<GsEffectParamControl
+					v-else-if="isNode(param)"
+					type="node"
+					:node="node"
+					:group="group"
+					:name="param"
+					:value="getParam(param)"
+					@input="value => appContext.commit('updateParamAsNode', { nodeId: node.id, param, value })"
+				/>
 				<GsEffectParamControl
 					v-else
 					:type="paramDefs[param].type"
@@ -38,10 +46,7 @@
 		</div>
 	</div>
 
-	<div :class="$style.footer">
-		<div ref="outPortEl" style="width: 24px; text-align: center;">・</div>
-		<code style="opacity: 0.5;">{{ node.id }}</code>
-	</div>
+	<GsNodeOutputs :node="node"/>
 </div>
 </template>
 
@@ -49,6 +54,7 @@
 import { ref, computed, shallowRef, onMounted } from 'vue';
 import { fxDefinitions } from '@glitch/shared/fx-definitions.ts';
 import { genId } from '@glitch/shared/utility/id.ts';
+import GsNodeOutputs from './GsNodeOutputs.vue';
 import GsEffectParamControl from './GsEffectParamControl.vue';
 import GsButton from './common/GsButton.vue';
 import GsInput from './common/GsInput.vue';
@@ -67,7 +73,6 @@ const props = defineProps<{
 const name = ref<string>(fxDefinitions[props.node.fx].displayName);
 const paramDefs = fxDefinitions[props.node.fx].paramDefs;
 const expanded = ref(true);
-const outPortEl = shallowRef<HTMLElement>();
 const allInPortEl = shallowRef<HTMLElement>();
 
 const effectStatus = computed(() => engine.effectStatuses.get(props.node.id));
@@ -90,14 +95,12 @@ function isNode(param: string) {
 }
 
 function getParam(param: string) {
-	if (isExpression(param)) {
-		return props.node.params[param].expression;
-	} else if (isAutomation(param)) {
-		return props.node.params[param].automationId;
-	} else if (isNode(param)) {
-		return props.node.params[param].nodeId;
-	} else {
-		return props.node.params[param].value;
+	const value = props.node.params[param];
+	switch (value.type) {
+		case 'expression': return value.expression;
+		case 'automation': return value.automationId;
+		case 'node': return value.nodeId == null ? null : { nodeId: value.nodeId, outputPort: value.outputPort };
+		case 'literal': return value.value;
 	}
 }
 
@@ -120,28 +123,6 @@ async function selectAutomation(param: string, ev: MouseEvent) {
 		nodeId: props.node.id,
 		param: param,
 		value: a?.id ?? null,
-	});
-}
-
-async function selectNode(param: string, ev: MouseEvent) {
-	const n = await new Promise<GsNode | null>((res) => {
-		ui.popupMenu([{
-			text: '(none)',
-			action: () => {
-				res(null);
-			},
-		}, ...(appContext.state.nodes.value.map(n => ({
-			text: n.id,
-			action: () => {
-				res(n);
-			},
-		})))], ev.currentTarget ?? ev.target);
-	});
-
-	appContext.commit('updateParamAsNode', {
-		nodeId: props.node.id,
-		param: param,
-		value: n?.id ?? null,
 	});
 }
 
@@ -259,8 +240,7 @@ function toggleBypass() {
 }
 
 onMounted(() => {
-	wireMap.out[props.node.id] = outPortEl.value;
-	wireMap.allIn[props.node.id] = allInPortEl.value;
+	if (allInPortEl.value) wireMap.allIn[props.node.id] = allInPortEl.value;
 });
 </script>
 
@@ -398,12 +378,4 @@ onMounted(() => {
 	flex-shrink: 1;
 }
 
-.footer {
-	display: flex;
-	margin-top: 4px;
-	line-height: 24px;
-	background-size: auto auto;
-	background-color: #2d2d2d;
-	background-image: repeating-linear-gradient(45deg, transparent, transparent 6px, #222222 6px, #222222 12px );
-}
 </style>

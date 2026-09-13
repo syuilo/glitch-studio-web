@@ -1,5 +1,8 @@
 export type FxParamDataType = 'number' | 'range' | 'range2' | 'enum' | 'bool' | 'blendMode' | 'fitMode' | 'signal' | 'xy' | 'wh' | 'color' | 'vector' | 'seed' | 'time' | 'image' | 'player' | 'node' | 'nodes';
 
+export type NodeOutputReference = { nodeId: string; outputPort: string };
+export type NodeParamValue = { type: 'node' } & (NodeOutputReference | { nodeId: null; outputPort: null });
+
 export type FxParamValue = {
 	type: 'literal';
 	value: any; // TODO: literalにリネーム
@@ -9,11 +12,7 @@ export type FxParamValue = {
 } | {
 	type: 'automation';
 	automationId: string | null;
-} | {
-	type: 'node';
-	nodeId: string | null;
-	outputPort?: string;
-};
+} | NodeParamValue;
 
 export type Macro = {
 	id: string;
@@ -56,8 +55,8 @@ type OmitNever<T> = { [K in keyof T as T[K] extends never ? never : K]: T[K] };
 
 export type EvaledParams<T extends FxParamDefs> = {
 	[K in keyof T]:
-	T[K]['type'] extends 'node' ? { nodeId: string | null; outputPort?: string } | null :
-	T[K]['type'] extends 'nodes' ? string[] :
+	T[K]['type'] extends 'node' ? NodeOutputReference | null :
+	T[K]['type'] extends 'nodes' ? (NodeOutputReference | null)[] :
 	T[K]['type'] extends 'image' ? string :
 	T[K]['type'] extends 'player' ? string :
 	T[K]['type'] extends 'range' ? number :

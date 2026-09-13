@@ -46,7 +46,7 @@ export default implementEffect<typeof definition>({
 					input = ctx.params.input;
 					groups.clear();
 				}
-				const previous = ctx.previousFrameTextureView!;
+				const previous = ctx.outputDataMap.output.previousFrameTextureView!;
 				let group = groups.get(previous);
 				if (group == null) {
 					group = device.createBindGroup({

@@ -1,9 +1,10 @@
 import { fxDefinitions } from '@glitch/shared/fx-definitions.ts';
 import { AiSON } from '@syuilo/aiscript';
 import { deepClone } from '@glitch/shared/utility/deep-clone.ts';
+import { getNodeOutputs } from '@glitch/shared/utility/node-outputs.ts';
 import { genEmptyValue } from '@glitch/shared/utility/misc.ts';
 import type { AppState } from './types.ts';
-import type { Asset, FxParamDataType, FxParamDefs, GsFxNode, GsGroupNode, GsNode, Player } from '@glitch/shared/types.ts';
+import type { Asset, FxParamDataType, FxParamDefs, GsFxNode, GsGroupNode, GsNode, Player, NodeOutputReference } from '@glitch/shared/types.ts';
 
 export type CommandDef<Payload> = {
 	label: string;
@@ -60,7 +61,7 @@ const addFxNodeCommandDef = defineCommand<{ id: string; fx: string; params?: Rec
 		return {
 			execute(state) {
 				const paramDefs = fxDefinitions[payload.fx].paramDefs as FxParamDefs;
-				const group = payload.groupId ? state.nodes.value.find(node => node.type === 'group' && node.id === payload.groupId) as GsGroupNode : undefined;
+				const group = payload.groupId ? stateUtility.findNode(state, payload.groupId) as GsGroupNode : undefined;
 
 				const params = {} as GsFxNode['params'];
 
@@ -69,7 +70,9 @@ const addFxNodeCommandDef = defineCommand<{ id: string; fx: string; params?: Rec
 					// primary 入力が未接続なら、直前のノードに自動接続する。
 					if (v.type === 'node' && v.primary && params[k].type === 'literal' && params[k].value === null) {
 						if ((group ? group.nodes : state.nodes.value).length > 0) {
-							params[k] = { type: 'literal', value: (group ? group.nodes : state.nodes.value).at(-1)!.id };
+							const previous = (group ? group.nodes : state.nodes.value).at(-1)!;
+							const port = Object.entries(getNodeOutputs(previous)).find(([, output]) => output.primary)?.[0];
+							if (port != null) params[k] = { type: 'literal', value: { nodeId: previous.id, outputPort: port } };
 						}
 					}
 				}
@@ -102,7 +105,7 @@ const addFxNodeCommandDef = defineCommand<{ id: string; fx: string; params?: Rec
 			},
 
 			undo(state) {
-				const group = payload.groupId ? state.nodes.value.find(node => node.type === 'group' && node.id === payload.groupId) as GsGroupNode : undefined;
+				const group = payload.groupId ? stateUtility.findNode(state, payload.groupId) as GsGroupNode : undefined;
 				if (group) {
 					group.nodes = group.nodes.filter(node => node.id !== payload.id);
 				} else {
@@ -169,8 +172,8 @@ const removeNodeCommandDef = defineCommand<{ nodeId: string }>({
 					: undefined;
 				const input = removedNode.type === 'fx' && primary ? removedNode.params[primary[0]] : undefined;
 				// UIでは式を評価できないため、静的に指定されている主入力だけを接続先に使う。
-				const inputId = input?.type === 'literal' ? input.value : input?.type === 'node' ? input.nodeId : null;
-				const replacementId = typeof inputId === 'string' && inputId !== payload.nodeId ? inputId : null;
+				const connection = input?.type === 'literal' ? input.value : input?.type === 'node' && input.nodeId != null ? { nodeId: input.nodeId, outputPort: input.outputPort } : null;
+				const replacement: NodeOutputReference | null = connection?.nodeId != null && connection.nodeId !== payload.nodeId ? connection : null;
 				const removedIds = new Set<string>();
 				const collectRemovedIds = (node: GsNode) => {
 					removedIds.add(node.id);
@@ -188,10 +191,10 @@ const removeNodeCommandDef = defineCommand<{ nodeId: string }>({
 							const def = fxDefinitions[node.fx].paramDefs[key];
 							// A → B → CのBを削除したら、Cの参照をAへ書き換える。
 							// 主入力のないFXやグループ（子も含む）の削除では未接続にする。
-							if (def.type === 'node' && param.type === 'literal' && removedIds.has(param.value)) {
-								node.params[key] = { type: 'literal', value: replacementId };
+							if (def.type === 'node' && param.type === 'literal' && removedIds.has(param.value?.nodeId)) {
+								node.params[key] = { type: 'literal', value: deepClone(replacement) };
 							} else if ((def.type === 'node' || def.canNode) && param.type === 'node' && param.nodeId != null && removedIds.has(param.nodeId)) {
-								node.params[key] = { type: 'node', nodeId: replacementId };
+								node.params[key] = replacement ? { type: 'node', ...deepClone(replacement) } : { type: 'node', nodeId: null, outputPort: null };
 							}
 						}
 					}
@@ -560,9 +563,11 @@ const updateMacroTypeOptionCommandDef = defineCommand<{ groupId?: GsGroupNode['i
 const changeParamValueTypeCommandDef = defineCommand<{ nodeId: GsNode['id']; param: string; type: 'literal' | 'expression' | 'automation' | 'node' }>({
 	label: 'Change param value type',
 	create: (payload) => {
+		let before: GsFxNode['params'][string];
 		return {
 			execute(state) {
 				const node = stateUtility.findNode(state, payload.nodeId)! as GsFxNode;
+				before = deepClone(node.params[payload.param]);
 				const currentValue = node.params[payload.param];
 				const defaultValue: GsFxNode['params'][string] = fxDefinitions[node.fx].paramDefs[payload.param].default();
 				const emptyValue = genEmptyValue(fxDefinitions[node.fx].paramDefs[payload.param]);
@@ -574,7 +579,7 @@ const changeParamValueTypeCommandDef = defineCommand<{ nodeId: GsNode['id']; par
 				} else if (payload.type === 'literal') {
 					node.params[payload.param] = {
 						type: 'literal',
-						value: defaultValue, // TODO: currentValueがexpressionだった場合評価した値を入れる
+						value: defaultValue.type === 'literal' ? deepClone(defaultValue.value) : emptyValue,
 					};
 				} else if (payload.type === 'automation') {
 					node.params[payload.param] = {
@@ -585,11 +590,13 @@ const changeParamValueTypeCommandDef = defineCommand<{ nodeId: GsNode['id']; par
 					node.params[payload.param] = {
 						type: 'node',
 						nodeId: null,
+						outputPort: null,
 					};
 				}
 			},
 			undo(state) {
-				// TODO
+				const node = stateUtility.findNode(state, payload.nodeId) as GsFxNode;
+				node.params[payload.param] = deepClone(before);
 			},
 		};
 	},
@@ -652,19 +659,21 @@ const updateParamAsAutomationCommandDef = defineCommand<{ nodeId: GsNode['id']; 
 	},
 });
 
-const updateParamAsNodeCommandDef = defineCommand<{ nodeId: GsNode['id']; param: string; value: any }>({
+const updateParamAsNodeCommandDef = defineCommand<{ nodeId: GsNode['id']; param: string; value: NodeOutputReference | null }>({
 	label: 'Update param as node',
 	create: (payload) => {
+		let before: GsFxNode['params'][string];
 		return {
 			execute(state) {
 				const node = stateUtility.findNode(state, payload.nodeId) as GsFxNode;
-				node.params[payload.param] = {
-					type: 'node',
-					nodeId: payload.value,
-				};
+				before = deepClone(node.params[payload.param]);
+				node.params[payload.param] = payload.value == null
+					? { type: 'node', nodeId: null, outputPort: null }
+					: { type: 'node', ...deepClone(payload.value) };
 			},
 			undo(state) {
-				// TODO
+				const node = stateUtility.findNode(state, payload.nodeId) as GsFxNode;
+				node.params[payload.param] = deepClone(before);
 			},
 		};
 	},

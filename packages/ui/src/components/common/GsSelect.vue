@@ -161,9 +161,7 @@ watch([model, () => props.items], () => {
 			}
 		}
 	}
-	if (found) {
-		currentValueText.value = found.label;
-	}
+	currentValueText.value = found?.label ?? null;
 }, { immediate: true, deep: true });
 
 function show() {

@@ -40,8 +40,8 @@ test('renderer graph traversal and frame history', async t => {
 			])),
 			...Object.fromEntries(Object.entries(params).map(([key, value]) => [key,
 				fxDefinitions[name].paramDefs[key].canNode && typeof value === 'string'
-					? { type: 'node', nodeId: value }
-					: { type: 'literal', value },
+					? { type: 'node', nodeId: value, outputPort: 'output' }
+					: { type: 'literal', value: fxDefinitions[name].paramDefs[key].type === 'node' && typeof value === 'string' ? { nodeId: value, outputPort: 'output' } : value },
 			])),
 		},
 	});

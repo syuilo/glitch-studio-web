@@ -3,30 +3,12 @@
 	<Sortable v-model="value" class="nodes _gaps_s" itemKey="id" tag="div" handle=".drag-handle" :animation="150" :swapThreshold="0.5">
 		<template #item="{element}">
 			<div style="display: flex;">
-				<div :ref="el => portEls[element.id] = el" class="port">・</div>
+				<div :ref="el => setPort(element.id, el)" class="port">・</div>
 				<GsSelect
-					:modelValue="element.node"
-					:items="[
-						{ label: i18n.ts.None, value: null },
-						...(group && group.nodes.length > 0 ? [{
-							type: 'group' as const,
-							label: 'In group',
-							items: group.nodes.filter(x => x.id !== props.node.id).map(node => ({
-								label: `${node.type === 'fx' ? fxDefinitions[node.fx].displayName : node.name} [${node.id}]`,
-								value: node.id,
-							})),
-						}] : []),
-						...(store.nodes.length > 0 ? [{
-							type: 'group' as const,
-							label: 'Nodes',
-							items: store.nodes.filter(x => x.id !== props.node.id).map(node => ({
-								label: `${node.type === 'fx' ? fxDefinitions[node.fx].displayName : node.name} [${node.id}]`,
-								value: node.id,
-							})),
-						}] : []),
-					]"
+					:modelValue="nodeOutputKey(element.node)"
+					:items="[{ label: i18n.ts.None, value: null }, ...items]"
 					style="flex: 1;"
-					@update:modelValue="ev => value.find(x => x.id === element.id).node = ev"
+					@update:modelValue="key => element.node = items.find(item => item.value === key)?.connection ?? null"
 				/>
 				<GsButton style="margin-left: 4px;" @click="remove(element)"><i class="ti ti-x"></i></GsButton>
 				<div class="drag-handle" style="margin-left: 4px;">
@@ -42,27 +24,31 @@
 </template>
 
 <script lang="ts" setup>
-import { defineAsyncComponent, ref, shallowRef, watch } from 'vue';
+import { computed, defineAsyncComponent, ref, watch, watchEffect } from 'vue';
 import { fxDefinitions } from '@glitch/shared/fx-definitions.ts';
 import { genId } from '@glitch/shared/utility/id.ts';
 import GsButton from './common/GsButton.vue';
 import GsSelect from './common/GsSelect.vue';
-import type { GsGroupNode, GsNode } from '@glitch/shared/types.ts';
+import type { ComponentPublicInstance } from 'vue';
+import type { GsGroupNode, GsNode, NodeOutputReference } from '@glitch/shared/types.ts';
 import { i18n } from '@/i18n.ts';
-import { wireMap } from '@/app.ts';
+import { appContext, wireMap } from '@/app.ts';
+import { getNodeOutputItems, nodeOutputKey } from '@/utility/node-outputs.ts';
 
 const Sortable = defineAsyncComponent(() => import('vuedraggable').then(x => x.default));
 
 const props = defineProps<{
-	modelValue: string[];
+	modelValue: (NodeOutputReference | null)[];
 	node: GsNode;
-	group?: GsGroupNode;
+	group?: GsGroupNode | null;
 	name?: string;
 }>();
 
 const emit = defineEmits<{
-	(ev: 'update:modelValue', value: string[]): void;
+	(ev: 'update:modelValue', value: (NodeOutputReference | null)[]): void;
 }>();
+
+const items = computed(() => getNodeOutputItems(appContext.state.nodes.value, props.node.id));
 
 const portEls = ref<Record<string, HTMLElement>>({});
 
@@ -71,12 +57,19 @@ const value = ref(props.modelValue.map(x => ({
 	node: x,
 })));
 
-watch(portEls, () => {
-	if (wireMap.in[props.node.id] == null) wireMap.in[props.node.id] = {};
-	wireMap.in[props.node.id][props.name] = Object.values(portEls.value).map(x => {
-		return x;
-	});
-}, { deep: true });
+function setPort(id: string, el: Element | ComponentPublicInstance | null) {
+	if (el instanceof HTMLElement) portEls.value[id] = el;
+	else delete portEls.value[id];
+}
+
+watchEffect(onCleanup => {
+	const name = props.name;
+	if (name == null) return;
+	wireMap.in[props.node.id] ??= {};
+	const ports = value.value.map(item => portEls.value[item.id]);
+	wireMap.in[props.node.id][name] = ports;
+	onCleanup(() => { delete wireMap.in[props.node.id]?.[name]; });
+});
 
 watch(value, () => {
 	emit('update:modelValue', value.value.map(x => x.node));
@@ -89,7 +82,7 @@ function add() {
 	});
 }
 
-function remove(element: { id: string; node: string; }) {
+function remove(element: { id: string; node: NodeOutputReference | null; }) {
 	value.value.splice(value.value.findIndex(x => x.id === element.id), 1);
 }
 </script>

@@ -47,12 +47,12 @@ test('multiple output rendering', async t => {
 				init: () => ({ dispose() {}, render(ctx) {
 					const outputs = Object.fromEntries(Object.entries(ctx.outputDataMap).map(([port, data]) => [port, { ...data }]));
 					for (const data of Object.values(outputs)) {
-						assert.equal(data.outputTextureView?.texture, data.outputTexture, 'view must belong to the write texture');
+						assert.equal(data.textureView?.texture, data.texture, 'view must belong to the write texture');
 						if (data.previousFrameTexture) {
 							assert.equal(data.previousFrameTextureView.texture, data.previousFrameTexture);
-							assert.notEqual(data.outputTexture, data.previousFrameTexture, 'history must not alias the write texture');
+							assert.notEqual(data.texture, data.previousFrameTexture, 'history must not alias the write texture');
 						}
-						ctx.createPassEncoderFor(ctx.commandEncoder, data.outputTextureView).end();
+						ctx.createPassEncoderFor(ctx.commandEncoder, data.textureView).end();
 					}
 					draws.push({ name, outputs, params: ctx.params });
 				} }),
@@ -73,21 +73,21 @@ test('multiple output rendering', async t => {
 		const run = setup(t, nodes('color'));
 		const first = run.frame();
 		assert.equal(first.length, 2);
-		assert.equal(first[1].params.input, first[0].outputs.color.outputTexture);
-		assert.equal(first[1].params.amount, first[0].outputs.mask.outputTexture);
-		assert.equal(run.canvasInput, first[1].outputs.result.outputTexture);
+		assert.equal(first[1].params.input, first[0].outputs.color.texture);
+		assert.equal(first[1].params.amount, first[0].outputs.mask.texture);
+		assert.equal(run.canvasInput, first[1].outputs.result.texture);
 		assert.equal(run.frame().length, 0);
 		run.renderer.updateNodes(nodes('mask'));
 		const changed = run.frame();
 		assert.equal(changed.length, 1);
-		assert.equal(changed[0].params.input, first[0].outputs.mask.outputTexture);
+		assert.equal(changed[0].params.input, first[0].outputs.mask.texture);
 	});
 	await t.test('bypass and nested groups preserve the selected source port', t => {
 		const bypass = { ...sink(connection('source', 'mask')), isBypass: false };
 		const run = setup(t, [source(), group([{ ...group([bypass]), id: 'inner' }])]);
 		const draws = run.frame('group');
 		assert.equal(draws.length, 1);
-		assert.equal(run.canvasInput, draws[0].outputs.mask.outputTexture);
+		assert.equal(run.canvasInput, draws[0].outputs.mask.texture);
 	});
 	await t.test('missing inputs, ports and empty groups use fallback', t => {
 		const run = setup(t, [source(), sink(null)]);
@@ -109,23 +109,23 @@ test('multiple output rendering', async t => {
 		run.renderer.updateNodes(nodes('mask'));
 		const second = run.frame();
 		assert.equal(second.length, 1);
-		assert.equal(second[0].params.input, first[0].outputs.mask.outputTexture);
+		assert.equal(second[0].params.input, first[0].outputs.mask.texture);
 	});
-	await t.test('node-valued inputs retain their port and omitted ports select the primary output', t => {
+	await t.test('node-valued inputs retain their port and explicit primary ports are selectable', t => {
 		const target = sink(null);
 		target.params.input = { type: 'node', ...connection('source', 'mask') };
 		const run = setup(t, [source(), target]);
 		const first = run.frame();
-		assert.equal(first[1].params.input, first[0].outputs.mask.outputTexture);
-		run.renderer.updateNodes([source(), sink({ nodeId: 'source' })]);
-		assert.equal(run.frame()[0].params.input, first[0].outputs.color.outputTexture);
+		assert.equal(first[1].params.input, first[0].outputs.mask.texture);
+		run.renderer.updateNodes([source(), sink(connection('source', 'color'))]);
+		assert.equal(run.frame()[0].params.input, first[0].outputs.color.texture);
 	});
 	await t.test('scalar-only dependencies render before their consumer', t => {
 		const run = setup(t, [source(), sink(null, connection('source', 'mask'))], true);
 		for (let frame = 0; frame < 2; frame++) {
 			const draws = run.frame();
 			assert.equal(draws.length, 2);
-			assert.equal(draws[1].params.amount, draws[0].outputs.mask.outputTexture);
+			assert.equal(draws[1].params.amount, draws[0].outputs.mask.texture);
 		}
 	});
 	await t.test('destroy releases every output and history texture', t => {
@@ -142,10 +142,10 @@ test('multiple output rendering', async t => {
 		assert.equal(first.length, 2);
 		assert.equal(second.length, 2);
 		for (const port of ['color', 'mask']) {
-			assert.equal(second[0].outputs[port].previousFrameTexture, first[0].outputs[port].outputTexture);
-			assert.equal(second[0].outputs[port].outputTexture, first[0].outputs[port].previousFrameTexture);
+			assert.equal(second[0].outputs[port].previousFrameTexture, first[0].outputs[port].texture);
+			assert.equal(second[0].outputs[port].texture, first[0].outputs[port].previousFrameTexture);
 		}
-		assert.equal(second[1].params.input, second[0].outputs.mask.outputTexture);
+		assert.equal(second[1].params.input, second[0].outputs.mask.texture);
 		const old = [...run.allocated];
 		run.renderer.resize({ width: 32, height: 32 });
 		for (const texture of old) assert.equal(texture.destroy.mock.callCount(), 1);

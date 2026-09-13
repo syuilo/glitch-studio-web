@@ -132,30 +132,13 @@
 		<div ref="portEl">・</div>
 		<GsSelect
 			small
-			:modelValue="value"
-			:items="[
-				{ label: i18n.ts.None, value: null },
-				...(group && group.nodes.length > 0 ? [{
-					type: 'group' as const,
-					label: 'In group',
-					items: group.nodes.filter(x => x.id !== props.node.id).map(node => ({
-						label: `${node.type === 'fx' ? fxDefinitions[node.fx].displayName : node.name} [${node.id}]`,
-						value: node.id,
-					})),
-				}] : []),
-				...(appContext.state.nodes.value.length > 0 ? [{
-					type: 'group' as const,
-					label: 'Nodes',
-					items: appContext.state.nodes.value.filter(x => x.id !== props.node.id).map(node => ({
-						label: `${node.type === 'fx' ? fxDefinitions[node.fx].displayName : node.name} [${node.id}]`,
-						value: node.id,
-					})),
-				}] : []),
-			]"
-			@update:modelValue="v => changeValue(v)"
+			style="flex: 1; min-width: 0;"
+			:modelValue="nodeOutputKey(value)"
+			:items="[{ label: i18n.ts.None, value: null }, ...nodeOutputItems]"
+			@update:modelValue="key => changeValue(nodeOutputItems.find(item => item.value === key)?.connection ?? null)"
 		/>
 	</div>
-	<div v-else-if="type === 'nodes'">
+	<div v-else-if="type === 'nodes' && node">
 		<XNodesInput :modelValue="value" :node="node" :group="group" :name="name" @update:modelValue="v => changeValue(v)"/>
 	</div>
 	<div v-else-if="type === 'image'">
@@ -192,7 +175,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, shallowRef } from 'vue';
+import { computed, watchEffect, shallowRef } from 'vue';
 import { fxDefinitions } from '@glitch/shared/fx-definitions.ts';
 import GsSignal from './common/GsSignal.vue';
 import GsXy from './common/GsXy.vue';
@@ -207,6 +190,7 @@ import GsVideoControls from './common/GsVideoControls.vue';
 import type { GsGroupNode, GsNode } from '@glitch/shared/types.ts';
 import { i18n } from '@/i18n.ts';
 import { appContext, engine, wireMap } from '@/app.ts';
+import { getNodeOutputItems, nodeOutputKey } from '@/utility/node-outputs.ts';
 import { normalizeColor } from '@/utility/color-input.ts';
 
 const props = defineProps<{
@@ -227,6 +211,7 @@ const emit = defineEmits<{
 }>();
 
 const portEl = shallowRef<HTMLElement>();
+const nodeOutputItems = computed(() => getNodeOutputItems(appContext.state.nodes.value, props.node?.id));
 
 function changeValue(value: any) {
 	emit('input', value);
@@ -244,11 +229,16 @@ function onFinishChanging() {
 	emit('changeFinished');
 }
 
-onMounted(() => {
-	if (portEl.value) {
-		if (wireMap.in[props.node.id] == null) wireMap.in[props.node.id] = {};
-		wireMap.in[props.node.id][props.name] = portEl.value;
-	}
+watchEffect(onCleanup => {
+	const el = portEl.value;
+	const nodeId = props.node?.id;
+	const name = props.name;
+	if (el == null || nodeId == null || name == null) return;
+	if (wireMap.in[nodeId] == null) wireMap.in[nodeId] = {};
+	wireMap.in[nodeId][name] = el;
+	onCleanup(() => {
+		if (wireMap.in[nodeId]?.[name] === el) delete wireMap.in[nodeId][name];
+	});
 });
 </script>
 

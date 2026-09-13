@@ -42,33 +42,30 @@
 		<GsNodes :group="node"/>
 	</div>
 
-	<div :class="$style.footer">
-		<div ref="outPortEl" :class="$style.port">・</div>
-		<code :class="$style.nodeId">{{ node.id }}</code>
-	</div>
+	<GsNodeOutputs :node="node"/>
 </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, onMounted, shallowRef } from 'vue';
 import { genId } from '@glitch/shared/utility/id.ts';
+import GsNodeOutputs from './GsNodeOutputs.vue';
 import GsNodes from './GsNodes.vue';
 import GsEffectParamControl from './GsEffectParamControl.vue';
 import GsMacroEditor from './GsMacroEditor.vue';
 import GsButton from './common/GsButton.vue';
-import type { Asset, GsGroupNode } from '@glitch/shared/types.ts';
+import type { Asset, GsGroupNode, Macro } from '@glitch/shared/types.ts';
 import { i18n } from '@/i18n.ts';
 import { appContext, showAddNodeMenu, wireMap } from '@/app.ts';
 import * as api from '@/api.ts';
 
 const props = defineProps<{
 	node: GsGroupNode,
-	group?: GsGroupNode,
+	group?: GsGroupNode | null,
 }>();
 
 const expanded = ref(true);
 const showSettings = ref(false);
-const outPortEl = shallowRef<HTMLElement>();
 const allInPortEl = shallowRef<HTMLElement>();
 
 function add(ev: PointerEvent) {
@@ -168,8 +165,7 @@ async function exportPreset() {
 }
 
 onMounted(() => {
-	wireMap.out[props.node.id] = outPortEl.value;
-	wireMap.allIn[props.node.id] = allInPortEl.value;
+	if (allInPortEl.value) wireMap.allIn[props.node.id] = allInPortEl.value;
 });
 </script>
 
@@ -295,20 +291,4 @@ onMounted(() => {
 	padding: 8px;
 }
 
-.footer {
-	display: flex;
-	line-height: 24px;
-	background-size: auto auto;
-	background-color: #2d2d2d;
-	background-image: repeating-linear-gradient(45deg, transparent, transparent 6px, #222222 6px, #222222 12px );
-}
-
-.port {
-	width: 24px;
-	text-align: center;
-}
-
-.nodeId {
-	opacity: 0.5;
-}
 </style>

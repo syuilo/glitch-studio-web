@@ -1,3 +1,5 @@
+import type { NodeOutputReference, NodeParamValue } from './types.ts';
+
 export type NumberOptionSchema = {
 	type: 'number';
 	label: string;
@@ -121,7 +123,7 @@ type EffectOptionValue<T extends EffectOptionsSchema[string]> =
 	T extends RangeOptionSchema ? number :
 	T extends ImageOptionSchema ? null :
 	T extends PlayerOptionSchema ? null :
-	T extends NodeOptionSchema ? null :
+	T extends NodeOptionSchema ? NodeOutputReference | null :
 	never;
 
 export type GetEffectOptionsSchemaValues<T extends EffectOptionsSchema> = {
@@ -132,7 +134,7 @@ type EffectOptionsSchemaDefaultValue<T extends EffectOptionsSchema, K extends ke
 	{ type: 'literal'; value: GetEffectOptionsSchemaValues<T>[K] } |
 	{ type: 'expression'; expression: string } |
 	{ type: 'automation'; automationId: string | null } |
-	{ type: 'node'; nodeId: string | null; outputPort?: string };
+	NodeParamValue;
 
 // コールバックの戻り値にも、パラメータの種類に応じた型を付ける。
 type EffectOptionSchemaWithDefault<T extends EffectOptionsSchema[string]> = T extends unknown ? T & {

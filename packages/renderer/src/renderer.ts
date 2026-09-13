@@ -251,7 +251,8 @@ export class Renderer {
 		return input?.nodeId == null ? undefined : this.getOutputNode(this.findNode(input.nodeId), input.outputPort, nextVisited);
 	}
 
-	private getOutputTexture(node: GsNode | undefined, outputPort?: string): GPUTexture | undefined {
+	private getOutputTexture(node: GsNode | undefined, outputPort: string): GPUTexture | undefined {
+		if (outputPort == null) return undefined;
 		const output = this.getOutputNode(node, outputPort);
 		if (output == null) return undefined;
 		return this.outDataMapPerNodes.get(output.node.id)?.[output.outputPort]?.texture;
@@ -644,7 +645,8 @@ export class Renderer {
 
 		//#region nodeのoutをcanvasに描画
 		// 末尾が無効でもバイパス先を表示する。出力なしでも描画し、前の画像を残さない。
-		const outputTexture = this.getOutputTexture(node) ?? this.fallbackTexture;
+		const output = this.getOutputNode(node);
+		const outputTexture = (output == null ? undefined : this.getOutputTexture(output.node, output.outputPort)) ?? this.fallbackTexture;
 		if (this.finalRenderBindGroup == null || this.finalRenderInputTexture !== outputTexture) {
 			this.finalRenderInputTexture = outputTexture;
 			this.finalRenderBindGroup = this.gpuDevice.createBindGroup({

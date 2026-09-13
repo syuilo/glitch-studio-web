@@ -48,7 +48,7 @@ export default implementEffect<typeof definition>({
 
 		return {
 			render: (ctx) => {
-				const previous = ctx.previousFrameTextureView!;
+				const previous = ctx.outputDataMap.output.previousFrameTextureView!;
 				let bindGroup = bindGroups.get(previous);
 
 				if (!bindGroup) {
