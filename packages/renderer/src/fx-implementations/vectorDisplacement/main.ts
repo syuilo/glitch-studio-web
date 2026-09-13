@@ -5,15 +5,15 @@ import code from './shader.wgsl?raw';
 export default implementEffect<typeof definition>({
 	getOut: ({ wgpu, resolution }) => wgpu.device.createTexture({
 		size: resolution,
-		format: navigator.gpu.getPreferredCanvasFormat(),
+		format: wgpu.intermediateTextureFormat,
 		usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
 	}),
-	init: ({ wgpu: { device, defaultVertexShaderModule }, resolution, params, fallbackTexture }) => {
+	init: ({ wgpu: { device, defaultVertexShaderModule, intermediateTextureFormat }, resolution, params, fallbackTexture }) => {
 		const module = device.createShaderModule({ code });
 		const pipeline = device.createRenderPipeline({
 			layout: 'auto',
 			vertex: { module: defaultVertexShaderModule },
-			fragment: { module, targets: [{ format: navigator.gpu.getPreferredCanvasFormat() }] },
+			fragment: { module, targets: [{ format: intermediateTextureFormat }] },
 			primitive: { topology: 'triangle-list' },
 		});
 		const uniforms = device.createBuffer({ size: 20, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });

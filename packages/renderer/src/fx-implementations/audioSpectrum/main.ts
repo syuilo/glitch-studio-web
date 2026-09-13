@@ -8,14 +8,14 @@ export default implementEffect<typeof definition>({
 	getOut: ({ wgpu, resolution }) => {
 		const out = wgpu.device.createTexture({
 			size: resolution,
-			format: navigator.gpu.getPreferredCanvasFormat(),
+			format: wgpu.intermediateTextureFormat,
 			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
 		});
 		return { output: out };
 	},
 	init: ({ wgpu, resolution }) => {
 		const columns = Math.max(2, Math.min(2048, resolution.width));
-		const plot = createAudioPlot(wgpu.device, wgpu.defaultVertexShaderModule, columns);
+		const plot = createAudioPlot(wgpu.device, wgpu.defaultVertexShaderModule, columns, wgpu.intermediateTextureFormat);
 		let spectrum: AudioSpectrum | null = null;
 		return {
 			render(ctx) {

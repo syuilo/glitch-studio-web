@@ -11,7 +11,7 @@ export default implementEffect<typeof definition>({
 	getOut: ({ wgpu, resolution }) => {
 		const out = wgpu.device.createTexture({
 			size: resolution,
-			format: navigator.gpu.getPreferredCanvasFormat(),
+			format: wgpu.intermediateTextureFormat,
 			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
 		});
 		return { output: out };
@@ -40,13 +40,13 @@ export default implementEffect<typeof definition>({
 			fragment: { module, entryPoint, targets: [{ format, blend }] },
 			primitive: { topology: 'triangle-list' },
 		});
-		// Half floats preserve faint highlights through repeated filtering.
-		const prefilterPipeline = makePipeline('prefilter', 'rgba16float');
-		const downsamplePipeline = makePipeline('downsample', 'rgba16float');
+		// 縮小・拡大の各段階もrendererで指定された画像形式に揃える。
+		const prefilterPipeline = makePipeline('prefilter', wgpu.intermediateTextureFormat);
+		const downsamplePipeline = makePipeline('downsample', wgpu.intermediateTextureFormat);
 		// Blend into the finer level in place; no second pyramid or detail sample.
 		const blend: GPUBlendComponent = { srcFactor: 'constant', dstFactor: 'one-minus-constant' };
-		const upsamplePipeline = makePipeline('upsample', 'rgba16float', { color: blend, alpha: blend });
-		const compositePipeline = makePipeline('composite', navigator.gpu.getPreferredCanvasFormat());
+		const upsamplePipeline = makePipeline('upsample', wgpu.intermediateTextureFormat, { color: blend, alpha: blend });
+		const compositePipeline = makePipeline('composite', wgpu.intermediateTextureFormat);
 		const longestSide = Math.max(resolution.width, resolution.height);
 		const clamp = (value: number, max: number, fallback: number) => Number.isFinite(value) ? Math.min(max, Math.max(0, value)) : fallback;
 		const getWorkingSize = (quality: number) => Math.min(device.limits.maxTextureDimension2D, Math.max(haloSize, Math.round(longestSide * Math.max(0.1, clamp(quality, 1, 0.5)))));
@@ -72,7 +72,7 @@ export default implementEffect<typeof definition>({
 				const scale = size / longestSide;
 				const texture = device.createTexture({
 					size: [Math.max(1, Math.round(resolution.width * scale)), Math.max(1, Math.round(resolution.height * scale))],
-					format: 'rgba16float',
+					format: wgpu.intermediateTextureFormat,
 					usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
 				});
 				return { texture, view: texture.createView() };

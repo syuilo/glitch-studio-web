@@ -20,7 +20,7 @@ export type SpectrogramSettings = {
 };
 
 // 入力音声と描画先は呼び出し側が決める。Playerやエフェクトの定義には依存しない。
-export function createAudioSpectrogram(device: GPUDevice, vertexShaderModule: GPUShaderModule) {
+export function createAudioSpectrogram(device: GPUDevice, vertexShaderModule: GPUShaderModule, format: GPUTextureFormat = navigator.gpu.getPreferredCanvasFormat()) {
 	const bands = 512;
 
 	const module = device.createShaderModule({ code: shader });
@@ -34,7 +34,7 @@ export function createAudioSpectrogram(device: GPUDevice, vertexShaderModule: GP
 	const pipeline = device.createRenderPipeline({
 		layout: device.createPipelineLayout({ bindGroupLayouts: [layout] }),
 		vertex: { module: vertexShaderModule },
-		fragment: { module, targets: [{ format: navigator.gpu.getPreferredCanvasFormat() }] },
+		fragment: { module, targets: [{ format }] },
 		primitive: { topology: 'triangle-list' },
 	});
 

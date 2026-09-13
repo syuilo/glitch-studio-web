@@ -49,6 +49,7 @@ export class Engine {
 	private rendererWorker: Worker | null = null;
 
 	private enableFloat32Filtering = false;
+	private intermediateTextureFormat = navigator.gpu.getPreferredCanvasFormat(); // TODO: 設定でrgba16floatも指定できるようにする(レンダリングの精度は上がるがパフォーマンスは落ちる)
 	private enableStats = true;
 	private nodes: GsNode[] = [];
 	private assets: Asset[] = [];
@@ -156,6 +157,7 @@ export class Engine {
 			options: {
 				resolution,
 				enableFloat32Filtering: this.enableFloat32Filtering,
+				intermediateTextureFormat: this.intermediateTextureFormat,
 				fpsLimit: this.fpsLimit,
 				enableStats: this.enableStats,
 				assets: this.assets,

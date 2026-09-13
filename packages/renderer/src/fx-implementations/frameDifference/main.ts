@@ -8,12 +8,12 @@ export default implementEffect<typeof definition>({
 	getOut: ({ wgpu, resolution }) => {
 		const out = wgpu.device.createTexture({
 			size: resolution,
-			format: navigator.gpu.getPreferredCanvasFormat(),
+			format: wgpu.intermediateTextureFormat,
 			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
 		});
 		return { output: out };
 	},
-	init: ({ wgpu: { device, defaultVertexShaderModule }, resolution, params, fallbackTexture }) => {
+	init: ({ wgpu: { device, defaultVertexShaderModule, intermediateTextureFormat }, resolution, params, fallbackTexture }) => {
 		const module = device.createShaderModule({ code });
 		const inputLayout = device.createBindGroupLayout({
 			entries: [{ binding: 0, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'unfilterable-float' } }],
@@ -27,7 +27,7 @@ export default implementEffect<typeof definition>({
 		const difference = device.createRenderPipeline({
 			layout: device.createPipelineLayout({ bindGroupLayouts: [inputLayout, historyLayout] }),
 			vertex: { module: defaultVertexShaderModule },
-			fragment: { module, entryPoint: 'difference', targets: [{ format: navigator.gpu.getPreferredCanvasFormat() }] },
+			fragment: { module, entryPoint: 'difference', targets: [{ format: intermediateTextureFormat }] },
 			primitive: { topology: 'triangle-list' },
 		});
 		const capture = device.createRenderPipeline({

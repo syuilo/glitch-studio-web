@@ -7,7 +7,7 @@ export default implementEffect<typeof definition>({
 	getOut: ({ wgpu, resolution }) => {
 		const out = wgpu.device.createTexture({
 			size: resolution,
-			format: navigator.gpu.getPreferredCanvasFormat(),
+			format: wgpu.intermediateTextureFormat,
 			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
 		});
 		return { output: out };
@@ -19,7 +19,7 @@ export default implementEffect<typeof definition>({
 			vertex: { module: wgpu.defaultVertexShaderModule },
 			fragment: {
 				module: shaderModule,
-				targets: [{ format: navigator.gpu.getPreferredCanvasFormat() }],
+				targets: [{ format: wgpu.intermediateTextureFormat }],
 			},
 			primitive: { topology: 'triangle-list' },
 			layout: 'auto',

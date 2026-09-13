@@ -7,13 +7,13 @@ export default implementEffect<typeof definition>({
 	getOut: ({ wgpu, resolution }) => {
 		const out = wgpu.device.createTexture({
 			size: resolution,
-			format: navigator.gpu.getPreferredCanvasFormat(),
+			format: wgpu.intermediateTextureFormat,
 			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
 		});
 		return { output: out };
 	},
-	init: ({ wgpu: { device, defaultVertexShaderModule } }) => {
-		const spectrogram = createAudioSpectrogram(device, defaultVertexShaderModule);
+	init: ({ wgpu: { device, defaultVertexShaderModule, intermediateTextureFormat } }) => {
+		const spectrogram = createAudioSpectrogram(device, defaultVertexShaderModule, intermediateTextureFormat);
 		return {
 			render(ctx) {
 				const pass = ctx.createPassEncoderFor(ctx.commandEncoder, ctx.outputDataMap.output.textureView);

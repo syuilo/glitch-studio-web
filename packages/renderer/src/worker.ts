@@ -60,6 +60,7 @@ onmessage = async (event) => {
 				gpuContext: context,
 				resolution: event.data.options.resolution,
 				enableFloat32Filtering: event.data.options.enableFloat32Filtering,
+				intermediateTextureFormat: event.data.options.intermediateTextureFormat,
 				enableStats: event.data.options.enableStats,
 				fpsLimit: event.data.options.fpsLimit,
 				assets: event.data.options.assets,

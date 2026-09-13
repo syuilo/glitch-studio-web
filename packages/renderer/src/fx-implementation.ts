@@ -2,6 +2,9 @@ import type { BlendModeOptionSchema, FitModeOptionSchema, BooleanOptionSchema, C
 import type { AudioHistory } from '@glitch/shared/audio-history.ts';
 import type { EffectStatus } from '@glitch/shared/effect-status.ts';
 
+// 画像の中間処理でフィルタリング・ブレンド可能なRGBA形式。
+export type IntermediateTextureFormat = 'rgba8unorm' | 'bgra8unorm' | 'rgba16float';
+
 type RuntimeEffectOptionValue<T extends EffectOptionsSchema[string]> =
 	T extends { canNode: true } ? GPUTexture :
 	T extends NumberOptionSchema ? number :
@@ -55,6 +58,7 @@ export type EffectImplementation<Definition extends Pick<EffectDefinition, 'para
 		wgpu: {
 			device: GPUDevice;
 			enableFloat32Filtering: boolean;
+			intermediateTextureFormat: IntermediateTextureFormat;
 		};
 	}) => {
 		[K in keyof Definition['outputs']]: GPUTexture
@@ -68,6 +72,7 @@ export type EffectImplementation<Definition extends Pick<EffectDefinition, 'para
 			context: GPUCanvasContext;
 			defaultVertexShaderModule: GPUShaderModule;
 			enableFloat32Filtering: boolean;
+			intermediateTextureFormat: IntermediateTextureFormat;
 		};
 		params: GetRuntimeEffectOptionsSchemaValues<Options>;
 		fallbackTexture: GPUTexture;

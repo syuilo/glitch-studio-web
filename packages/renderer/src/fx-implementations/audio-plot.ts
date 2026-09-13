@@ -1,11 +1,11 @@
 import shader from './audio-plot.wgsl?raw';
 import type { EffectInstance } from '../fx-implementation.ts';
 
-export function createAudioPlot(device: GPUDevice, vertex: GPUShaderModule, columns: number) {
+export function createAudioPlot(device: GPUDevice, vertex: GPUShaderModule, columns: number, format: GPUTextureFormat) {
 	const module = device.createShaderModule({ code: shader });
 	const pipeline = device.createRenderPipeline({
 		layout: 'auto', vertex: { module: vertex },
-		fragment: { module, targets: [{ format: navigator.gpu.getPreferredCanvasFormat() }] },
+		fragment: { module, targets: [{ format }] },
 		primitive: { topology: 'triangle-list' },
 	});
 	const uniformBuffer = device.createBuffer({ size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });

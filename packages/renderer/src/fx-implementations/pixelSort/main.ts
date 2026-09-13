@@ -6,12 +6,12 @@ export default implementEffect<typeof definition>({
 	getOut: ({ wgpu, resolution }) => {
 		const out = wgpu.device.createTexture({
 			size: resolution,
-			format: navigator.gpu.getPreferredCanvasFormat(),
+			format: wgpu.intermediateTextureFormat,
 			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
 		});
 		return { output: out };
 	},
-	init: ({ wgpu: { device, defaultVertexShaderModule }, resolution, params, fallbackTexture }) => {
+	init: ({ wgpu: { device, defaultVertexShaderModule, intermediateTextureFormat }, resolution, params, fallbackTexture }) => {
 		const module = device.createShaderModule({ code });
 		const initialize = device.createComputePipeline({
 			layout: 'auto', compute: { module, entryPoint: 'initialize' },
@@ -22,7 +22,7 @@ export default implementEffect<typeof definition>({
 		const output = device.createRenderPipeline({
 			layout: 'auto',
 			vertex: { module: defaultVertexShaderModule },
-			fragment: { module, entryPoint: 'fs', targets: [{ format: navigator.gpu.getPreferredCanvasFormat() }] },
+			fragment: { module, entryPoint: 'fs', targets: [{ format: intermediateTextureFormat }] },
 			primitive: { topology: 'triangle-list' },
 		});
 		const maxPasses = Math.ceil(Math.log2(Math.max(resolution.width, resolution.height)));

@@ -5,10 +5,10 @@ import code from './shader.wgsl?raw';
 export default implementEffect<typeof definition>({
 	getOut: ({ wgpu, resolution }) => wgpu.device.createTexture({
 		size: resolution,
-		format: navigator.gpu.getPreferredCanvasFormat(),
+		format: wgpu.intermediateTextureFormat,
 		usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
 	}),
-	init: ({ wgpu: { device, defaultVertexShaderModule }, resolution, params, fallbackTexture }) => {
+	init: ({ wgpu: { device, defaultVertexShaderModule, intermediateTextureFormat }, resolution, params, fallbackTexture }) => {
 		const getSize = (divisor: number) => ({
 			width: Math.max(1, Math.ceil(resolution.width / divisor)),
 			height: Math.max(1, Math.ceil(resolution.height / divisor)),
@@ -49,7 +49,7 @@ export default implementEffect<typeof definition>({
 		const output = device.createRenderPipeline({
 			layout: 'auto',
 			vertex: { module: defaultVertexShaderModule },
-			fragment: { module, entryPoint: 'fs', targets: [{ format: navigator.gpu.getPreferredCanvasFormat() }] },
+			fragment: { module, entryPoint: 'fs', targets: [{ format: intermediateTextureFormat }] },
 			primitive: { topology: 'triangle-list' },
 		});
 		let waveform = createWaveform(size);

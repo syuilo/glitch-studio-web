@@ -16,7 +16,7 @@ import { float32ToFloat16Bits } from './utility/float32ToFloat16Bits.ts';
 import type { EffectStatus } from '@glitch/shared/effect-status.ts';
 import type { AudioCaptureMessage, AudioSourceId } from '@glitch/shared/audio.ts';
 import type { Asset, Macro, GsAutomation, GsFxNode, GsNode, GsGroupNode, Player, NodeOutputReference } from '@glitch/shared/types.ts';
-import type { EffectInstance } from './fx-implementation.ts';
+import type { EffectInstance, IntermediateTextureFormat } from './fx-implementation.ts';
 
 const aisParser = new AiScript.Parser();
 
@@ -84,6 +84,7 @@ export class Renderer {
 	private finalRenderBindGroup: GPUBindGroup | null = null;
 	private finalRenderInputTexture: GPUTexture | null = null;
 	private enableFloat32Filtering = false;
+	private readonly intermediateTextureFormat: IntermediateTextureFormat;
 	private evaledNodeParams: Map<GsNode['id'], Record<string, any>> = new Map();
 	private latestTimestamp: number = performance.now();
 	private pointerPosition: { x: number; y: number } = { x: -99999, y: -99999 };
@@ -112,6 +113,8 @@ export class Renderer {
 			height: number;
 		};
 		enableFloat32Filtering: boolean;
+		/** 画像の中間テクスチャ形式。省略時はrgba16float。Canvas・データ用テクスチャには適用しない。 */
+		intermediateTextureFormat: IntermediateTextureFormat;
 		enableStats: boolean;
 		fpsLimit: number | null;
 		assets: Asset[];
@@ -125,6 +128,7 @@ export class Renderer {
 		this.onEffectStatus = options.onEffectStatus;
 		this.enableStats = options.enableStats;
 		this.enableFloat32Filtering = options.enableFloat32Filtering;
+		this.intermediateTextureFormat = options.intermediateTextureFormat;
 		this.fpsLimit = options.fpsLimit;
 		this.gpuDevice = options.gpuDevice;
 		this.gpuMemory = new GpuMemoryTracker(this.gpuDevice);
@@ -154,7 +158,7 @@ export class Renderer {
 
 		this.fallbackTexture = this.gpuDevice.createTexture({
 			size: [1, 1],
-			format: navigator.gpu.getPreferredCanvasFormat(),
+			format: this.intermediateTextureFormat,
 			usage: GPUTextureUsage.TEXTURE_BINDING,
 		});
 
@@ -533,7 +537,7 @@ export class Renderer {
 					this.setEffectStatus(node.id, status);
 				},
 				resolution: { width: this.resolution.width, height: this.resolution.height },
-				wgpu: { device: this.gpuDevice, context: this.gpuContext, defaultVertexShaderModule: this.defaultVertexShaderModule, enableFloat32Filtering: this.enableFloat32Filtering },
+				wgpu: { device: this.gpuDevice, context: this.gpuContext, defaultVertexShaderModule: this.defaultVertexShaderModule, enableFloat32Filtering: this.enableFloat32Filtering, intermediateTextureFormat: this.intermediateTextureFormat },
 				params: resolvedParams,
 				fallbackTexture: this.fallbackTexture,
 			});
@@ -701,13 +705,13 @@ export class Renderer {
 		for (const node of addedNodes) {
 			const effect = fxImplementations[node.fx];
 			const outTextureMap = effect.getOut({
-				wgpu: { device: this.gpuDevice, enableFloat32Filtering: this.enableFloat32Filtering },
+				wgpu: { device: this.gpuDevice, enableFloat32Filtering: this.enableFloat32Filtering, intermediateTextureFormat: this.intermediateTextureFormat },
 				resolution: { width: this.resolution.width, height: this.resolution.height },
 			});
 			let previousFrameTextureMap: Record<string, GPUTexture> = {};
 			if (effect.needsPreviousFrame) {
 				previousFrameTextureMap = effect.getOut({
-					wgpu: { device: this.gpuDevice, enableFloat32Filtering: this.enableFloat32Filtering },
+					wgpu: { device: this.gpuDevice, enableFloat32Filtering: this.enableFloat32Filtering, intermediateTextureFormat: this.intermediateTextureFormat },
 					resolution: { width: this.resolution.width, height: this.resolution.height },
 				});
 			}
