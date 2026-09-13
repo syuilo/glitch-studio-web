@@ -23,6 +23,7 @@ export type GetRuntimeEffectOptionsSchemaValues<T extends EffectOptionsSchema> =
 };
 
 export type EffectInstance<Options extends EffectOptionsSchema = any> = {
+	readonly cacheVersion?: number;
 	render: (ctx: {
 		time: number;
 		timeDelta: number;

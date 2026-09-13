@@ -85,7 +85,6 @@ function getSymbolTextureUrls(type: string) {
 }
 
 export default implementEffect<typeof definition>({
-	disableCache: true, // テクスチャの非同期読み込みに対応するためとりあえず無効化 そのうち良い感じにする
 	getOut: ({ wgpu, resolution }) => {
 		const out = wgpu.device.createTexture({
 			size: resolution,
@@ -156,28 +155,38 @@ export default implementEffect<typeof definition>({
 
 		let iconset = params.iconset;
 		let symbolTextureCount = 0;
-		const symbolTexturesPromise = createTextureFromImages(wgpu.device, getSymbolTextureUrls(params.iconset), {
-			mips: true,
-		}).then(texture => {
-			symbolTexture = texture;
-			symbolTextureCount = getSymbolTextureUrls(params.iconset).length;
-			updateBindGroup(params.input, params.forceField);
-		});
+		let cacheVersion = 0;
+		let loadVersion = 0;
+		let disposed = false;
+		const loadSymbolTextures = (type: string) => {
+			const version = ++loadVersion;
+			const urls = getSymbolTextureUrls(type);
+			void createTextureFromImages(wgpu.device, urls, { mips: true }).then(texture => {
+				// 遅れて完了した古い要求や、破棄済みインスタンスには結果を適用しない。
+				if (disposed || version !== loadVersion) {
+					texture.destroy();
+					return;
+				}
+				symbolTexture?.destroy();
+				symbolTexture = texture;
+				symbolTextureCount = urls.length;
+				updateBindGroup(inputTexture, forceFieldTexture);
+				cacheVersion++;
+			}).catch(error => {
+				if (!disposed && version === loadVersion) console.error('Failed to load symbol textures:', error);
+			});
+		};
+		loadSymbolTextures(iconset);
 
 		return {
+			get cacheVersion() { return cacheVersion; },
 			render: (ctx) => {
 				if (ctx.params.input !== inputTexture || ctx.params.forceField !== forceFieldTexture) {
 					updateBindGroup(ctx.params.input, ctx.params.forceField);
 				}
 				if (ctx.params.iconset !== iconset) {
 					iconset = ctx.params.iconset;
-					createTextureFromImages(wgpu.device, getSymbolTextureUrls(iconset), {
-						mips: true,
-					}).then(texture => {
-						symbolTexture = texture;
-						symbolTextureCount = getSymbolTextureUrls(iconset).length;
-						updateBindGroup(ctx.params.input, ctx.params.forceField);
-					});
+					loadSymbolTextures(iconset);
 				}
 
 				uniformValues.set({
@@ -211,6 +220,7 @@ export default implementEffect<typeof definition>({
 				passEncoder.end();
 			},
 			dispose: () => {
+				disposed = true;
 				uniformBuffer.destroy();
 				symbolTexture?.destroy();
 			},

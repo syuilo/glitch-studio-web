@@ -367,6 +367,8 @@ export class Renderer {
 			if (fxImplementations[node.fx].disableCache) {
 				return null;
 			}
+			// 非同期のリソース更新も後続ノードのキャッシュキーに伝播させる。
+			key += `cacheVersion=${this.effectInstances.get(node.id)?.cacheVersion ?? 0};`;
 
 			const paramDefs = fxDefinitions[node.fx].paramDefs;
 

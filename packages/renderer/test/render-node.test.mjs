@@ -9,6 +9,21 @@ test('renderer graph traversal and frame history', async t => {
 		root: fileURLToPath(new URL('..', import.meta.url)), configFile: false,
 		server: { middlewareMode: true, hmr: false, ws: false, watch: null }, appType: 'custom',
 		optimizeDeps: { noDiscovery: true, include: [] },
+		plugins: [{
+			name: 'controlled-symbol-image-loading',
+			resolveId(id) { if (id === 'test:symbol-images') return '\0symbol-images'; },
+			load(id) {
+				if (id === '\0symbol-images') return `export const requests = [];
+					export function createTextureFromImages(device, urls) {
+						return new Promise((resolve, reject) => requests.push({ device, urls, resolve, reject }));
+					}`;
+			},
+			transform(code, id) {
+				if (id.endsWith('/fx-implementations/symbols/main.ts')) {
+					return code.replace('createTextureFromImages, ', '') + '\nimport { createTextureFromImages } from "test:symbol-images";';
+				}
+			},
+		}],
 	});
 	t.after(() => server.close());
 	const previousGpu = navigator.gpu;
@@ -89,6 +104,59 @@ test('renderer graph traversal and frame history', async t => {
 	}
 
 	const disabled = node => ({ ...node, isBypass: false });
+
+	await t.test('symbols caches async output, ignores obsolete loads and releases textures', async t => {
+		const { requests } = await server.ssrLoadModule('test:symbol-images');
+		const nodes = (iconset = 'symbols', input = 'a') => [
+			fx('a', 'fill'), fx('b', 'fill'), fx('symbols', 'symbols', { iconset, input }),
+			fx('root', 'multiply', { input: 'symbols' }),
+		];
+		const run = setup(t, nodes());
+		const settle = () => new Promise(resolve => setImmediate(resolve));
+		async function complete(index) {
+			const texture = requests[index].device.createTexture();
+			const destroy = t.mock.method(texture, 'destroy');
+			requests[index].resolve(texture);
+			await settle();
+			return { texture, destroy };
+		}
+		run.frame();
+		assert.equal(run.frame().length, 0, 'loading output is cached');
+		const first = await complete(0);
+		let passes = run.frame();
+		assert.equal(passes.length, 2, 'completion invalidates symbols and downstream');
+		assert.equal(passes[0].inputs[1], first.texture);
+		assert.equal(run.frame().length, 0);
+
+		run.renderer.updateNodes(nodes('numbers'));
+		run.frame();
+		run.renderer.updateNodes(nodes('sweets', 'b'));
+		passes = run.frame();
+		const latestInput = passes[0].output;
+		const latest = await complete(2);
+		passes = run.frame();
+		assert.equal(passes.length, 2);
+		assert.equal(passes[0].inputs[0], latestInput, 'completion retains the latest input');
+		assert.equal(passes[0].inputs[1], latest.texture);
+		assert.equal(first.destroy.mock.callCount(), 1);
+		const obsolete = await complete(1);
+		assert.equal(obsolete.destroy.mock.callCount(), 1);
+		assert.equal(run.frame().length, 0, 'obsolete completion cannot replace cached output');
+
+		run.renderer.updateNodes(nodes('symbols'));
+		run.frame();
+		const errors = t.mock.method(console, 'error', () => {});
+		requests[3].reject(new Error('image load failed'));
+		await settle();
+		assert.equal(errors.mock.callCount(), 1);
+		assert.equal(run.frame().length, 0, 'failed loads retain cached output');
+		run.renderer.updateNodes(nodes('numbers'));
+		run.frame();
+		run.renderer.updateNodes([]);
+		assert.equal(latest.destroy.mock.callCount(), 1);
+		const disposed = await complete(4);
+		assert.equal(disposed.destroy.mock.callCount(), 1, 'completion after disposal releases its texture');
+	});
 
 	await t.test('video caches shared player frames and invalidates downstream on updates', t => {
 		const nodes = (player = 'player', sizeMode = 1) => [
