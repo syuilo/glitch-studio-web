@@ -1,18 +1,21 @@
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
-import type definition from '@glitch/shared/fx-definitions/bloom.ts';
 import { implementEffect } from '../../fx-implementation.ts';
 import code from './shader.wgsl?raw';
+import type definition from '@glitch/shared/fx-definitions/bloom.ts';
 
 // 光の広がりを決める段階は固定し、Qualityに応じて細部用の段階を手前に追加する。
 const haloSize = 512;
 const haloLevelCount = 6;
 
 export default implementEffect<typeof definition>({
-	getOut: ({ wgpu, resolution }) => wgpu.device.createTexture({
-		size: resolution,
-		format: navigator.gpu.getPreferredCanvasFormat(),
-		usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
-	}),
+	getOut: ({ wgpu, resolution }) => {
+		const out = wgpu.device.createTexture({
+			size: resolution,
+			format: navigator.gpu.getPreferredCanvasFormat(),
+			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
+		});
+		return { output: out };
+	},
 	init: ({ wgpu, params, resolution, fallbackTexture }) => {
 		const { device } = wgpu;
 		const module = device.createShaderModule({ code });

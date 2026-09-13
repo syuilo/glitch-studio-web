@@ -1,17 +1,20 @@
 // Adapted from Paper Design's Liquid Metal (Apache-2.0; see LICENSE).
 // Modified for WebGPU and live node inputs; no uploaded-image or shape selector.
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
-import type definition from '@glitch/shared/fx-definitions/liquidMetal.ts';
 import { implementEffect } from '../../fx-implementation.ts';
 import code from './shader.wgsl?raw';
 import preprocessCode from './preprocess.wgsl?raw';
+import type definition from '@glitch/shared/fx-definitions/liquidMetal.ts';
 
 export default implementEffect<typeof definition>({
-	getOut: ({ wgpu, resolution }) => wgpu.device.createTexture({
-		size: resolution,
-		format: navigator.gpu.getPreferredCanvasFormat(),
-		usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
-	}),
+	getOut: ({ wgpu, resolution }) => {
+		const out = wgpu.device.createTexture({
+			size: resolution,
+			format: navigator.gpu.getPreferredCanvasFormat(),
+			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
+		});
+		return { output: out };
+	},
 	init: ({ wgpu, resolution, params, fallbackTexture }) => {
 		const { device } = wgpu;
 		const module = device.createShaderModule({ code });

@@ -1,15 +1,18 @@
-import type definition from '@glitch/shared/fx-definitions/accumulate.ts';
 import { implementEffect } from '../../fx-implementation.ts';
 import code from './shader.wgsl?raw';
+import type definition from '@glitch/shared/fx-definitions/accumulate.ts';
 
 export default implementEffect<typeof definition>({
 	disableCache: true,
 	needsPreviousFrame: true,
-	getOut: ({ wgpu, resolution }) => wgpu.device.createTexture({
-		size: resolution,
-		format: wgpu.enableFloat32Filtering ? 'rgba32float' : 'rgba16float',
-		usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
-	}),
+	getOut: ({ wgpu, resolution }) => {
+		const out = wgpu.device.createTexture({
+			size: resolution,
+			format: wgpu.enableFloat32Filtering ? 'rgba32float' : 'rgba16float',
+			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
+		});
+		return { output: out };
+	},
 	init: ({ wgpu: { device, defaultVertexShaderModule, enableFloat32Filtering }, params, fallbackTexture }) => {
 		const module = device.createShaderModule({ code });
 		const layout = device.createBindGroupLayout({

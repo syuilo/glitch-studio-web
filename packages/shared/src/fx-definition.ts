@@ -143,16 +143,18 @@ type EffectOptionsSchemaDefaults<T extends EffectOptionsSchema> = {
 	[K in keyof T]: { default: () => EffectOptionsSchemaDefaultValue<NoInfer<T>, K> };
 };
 
-export type EffectDefinition<OpSc extends EffectOptionsSchema = EffectOptionsSchema> = {
+export type EffectOutputsSchema = Record<string, { dataType: 'color' | 'scalar' | 'vector' | 'any'; primary: boolean; }>;
+
+export type EffectDefinition<OpSc extends EffectOptionsSchema = EffectOptionsSchema, Outputs extends EffectOutputsSchema = EffectOutputsSchema> = {
 	name: string;
 	displayName: string;
 	category: string;
 	paramDefs: OpSc;
-	outputs: Record<string, {	dataType: 'color' | 'scalar' | 'vector' | 'any'; }>;
+	outputs: Outputs;
 };
 
-export function defineEffect<const OpSc extends Record<string, EffectOptionSchemaWithDefault<EffectOptionsSchema[string]>>>(
-	def: EffectDefinition<OpSc> & { paramDefs: EffectOptionsSchemaDefaults<OpSc> },
-): EffectDefinition<OpSc> {
+export function defineEffect<const OpSc extends Record<string, EffectOptionSchemaWithDefault<EffectOptionsSchema[string]>>, const Outputs extends EffectOutputsSchema>(
+	def: EffectDefinition<OpSc, Outputs> & { paramDefs: EffectOptionsSchemaDefaults<OpSc> },
+): EffectDefinition<OpSc, Outputs> {
 	return def;
 }

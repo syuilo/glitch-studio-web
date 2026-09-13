@@ -1,14 +1,17 @@
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
-import type definition from '@glitch/shared/fx-definitions/rainDropsOnWindow1.ts';
 import { implementEffect } from '../../fx-implementation.ts';
 import code from './shader.wgsl?raw';
+import type definition from '@glitch/shared/fx-definitions/rainDropsOnWindow1.ts';
 
 export default implementEffect<typeof definition>({
-	getOut: ({ wgpu, resolution }) => wgpu.device.createTexture({
-		size: resolution,
-		format: navigator.gpu.getPreferredCanvasFormat(),
-		usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
-	}),
+	getOut: ({ wgpu, resolution }) => {
+		const out = wgpu.device.createTexture({
+			size: resolution,
+			format: navigator.gpu.getPreferredCanvasFormat(),
+			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
+		});
+		return { output: out };
+	},
 	init: ({ wgpu, resolution, params, fallbackTexture }) => {
 		const shaderModule = wgpu.device.createShaderModule({ code });
 		const pipeline = wgpu.device.createRenderPipeline({

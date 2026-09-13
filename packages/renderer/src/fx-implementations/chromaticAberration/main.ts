@@ -1,15 +1,16 @@
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
-import type definition from '@glitch/shared/fx-definitions/chromaticAberration.ts';
 import { implementEffect } from '../../fx-implementation.ts';
 import code from './shader.wgsl?raw';
+import type definition from '@glitch/shared/fx-definitions/chromaticAberration.ts';
 
 export default implementEffect<typeof definition>({
 	getOut: ({ wgpu, resolution }) => {
-		return wgpu.device.createTexture({
+		const out = wgpu.device.createTexture({
 			size: resolution,
 			format: navigator.gpu.getPreferredCanvasFormat(),
 			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
 		});
+		return { output: out };
 	},
 	init: ({ wgpu, params, fallbackTexture }) => {
 		const shaderModule = wgpu.device.createShaderModule({ code });

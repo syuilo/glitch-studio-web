@@ -70,12 +70,12 @@ export class Renderer {
 	private audioPorts = new Map<AudioSourceId, MessagePort>();
 	private effectInstances: Map<GsFxNode['id'], EffectInstance | null> = new Map();
 	private effectScalarFieldTextures: Map<GsFxNode['id'], Record<string, GPUTexture>> = new Map();
-	private effectOuts: Map<GsFxNode['id'], {
+	private outDataMapPerNodes: Map<GsFxNode['id'], Record<string, {
 		texture: GPUTexture;
 		textureView: GPUTextureView;
 		previousFrameTexture?: GPUTexture;
 		previousFrameTextureView?: GPUTextureView;
-	}> = new Map();
+	}>> = new Map();
 	private effectCacheKeys: Map<GsFxNode['id'], string> = new Map();
 	private timingHelper: TimingHelper;
 	private finalRenderPipeline: GPURenderPipeline;
@@ -247,9 +247,11 @@ export class Renderer {
 		return inputId == null ? undefined : this.getOutputNode(this.findNode(inputId), nextVisited);
 	}
 
-	private getOutputTexture(node: GsNode | undefined): GPUTexture | undefined {
+	private getOutputTexture(node: GsNode | undefined, outputPort: string): GPUTexture | undefined {
 		const output = this.getOutputNode(node);
-		return output == null ? undefined : this.effectOuts.get(output.id)?.texture;
+		if (output == null) return undefined;
+		const outDataMap = this.outDataMapPerNodes.get(output.id);
+		return outDataMap == null ? undefined : outDataMap[outputPort].texture;
 	}
 
 	private evalNodeParams(nodes: GsNode[], provideVars: Record<string, any> = {}) {
@@ -435,7 +437,7 @@ export class Renderer {
 		for (const [k, v] of Object.entries(params)) {
 			const typeDef = fxDefinitions[node.fx].paramDefs[k].type;
 			if (typeDef === 'node') {
-				resolvedParams[k] = this.getOutputTexture(v == null ? undefined : this.findNode(v)) ?? this.fallbackTexture;
+				resolvedParams[k] = this.getOutputTexture(v.nodeId == null ? undefined : this.findNode(v.nodeId), v.outputPort) ?? this.fallbackTexture;
 			} else if (typeDef === 'image') {
 				resolvedParams[k] = this.assetTextures.get(v)!;
 			} else if (typeDef === 'player') {
@@ -446,7 +448,7 @@ export class Renderer {
 			} else {
 				if (fxDefinitions[node.fx].paramDefs[k].canNode) {
 					// 出力なしの扱いは参照側の型で決める（画像は透明、スカラー場は0）。
-					resolvedParams[k] = v == null ? this.fallbackScalarFieldTexture : node.params[k].type === 'node' ? this.getOutputTexture(this.findNode(v)) ?? this.fallbackScalarFieldTexture : this.effectScalarFieldTextures.get(node.id)![k];
+					resolvedParams[k] = v == null ? this.fallbackScalarFieldTexture : node.params[k].type === 'node' ? this.getOutputTexture(this.findNode(v.nodeId), v.outputPort) ?? this.fallbackScalarFieldTexture : this.effectScalarFieldTextures.get(node.id)![k];
 				} else {
 					resolvedParams[k] = v;
 				}
@@ -544,15 +546,25 @@ export class Renderer {
 			if (state.sent == null) this.setEffectStatus(node.id, { type: 'ready' });
 		}
 
-		const effectOut = this.effectOuts.get(node.id)!;
+		const outDataMap = this.outDataMapPerNodes.get(node.id)!;
 
-		// 現在公開されている出力を、前回の結果として読む
-		const previousFrameTexture = effect.needsPreviousFrame ? effectOut.texture : undefined;
-		const previousFrameTextureView = effect.needsPreviousFrame ? effectOut.textureView : undefined;
+		const texturesContextMap = {} as Record<string, {
+			previousFrameTexture: GPUTexture | undefined;
+			previousFrameTextureView: GPUTextureView | undefined;
+			outputTexture: GPUTexture;
+			outputTextureView: GPUTextureView | undefined;
+		}>;
+		for (const [k, v] of Object.entries(outDataMap)) {
+			texturesContextMap[k] = {
+				// 現在公開されている出力を、前回の結果として読む
+				previousFrameTexture: effect.needsPreviousFrame ? v.texture : undefined,
+				previousFrameTextureView: effect.needsPreviousFrame ? v.textureView : undefined,
 
-		// もう1枚へ書く
-		const outputTexture = effect.needsPreviousFrame ? effectOut.previousFrameTexture! : effectOut.texture;
-		const outputTextureView = effect.needsPreviousFrame ? effectOut.previousFrameTextureView! : effectOut.textureView;
+				// もう1枚へ書く
+				outputTexture: effect.needsPreviousFrame ? v.previousFrameTexture! : v.texture,
+				outputTextureView: effect.needsPreviousFrame ? v.textureView : undefined,
+			};
+		}
 
 		effectInstance.render({
 			time: performance.now() / 1000,
@@ -563,20 +575,21 @@ export class Renderer {
 				y: this.pointerPositionPrev.y === -99999 ? 0 : this.pointerPosition.y - this.pointerPositionPrev.y,
 			},
 			params: resolvedParams,
-			previousFrameTexture,
-			previousFrameTextureView,
-			outputTextureView,
+			texturesContextMap,
 			commandEncoder: commandEncoder,
-			createPassEncoder: (commandEncoder, descriptor) => {
-				const _descriptor = descriptor ?? {
+			createPassEncoderFor: (commandEncoder, view) => {
+				const descriptor = {
 					colorAttachments: [{
-						view: outputTextureView,
+						view: view,
 						clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
 						loadOp: 'clear',
 						storeOp: 'store',
 					}],
 				} satisfies GPURenderPassDescriptor;
-				return this.enableStats ? this.timingHelper.beginRenderPass(commandEncoder, _descriptor) : commandEncoder.beginRenderPass(_descriptor);
+				return this.enableStats ? this.timingHelper.beginRenderPass(commandEncoder, descriptor) : commandEncoder.beginRenderPass(descriptor);
+			},
+			createPassEncoder: (commandEncoder, descriptor) => {
+				return this.enableStats ? this.timingHelper.beginRenderPass(commandEncoder, descriptor) : commandEncoder.beginRenderPass(descriptor);
 			},
 			createComputePassEncoder: (commandEncoder, descriptor) => {
 				return this.enableStats ? this.timingHelper.beginComputePass(commandEncoder, descriptor) : commandEncoder.beginComputePass(descriptor);
@@ -584,13 +597,15 @@ export class Renderer {
 		});
 
 		if (effect.needsPreviousFrame) {
-			// 今回書いた結果を後段へ公開
-			effectOut.texture = outputTexture;
-			effectOut.textureView = outputTextureView;
+			for (const [k, v] of Object.entries(outDataMap)) {
+				// 今回書いた結果を後段へ公開
+				v.texture = texturesContextMap[k].outputTexture;
+				v.textureView = texturesContextMap[k].outputTextureView;
 
-			// 今回読んだものを次回の書き込み先として保持
-			effectOut.previousFrameTexture = previousFrameTexture!;
-			effectOut.previousFrameTextureView = previousFrameTextureView!;
+				// 今回読んだものを次回の書き込み先として保持
+				v.previousFrameTexture = texturesContextMap[k].previousFrameTexture!;
+				v.previousFrameTextureView = texturesContextMap[k].previousFrameTextureView!;
+			}
 		}
 
 		context.rendered.add(node.id);
@@ -626,7 +641,8 @@ export class Renderer {
 
 		//#region nodeのoutをcanvasに描画
 		// 末尾が無効でもバイパス先を表示する。出力なしでも描画し、前の画像を残さない。
-		const outputTexture = this.getOutputTexture(node) ?? this.fallbackTexture;
+		const primaryOutputPort = Object.entries(fxDefinitions[node.type].outputs).filter(([k, v]) => v.primary).map(([k, v]) => k)[0];
+		const outputTexture = this.getOutputTexture(node, primaryOutputPort) ?? this.fallbackTexture;
 		if (this.finalRenderBindGroup == null || this.finalRenderInputTexture !== outputTexture) {
 			this.finalRenderInputTexture = outputTexture;
 			this.finalRenderBindGroup = this.gpuDevice.createBindGroup({
@@ -688,26 +704,32 @@ export class Renderer {
 
 		for (const node of addedNodes) {
 			const effect = fxImplementations[node.fx];
-			const outTexture = effect.getOut({
+			const outTextureMap = effect.getOut({
 				wgpu: { device: this.gpuDevice, enableFloat32Filtering: this.enableFloat32Filtering },
 				resolution: { width: this.resolution.width, height: this.resolution.height },
 			});
-			const outTextureView = outTexture.createView();
-			let previousFrameTexture;
-			let previousFrameTextureView;
+			let previousFrameTextureMap: Record<string, GPUTexture>;
 			if (effect.needsPreviousFrame) {
-				previousFrameTexture = effect.getOut({
+				previousFrameTextureMap = effect.getOut({
 					wgpu: { device: this.gpuDevice, enableFloat32Filtering: this.enableFloat32Filtering },
 					resolution: { width: this.resolution.width, height: this.resolution.height },
 				});
-				previousFrameTextureView = previousFrameTexture.createView();
 			}
-			this.effectOuts.set(node.id, {
-				texture: outTexture,
-				textureView: outTextureView,
-				previousFrameTexture: previousFrameTexture,
-				previousFrameTextureView: previousFrameTextureView,
-			});
+			const outDataMap = {} as Record<string, {
+				texture: GPUTexture;
+				textureView: GPUTextureView;
+				previousFrameTexture: GPUTexture | undefined;
+				previousFrameTextureView: GPUTextureView | undefined;
+			}>;
+			for (const [k, tex] of Object.entries(outTextureMap)) {
+				outDataMap[k].texture = tex;
+				outDataMap[k].textureView = tex.createView();
+				if (effect.needsPreviousFrame) {
+					outDataMap[k].previousFrameTexture = previousFrameTextureMap[k];
+					outDataMap[k].previousFrameTextureView = previousFrameTextureMap[k].createView();
+				}
+			}
+			this.outDataMapPerNodes.set(node.id, outDataMap);
 			const paramDefs = fxDefinitions[node.fx].paramDefs;
 			const scalarFieldTextures: Record<string, GPUTexture> = {};
 			for (const k in paramDefs) {
@@ -727,13 +749,13 @@ export class Renderer {
 			this.clearEffectStatus(node.id);
 			// 出力を破棄するため、リサイズや同じIDでの復元後は再描画が必要。
 			this.effectCacheKeys.delete(node.id);
-			const out = this.effectOuts.get(node.id);
+			const out = this.outDataMapPerNodes.get(node.id);
 			if (out) {
 				out.texture.destroy();
 				if (out.previousFrameTexture) {
 					out.previousFrameTexture.destroy();
 				}
-				this.effectOuts.delete(node.id);
+				this.outDataMapPerNodes.delete(node.id);
 			}
 			const instance = this.effectInstances.get(node.id);
 			if (instance) {
@@ -889,13 +911,15 @@ export class Renderer {
 		}
 		this.effectInstances.clear();
 
-		for (const out of this.effectOuts.values()) {
-			out.texture.destroy();
-			if (out.previousFrameTexture) {
-				out.previousFrameTexture.destroy();
+		for (const outDataMap of this.outDataMapPerNodes.values()) {
+			for (const outData of Object.values(outDataMap)) {
+				outData.texture.destroy();
+				if (outData.previousFrameTexture) {
+					outData.previousFrameTexture.destroy();
+				}
 			}
 		}
-		this.effectOuts.clear();
+		this.outDataMapPerNodes.clear();
 
 		const currentNodes = this.nodes;
 		this.updateNodes([]);
@@ -918,13 +942,15 @@ export class Renderer {
 		}
 		this.effectInstances.clear();
 
-		for (const out of this.effectOuts.values()) {
-			out.texture.destroy();
-			if (out.previousFrameTexture) {
-				out.previousFrameTexture.destroy();
+		for (const outDataMap of this.outDataMapPerNodes.values()) {
+			for (const outData of Object.values(outDataMap)) {
+				outData.texture.destroy();
+				if (outData.previousFrameTexture) {
+					outData.previousFrameTexture.destroy();
+				}
 			}
 		}
-		this.effectOuts.clear();
+		this.outDataMapPerNodes.clear();
 
 		this.gpuDevice?.destroy();
 	}

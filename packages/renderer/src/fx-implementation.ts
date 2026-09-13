@@ -41,7 +41,7 @@ export type EffectInstance<Options extends EffectOptionsSchema = any> = {
 	dispose: () => void;
 };
 
-export type EffectImplementation<Definition extends Pick<EffectDefinition, 'paramDefs'> = EffectDefinition, Options extends EffectOptionsSchema = Definition['paramDefs']> = {
+export type EffectImplementation<Definition extends Pick<EffectDefinition, 'paramDefs' | 'outputs'> = EffectDefinition, Options extends EffectOptionsSchema = Definition['paramDefs']> = {
 	disableCache?: boolean;
 	needsPreviousFrame?: boolean;
 	getOut: (args: {
@@ -50,7 +50,9 @@ export type EffectImplementation<Definition extends Pick<EffectDefinition, 'para
 			device: GPUDevice;
 			enableFloat32Filtering: boolean;
 		};
-	}) => GPUTexture;
+	}) => {
+		[K in keyof Definition['outputs']]: GPUTexture
+	};
 	shader?: string;
 	init: (args: {
 		reportStatus: (status: EffectStatus) => void;
@@ -66,6 +68,6 @@ export type EffectImplementation<Definition extends Pick<EffectDefinition, 'para
 	}) => EffectInstance<Options>;
 };
 
-export function implementEffect<Definition extends Pick<EffectDefinition, 'paramDefs'>>(def: EffectImplementation<Definition>): EffectImplementation<Definition> {
+export function implementEffect<Definition extends Pick<EffectDefinition, 'paramDefs' | 'outputs'>>(def: EffectImplementation<Definition>): EffectImplementation<Definition> {
 	return def;
 }

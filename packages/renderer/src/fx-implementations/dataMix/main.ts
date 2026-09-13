@@ -6,9 +6,12 @@ import type definition from '@glitch/shared/fx-definitions/dataMix.ts';
 const fitModes = { stretch: 0, cover: 1, contain: 2 };
 
 export default implementEffect<typeof definition>({
-	getOut: ({ wgpu, resolution }) => wgpu.device.createTexture({
-		size: resolution, format: 'rgba32float', usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
-	}),
+	getOut: ({ wgpu, resolution }) => {
+		const out = wgpu.device.createTexture({
+			size: resolution, format: 'rgba32float', usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
+		});
+		return { output: out };
+	},
 	init: ({ wgpu, resolution, fallbackTexture }) => {
 		const device = wgpu.device;
 		const values = makeStructuredView(makeShaderDataDefinitions(code).uniforms.uniforms);

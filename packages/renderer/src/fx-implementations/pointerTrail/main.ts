@@ -12,7 +12,7 @@ export default implementEffect<typeof definition>({
 			format: wgpu.enableFloat32Filtering ? 'rg32float' : 'rg16float',
 			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
 		});
-		return out;
+		return { output: out };
 	},
 	init: ({ wgpu, resolution }) => {
 		const shaderModule = wgpu.device.createShaderModule({

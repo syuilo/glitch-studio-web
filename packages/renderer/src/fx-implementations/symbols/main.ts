@@ -1,7 +1,7 @@
 import { createTextureFromImages, makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
-import type definition from '@glitch/shared/fx-definitions/symbols.ts';
 import { implementEffect } from '../../fx-implementation.ts';
 import code from './shader.wgsl?raw';
+import type definition from '@glitch/shared/fx-definitions/symbols.ts';
 
 function getSymbolTextureUrls(type: string) {
 	return type === 'symbols_numbers' ? [
@@ -91,7 +91,7 @@ export default implementEffect<typeof definition>({
 			format: navigator.gpu.getPreferredCanvasFormat(),
 			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
 		});
-		return out;
+		return { output: out };
 	},
 	init: ({ wgpu, params, fallbackTexture, resolution, reportStatus }) => {
 		const shaderModule = wgpu.device.createShaderModule({

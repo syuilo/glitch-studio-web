@@ -1,15 +1,18 @@
-import type definition from '@glitch/shared/fx-definitions/frameDifference.ts';
 import { implementEffect } from '../../fx-implementation.ts';
 import code from './shader.wgsl?raw';
+import type definition from '@glitch/shared/fx-definitions/frameDifference.ts';
 
 export default implementEffect<typeof definition>({
 	// Even a cached, unchanged input must settle back to a zero difference on the next frame.
 	disableCache: true,
-	getOut: ({ wgpu, resolution }) => wgpu.device.createTexture({
-		size: resolution,
-		format: navigator.gpu.getPreferredCanvasFormat(),
-		usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
-	}),
+	getOut: ({ wgpu, resolution }) => {
+		const out = wgpu.device.createTexture({
+			size: resolution,
+			format: navigator.gpu.getPreferredCanvasFormat(),
+			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
+		});
+		return { output: out };
+	},
 	init: ({ wgpu: { device, defaultVertexShaderModule }, resolution, params, fallbackTexture }) => {
 		const module = device.createShaderModule({ code });
 		const inputLayout = device.createBindGroupLayout({

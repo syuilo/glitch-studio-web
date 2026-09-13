@@ -1,7 +1,7 @@
 import { makeShaderDataDefinitions, makeStructuredView } from 'webgpu-utils';
-import type definition from '@glitch/shared/fx-definitions/snoise.ts';
 import { implementEffect } from '../../fx-implementation.ts';
 import code from './shader.wgsl?raw';
+import type definition from '@glitch/shared/fx-definitions/snoise.ts';
 
 export default implementEffect<typeof definition>({
 	getOut: ({ wgpu, resolution }) => {
@@ -10,7 +10,7 @@ export default implementEffect<typeof definition>({
 			format: wgpu.enableFloat32Filtering ? 'r32float' : 'r16float',
 			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
 		});
-		return out;
+		return { output: out };
 	},
 	init: ({ wgpu, resolution }) => {
 		const shaderModule = wgpu.device.createShaderModule({

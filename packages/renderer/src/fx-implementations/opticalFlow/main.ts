@@ -1,14 +1,17 @@
-import type definition from '@glitch/shared/fx-definitions/opticalFlow.ts';
 import { implementEffect } from '../../fx-implementation.ts';
 import code from './shader.wgsl?raw';
+import type definition from '@glitch/shared/fx-definitions/opticalFlow.ts';
 
 export default implementEffect<typeof definition>({
 	disableCache: true,
-	getOut: ({ wgpu, resolution }) => wgpu.device.createTexture({
-		size: resolution,
-		format: 'rg16float',
-		usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
-	}),
+	getOut: ({ wgpu, resolution }) => {
+		const out = wgpu.device.createTexture({
+			size: resolution,
+			format: 'r16float',
+			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
+		});
+		return { output: out };
+	},
 	init: ({ wgpu: { device, defaultVertexShaderModule }, resolution, params, fallbackTexture }) => {
 		const scale = Math.min(1, 256 / Math.max(resolution.width, resolution.height));
 		const size = {
@@ -73,7 +76,7 @@ export default implementEffect<typeof definition>({
 				// A pause or invalid interval starts a new history instead of emitting a jump.
 				if (!Number.isFinite(ctx.timeDelta) || ctx.timeDelta <= 0 || ctx.timeDelta > 250) hasPrevious = false;
 				values.set([Math.max(0.001, ctx.timeDelta / 1000), Math.max(0, ctx.params.strength),
-					Math.max(0.000001, ctx.params.confidence), Math.max(0, ctx.params.smoothing)], 2);
+																Math.max(0.000001, ctx.params.confidence), Math.max(0, ctx.params.smoothing)], 2);
 				device.queue.writeBuffer(uniforms, 0, values);
 				const save = ctx.createPassEncoder(ctx.commandEncoder, attachment(frameViews[current]));
 				save.setPipeline(capture);

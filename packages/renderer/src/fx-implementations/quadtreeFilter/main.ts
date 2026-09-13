@@ -10,7 +10,7 @@ export default implementEffect<typeof definition>({
 			format: navigator.gpu.getPreferredCanvasFormat(),
 			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
 		});
-		return out;
+		return { output: out };
 	},
 	init: ({ wgpu, params, fallbackTexture }) => {
 		const shaderModule = wgpu.device.createShaderModule({

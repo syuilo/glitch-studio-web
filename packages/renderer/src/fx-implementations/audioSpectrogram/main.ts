@@ -4,10 +4,14 @@ import type definition from '@glitch/shared/fx-definitions/audioSpectrogram.ts';
 
 export default implementEffect<typeof definition>({
 	disableCache: true,
-	getOut: ({ wgpu, resolution }) => wgpu.device.createTexture({
-		size: resolution, format: navigator.gpu.getPreferredCanvasFormat(),
-		usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
-	}),
+	getOut: ({ wgpu, resolution }) => {
+		const out = wgpu.device.createTexture({
+			size: resolution,
+			format: navigator.gpu.getPreferredCanvasFormat(),
+			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
+		});
+		return { output: out };
+	},
 	init: ({ wgpu: { device, defaultVertexShaderModule } }) => {
 		const spectrogram = createAudioSpectrogram(device, defaultVertexShaderModule);
 		return {

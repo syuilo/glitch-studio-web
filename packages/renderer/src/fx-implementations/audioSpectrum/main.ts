@@ -5,10 +5,14 @@ import type definition from '@glitch/shared/fx-definitions/audioSpectrum.ts';
 
 export default implementEffect<typeof definition>({
 	disableCache: true,
-	getOut: ({ wgpu, resolution }) => wgpu.device.createTexture({
-		size: resolution, format: navigator.gpu.getPreferredCanvasFormat(),
-		usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
-	}),
+	getOut: ({ wgpu, resolution }) => {
+		const out = wgpu.device.createTexture({
+			size: resolution,
+			format: navigator.gpu.getPreferredCanvasFormat(),
+			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT,
+		});
+		return { output: out };
+	},
 	init: ({ wgpu, resolution }) => {
 		const columns = Math.max(2, Math.min(2048, resolution.width));
 		const plot = createAudioPlot(wgpu.device, wgpu.defaultVertexShaderModule, columns);
