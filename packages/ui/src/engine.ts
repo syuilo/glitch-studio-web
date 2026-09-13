@@ -7,6 +7,7 @@ import { isVideoFrameAvailable, playVideoAfterFirstFrameIsReady } from './utilit
 import { AudioInputs } from './audio-inputs.ts';
 import type { Asset, GsAutomation, GsNode, Macro, Player } from '@glitch/shared/types.ts';
 import type { Renderer } from '@glitch/renderer/renderer.ts';
+import type { EffectStatus } from '@glitch/shared/effect-status.ts';
 import * as ui from '@/ui.ts';
 
 type RendererMethods = {
@@ -72,6 +73,7 @@ export class Engine {
 	public fpsDisplay = ref(0);
 	public gpuMemoryUsage = ref<ReturnType<Renderer['gpuMemory']['getUsage']> | null>(null);
 	public isReady = ref(false);
+	public effectStatuses = shallowReactive(new Map<string, EffectStatus>());
 
 	constructor(options: {
 		fpsLimit: number | null;
@@ -180,6 +182,12 @@ export class Engine {
 				}
 				case 'gpuMemory': {
 					this.gpuMemoryUsage.value = event.data.usage;
+					break;
+				}
+				case 'effectStatus': {
+					const { nodeId, status } = event.data;
+					if (status) this.effectStatuses.set(nodeId, status);
+					else this.effectStatuses.delete(nodeId);
 					break;
 				}
 				case 'stats': {
@@ -386,6 +394,7 @@ export class Engine {
 	}
 
 	public destroy() {
+		this.effectStatuses.clear();
 		this.audioInputs.dispose();
 		for (const [id, media] of this.videoElements) {
 			const callback = this.videoFrameCallbacks.get(id);

@@ -1,5 +1,6 @@
 import type { BlendModeOptionSchema, FitModeOptionSchema, BooleanOptionSchema, ColorOptionSchema, EffectDefinition, EffectOptionsSchema, EnumOptionSchema, ImageOptionSchema, NodeOptionSchema, NumberOptionSchema, RangeOptionSchema, SeedOptionSchema, SignalOptionSchema, VectorOptionSchema, PlayerOptionSchema } from '@glitch/shared/fx-definition.ts';
 import type { AudioHistory } from '@glitch/shared/audio-history.ts';
+import type { EffectStatus } from '@glitch/shared/effect-status.ts';
 
 type RuntimeEffectOptionValue<T extends EffectOptionsSchema[string]> =
 	T extends { canNode: true } ? GPUTexture :
@@ -52,6 +53,7 @@ export type EffectImplementation<Definition extends Pick<EffectDefinition, 'para
 	}) => GPUTexture;
 	shader?: string;
 	init: (args: {
+		reportStatus: (status: EffectStatus) => void;
 		resolution: { width: number; height: number; },
 		wgpu: {
 			device: GPUDevice;

@@ -1,9 +1,11 @@
 <template>
 <div :class="[$style.root, { [$style.isBypass]: node.isBypass }]">
 	<div ref="allInPortEl" :class="$style.allInPort">・</div>
-	<div :class="$style.header" class="drag-handle" @dblclick="expanded = !expanded">{{ name }}</div>
+	<div :class="[$style.header, { [$style.hasStatus]: effectStatus?.type === 'loading' || effectStatus?.type === 'error' }]" class="drag-handle" @dblclick="expanded = !expanded">{{ name }}</div>
 	<div :class="[$style.indicator]"></div>
 	<div :class="$style.headerButtons">
+		<GsButton v-if="effectStatus?.type === 'loading'" :class="$style.headerButton" inline small iconOnly title="Loading…"><i class="ti ti-loader-2" :class="$style.loading"></i></GsButton>
+		<GsButton v-else-if="effectStatus?.type === 'error'" :class="[$style.headerButton, $style.error]" inline small iconOnly :title="effectStatus.message" @click.stop="showEffectError"><i class="ti ti-alert-triangle"></i></GsButton>
 		<GsButton :class="[$style.headerButton]" inline small iconOnly @click="expanded = !expanded"><i class="ti" :class="expanded ? 'ti-chevron-up' : 'ti-chevron-down'"></i></GsButton>
 		<GsButton :class="[$style.headerButton]" inline small iconOnly :primary="node.isBypass" :title="node.isBypass ? i18n.ts.ClickToDisable : i18n.ts.ClickToEnable" @click="toggleBypass()"><i class="ti" :class="node.isBypass ? 'ti-eye' : 'ti-eye-off'"></i></GsButton>
 		<GsButton :class="[$style.headerButton]" inline small iconOnly :title="i18n.ts.RemoveEffect" @click="remove()"><i class="ti ti-x"></i></GsButton>
@@ -54,7 +56,7 @@ import GsCondensedLine from './common/GsCondensedLine.vue';
 import type { GsAutomation, GsFxNode, GsGroupNode, GsNode } from '@glitch/shared/types.ts';
 import type { MenuItem } from '@/types/menu.ts';
 import { i18n } from '@/i18n.ts';
-import { appContext, wireMap } from '@/app.ts';
+import { appContext, engine, wireMap } from '@/app.ts';
 import * as ui from '@/ui.ts';
 
 const props = defineProps<{
@@ -67,6 +69,13 @@ const paramDefs = fxDefinitions[props.node.fx].paramDefs;
 const expanded = ref(true);
 const outPortEl = shallowRef<HTMLElement>();
 const allInPortEl = shallowRef<HTMLElement>();
+
+const effectStatus = computed(() => engine.effectStatuses.get(props.node.id));
+
+function showEffectError() {
+	if (effectStatus.value?.type !== 'error') return;
+	void ui.alert({ type: 'error', title: name.value, text: effectStatus.value.message });
+}
 
 function isExpression(param: string) {
 	return props.node.params[param].type === 'expression';
@@ -278,6 +287,7 @@ onMounted(() => {
 
 .header {
 	padding: 0 88px 0 20px;
+	&.hasStatus { padding-right: 117px; }
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -333,6 +343,19 @@ onMounted(() => {
 	&:not(:first-child) {
 		margin-left: 6px;
 	}
+}
+
+.error {
+	color: #ff806f;
+}
+
+.loading {
+	display: inline-block;
+	animation: statusSpin 1s linear infinite;
+}
+
+@keyframes statusSpin {
+	to { transform: rotate(360deg); }
 }
 
 .params {

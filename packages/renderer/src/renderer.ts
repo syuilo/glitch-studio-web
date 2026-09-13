@@ -13,6 +13,7 @@ import { GpuHistogram } from './utility/histogram/GpuHistogram.ts';
 import { GpuWaveform } from './utility/waveform/GpuWaveform.ts';
 import { GpuMemoryTracker } from './utility/GpuMemoryTracker.ts';
 import { float32ToFloat16Bits } from './utility/float32ToFloat16Bits.ts';
+import type { EffectStatus } from '@glitch/shared/effect-status.ts';
 import type { AudioCaptureMessage, AudioSourceId } from '@glitch/shared/audio.ts';
 import type { Asset, Macro, GsAutomation, GsFxNode, GsNode, GsGroupNode, Player } from '@glitch/shared/types.ts';
 import type { EffectInstance } from './fx-implementation.ts';
@@ -99,8 +100,11 @@ export class Renderer {
 	public fpsAverage = new NonNegativeRollingAverage(30);
 	public readonly gpuMemory: GpuMemoryTracker;
 	private frame = 0; // TODO
+	private effectStatuses = new Map<string, { sent?: EffectStatus }>();
+	private onEffectStatus?: (nodeId: string, status: EffectStatus | null) => void;
 
 	constructor(options: {
+		onEffectStatus?: (nodeId: string, status: EffectStatus | null) => void;
 		gpuDevice: GPUDevice;
 		gpuContext: GPUCanvasContext;
 		resolution: {
@@ -118,6 +122,7 @@ export class Renderer {
 		waveformGpuContext: GPUCanvasContext;
 	}) {
 		this.resolution = options.resolution;
+		this.onEffectStatus = options.onEffectStatus;
 		this.enableStats = options.enableStats;
 		this.enableFloat32Filtering = options.enableFloat32Filtering;
 		this.fpsLimit = options.fpsLimit;
@@ -349,6 +354,19 @@ export class Renderer {
 		}
 	}
 
+	private setEffectStatus(nodeId: string, status: EffectStatus) {
+		const state = this.effectStatuses.get(nodeId);
+		if (!state) return;
+		const previous = state.sent;
+		if (previous?.type === status.type && (status.type !== 'error' || (previous.type === 'error' && previous.message === status.message))) return;
+		state.sent = status;
+		this.onEffectStatus?.(nodeId, status);
+	}
+
+	private clearEffectStatus(nodeId: string) {
+		if (this.effectStatuses.delete(nodeId)) this.onEffectStatus?.(nodeId, null);
+	}
+
 	private evalCacheKey(node: GsNode, visited: GsNode['id'][] = []): string | null {
 		if (visited.includes(node.id)) {
 			throw new Error('circular dependency detected');
@@ -461,7 +479,6 @@ export class Renderer {
 		if (key != null && key === prevKey) {
 			return;
 		}
-		if (key != null) this.effectCacheKeys.set(node.id, key);
 
 		const effect = fxImplementations[node.fx];
 
@@ -509,13 +526,22 @@ export class Renderer {
 
 		let effectInstance = this.effectInstances.get(node.id);
 		if (effectInstance == null) {
+			const state: { sent?: EffectStatus } = {};
+			this.effectStatuses.set(node.id, state);
 			effectInstance = effect.init({
+				reportStatus: status => {
+					// 初期化中の通知も受け取るが、破棄・再作成後の古い通知は無視する。
+					if (this.effectStatuses.get(node.id) !== state) return;
+					this.setEffectStatus(node.id, status);
+				},
 				resolution: { width: this.resolution.width, height: this.resolution.height },
 				wgpu: { device: this.gpuDevice, context: this.gpuContext, defaultVertexShaderModule: this.defaultVertexShaderModule, enableFloat32Filtering: this.enableFloat32Filtering },
 				params: resolvedParams,
 				fallbackTexture: this.fallbackTexture,
 			});
 			this.effectInstances.set(node.id, effectInstance);
+			// init中に状態が報告されなかった同期エフェクトは、この時点でready。
+			if (state.sent == null) this.setEffectStatus(node.id, { type: 'ready' });
 		}
 
 		const effectOut = this.effectOuts.get(node.id)!;
@@ -568,6 +594,7 @@ export class Renderer {
 		}
 
 		context.rendered.add(node.id);
+		if (key != null) this.effectCacheKeys.set(node.id, key);
 	}
 
 	public render(renderNodeId: string | null | undefined, args: {
@@ -697,6 +724,7 @@ export class Renderer {
 		}
 
 		for (const node of removedNodes) {
+			this.clearEffectStatus(node.id);
 			// 出力を破棄するため、リサイズや同じIDでの復元後は再描画が必要。
 			this.effectCacheKeys.delete(node.id);
 			const out = this.effectOuts.get(node.id);
@@ -855,6 +883,7 @@ export class Renderer {
 		this.stopRenderLoop();
 		this.resolution = resolution;
 
+		for (const id of this.effectStatuses.keys()) this.clearEffectStatus(id);
 		for (const instance of this.effectInstances.values()) {
 			instance?.dispose();
 		}
@@ -883,6 +912,7 @@ export class Renderer {
 		this.gpuHistogram.dispose();
 		this.gpuWaveform.dispose();
 
+		for (const id of this.effectStatuses.keys()) this.clearEffectStatus(id);
 		for (const instance of this.effectInstances.values()) {
 			instance?.dispose();
 		}

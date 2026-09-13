@@ -30,6 +30,7 @@ test('renderer graph traversal and frame history', async t => {
 	navigator.gpu = { getPreferredCanvasFormat: () => 'bgra8unorm' };
 	t.after(() => { navigator.gpu = previousGpu; });
 	const { Renderer } = await server.ssrLoadModule('/src/renderer.ts');
+	const { fxImplementations } = await server.ssrLoadModule('/src/fx-implementations.ts');
 	const { fxDefinitions } = await server.ssrLoadModule('@glitch/shared/fx-definitions.ts');
 	const fx = (id, name, params = {}) => ({
 		id, type: 'fx', fx: name, isBypass: true,
@@ -49,6 +50,8 @@ test('renderer graph traversal and frame history', async t => {
 	function setup(t, nodes) {
 		const device = createDevice(false);
 		const passes = [];
+		const statuses = new Map();
+		const statusChanges = [];
 		const clears = [];
 		device.importExternalTexture = ({ source }) => ({ source });
 		let canvasInput;
@@ -87,11 +90,17 @@ test('renderer graph traversal and frame history', async t => {
 			gpuDevice: device, gpuContext: context, histogramGpuContext: context, waveformGpuContext: context,
 			resolution: { width: 64, height: 64 }, enableFloat32Filtering: false, enableStats: false,
 			fpsLimit: null, assets: [], macros: [], automations: [], nodes,
+			onEffectStatus: (id, status) => {
+				statusChanges.push({ id, status });
+				if (status) statuses.set(id, status);
+				else statuses.delete(id);
+			},
 		});
 		t.after(() => renderer.destroy());
 		let time = performance.now();
 		return {
 			renderer,
+			statuses, statusChanges,
 			clears,
 			get canvasInput() { return canvasInput; },
 			frame(id = 'root') {
@@ -121,8 +130,10 @@ test('renderer graph traversal and frame history', async t => {
 			return { texture, destroy };
 		}
 		run.frame();
+		assert.equal(run.statuses.get('symbols')?.type, 'loading');
 		assert.equal(run.frame().length, 0, 'loading output is cached');
 		const first = await complete(0);
+		assert.equal(run.statuses.get('symbols')?.type, 'ready', 'completion is reported without rendering');
 		let passes = run.frame();
 		assert.equal(passes.length, 2, 'completion invalidates symbols and downstream');
 		assert.equal(passes[0].inputs[1], first.texture);
@@ -149,13 +160,58 @@ test('renderer graph traversal and frame history', async t => {
 		requests[3].reject(new Error('image load failed'));
 		await settle();
 		assert.equal(errors.mock.callCount(), 1);
+		assert.deepEqual(run.statuses.get('symbols'), { type: 'error', message: 'image load failed' });
 		assert.equal(run.frame().length, 0, 'failed loads retain cached output');
 		run.renderer.updateNodes(nodes('numbers'));
 		run.frame();
 		run.renderer.updateNodes([]);
 		assert.equal(latest.destroy.mock.callCount(), 1);
 		const disposed = await complete(4);
+		assert.equal(run.statuses.has('symbols'), false);
 		assert.equal(disposed.destroy.mock.callCount(), 1, 'completion after disposal releases its texture');
+	});
+
+	await t.test('effect status is reported on initialization and explicit updates only', t => {
+		const run = setup(t, [fx('root', 'multiply'), fx('unused', 'fill')]);
+		const reports = [];
+		const originalInit = fxImplementations.multiply.init;
+		t.mock.method(fxImplementations.multiply, 'init', args => {
+			reports.push(args.reportStatus);
+			const instance = originalInit(args);
+			return { ...instance, render(ctx) {
+				assert.deepEqual(run.statuses.get('root'), { type: 'ready' }, 'synchronous initialization reports ready before rendering');
+				instance.render(ctx);
+			} };
+		});
+		run.frame();
+		assert.deepEqual(run.statuses.get('root'), { type: 'ready' });
+		assert.equal(run.statuses.has('unused'), false, 'uninitialized nodes stay idle');
+		reports[0]({ type: 'loading' });
+		const count = run.statusChanges.length;
+		reports[0]({ type: 'loading' });
+		assert.equal(run.statusChanges.length, count);
+		assert.equal(run.frame().length, 0, 'status changes do not invalidate cached output');
+		reports[0]({ type: 'error', message: 'first error' });
+		assert.equal(run.statusChanges.length, count + 1);
+		reports[0]({ message: 'first error', type: 'error' });
+		assert.equal(run.statusChanges.length, count + 1, 'identical errors are deduplicated regardless of property order');
+		reports[0]({ type: 'error', message: 'second error' });
+		assert.equal(run.statusChanges.length, count + 2, 'changed error messages are reported');
+		reports[0]({ type: 'ready' });
+		assert.equal(run.statusChanges.length, count + 3, 'recovery is reported');
+		reports[0]({ type: 'ready' });
+		assert.equal(run.statusChanges.length, count + 3);
+		run.renderer.updateNodes([]);
+		run.renderer.updateNodes([fx('root', 'multiply')]);
+		run.frame();
+		reports[0]({ type: 'error', message: 'obsolete' });
+		assert.deepEqual(run.statuses.get('root'), { type: 'ready' });
+		t.mock.method(run.renderer, 'startRenderLoop', () => {});
+		run.renderer.resize({ width: 32, height: 32 });
+		reports[1]({ type: 'loading' });
+		assert.equal(run.statuses.has('root'), false, 'resize clears status and rejects old reports');
+		run.frame();
+		assert.deepEqual(run.statuses.get('root'), { type: 'ready' });
 	});
 
 	await t.test('video caches shared player frames and invalidates downstream on updates', t => {

@@ -72,6 +72,13 @@ test('effect GPU statistics include compute and render passes', async t => {
 				buffer.destroy();
 				callbacks.get(1000)();
 				assert.deepEqual(messages.at(-1).usage, initial.usage);
+				const node = { id: 'status-node', type: 'fx', fx: 'fill', isBypass: true,
+					params: Object.fromEntries(Object.entries(fxDefinitions.fill.paramDefs).map(([key, param]) => [key, param.default()])) };
+				await globalThis.onmessage({ data: { type: 'call', fn: 'updateNodes', args: [[node]] } });
+				await globalThis.onmessage({ data: { type: 'call', fn: 'render', args: [node.id, { time: 16 }] } });
+				assert.ok(messages.some(message => message.type === 'effectStatus' && message.nodeId === node.id && message.status?.type === 'ready'));
+				await globalThis.onmessage({ data: { type: 'call', fn: 'updateNodes', args: [[]] } });
+				assert.ok(messages.some(message => message.type === 'effectStatus' && message.nodeId === node.id && message.status === null));
 				await globalThis.onmessage({ data: { type: 'call', fn: 'destroy', args: [] } });
 				callbacks.get(1000)();
 				assert.equal(messages.at(-1).usage.total, 0);

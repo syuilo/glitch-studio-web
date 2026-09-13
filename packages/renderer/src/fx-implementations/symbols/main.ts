@@ -93,7 +93,7 @@ export default implementEffect<typeof definition>({
 		});
 		return out;
 	},
-	init: ({ wgpu, params, fallbackTexture, resolution }) => {
+	init: ({ wgpu, params, fallbackTexture, resolution, reportStatus }) => {
 		const shaderModule = wgpu.device.createShaderModule({
 			code: code,
 		});
@@ -159,6 +159,7 @@ export default implementEffect<typeof definition>({
 		let loadVersion = 0;
 		let disposed = false;
 		const loadSymbolTextures = (type: string) => {
+			reportStatus({ type: 'loading' });
 			const version = ++loadVersion;
 			const urls = getSymbolTextureUrls(type);
 			void createTextureFromImages(wgpu.device, urls, { mips: true }).then(texture => {
@@ -172,8 +173,12 @@ export default implementEffect<typeof definition>({
 				symbolTextureCount = urls.length;
 				updateBindGroup(inputTexture, forceFieldTexture);
 				cacheVersion++;
+				reportStatus({ type: 'ready' });
 			}).catch(error => {
-				if (!disposed && version === loadVersion) console.error('Failed to load symbol textures:', error);
+				if (!disposed && version === loadVersion) {
+					reportStatus({ type: 'error', message: error instanceof Error ? error.message : String(error) });
+					console.error('Failed to load symbol textures:', error);
+				}
 			});
 		};
 		loadSymbolTextures(iconset);
