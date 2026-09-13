@@ -89,16 +89,34 @@ test('multiple output rendering', async t => {
 		assert.equal(draws.length, 1);
 		assert.equal(run.canvasInput, draws[0].outputs.mask.texture);
 	});
-	await t.test('missing inputs, ports and empty groups use fallback', t => {
+	await t.test('unconnected inputs and empty groups use fallback', t => {
 		const run = setup(t, [source(), sink(null)]);
 		assert.equal(run.frame()[0].params.input.width, 1);
-		run.renderer.updateNodes([source(), sink(connection('source', 'missing'), connection('source', 'missing'))]);
-		const draw = run.frame().at(-1);
-		assert.equal(draw.params.input.width, 1);
-		assert.equal(draw.params.amount.format, 'r16float');
 		run.renderer.updateNodes([group([])]);
 		assert.deepEqual(run.frame('group'), []);
 		assert.equal(run.canvasInput.width, 1);
+	});
+	await t.test('broken node and port references are not silently treated as unconnected', t => {
+		for (const input of [connection('missing', 'color'), connection('source', 'missing')]) {
+			const run = setup(t, [source(), sink(input)]);
+			assert.throws(() => run.frame(), TypeError);
+		}
+	});
+	await t.test('unconnected inputs never request a texture without a port', t => {
+		for (const input of [{ type: 'literal', value: null }, { type: 'node', nodeId: null, outputPort: null }]) {
+			const target = sink(null);
+			target.params.input = input;
+			target.params.amount = { type: 'node', nodeId: null, outputPort: null };
+			const run = setup(t, [target]);
+			const getOutputTexture = run.renderer.getOutputTexture;
+			t.mock.method(run.renderer, 'getOutputTexture', function (node, port) {
+				assert.equal(typeof port, 'string', 'texture lookup requires an explicit output port');
+				return getOutputTexture.call(this, node, port);
+			});
+			const draw = run.frame()[0];
+			assert.equal(draw.params.input.width, 1);
+			assert.equal(draw.params.amount.format, 'r16float');
+		}
 	});
 	await t.test('changing a bypass input port invalidates downstream cache', t => {
 		const nodes = port => [source(), { ...sink(connection('source', port)), id: 'bypass', isBypass: false }, sink(connection('bypass', 'result'))];

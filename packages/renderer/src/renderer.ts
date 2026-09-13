@@ -15,7 +15,7 @@ import { GpuMemoryTracker } from './utility/GpuMemoryTracker.ts';
 import { float32ToFloat16Bits } from './utility/float32ToFloat16Bits.ts';
 import type { EffectStatus } from '@glitch/shared/effect-status.ts';
 import type { AudioCaptureMessage, AudioSourceId } from '@glitch/shared/audio.ts';
-import type { Asset, Macro, GsAutomation, GsFxNode, GsNode, GsGroupNode, Player } from '@glitch/shared/types.ts';
+import type { Asset, Macro, GsAutomation, GsFxNode, GsNode, GsGroupNode, Player, NodeOutputReference } from '@glitch/shared/types.ts';
 import type { EffectInstance } from './fx-implementation.ts';
 
 const aisParser = new AiScript.Parser();
@@ -233,29 +233,28 @@ export class Renderer {
 
 	// 無効なFXは主入力をそのまま公開する。テクスチャの所有権や履歴は元のノードに残す。
 	// 描画・入力参照・キャッシュが同じ接続関係を扱うよう、ここで共通して解決する。
-	private getOutputNode(node: GsNode | undefined, outputPort?: string, visited: GsNode['id'][] = []): { node: GsFxNode; outputPort: string } | undefined {
-		if (node == null) return;
+	private getOutputNode(node: GsNode, outputPort?: string, visited: GsNode['id'][] = []): { node: GsFxNode; outputPort: string } | undefined {
 		if (visited.includes(node.id)) throw new Error('circular dependency detected');
 		const nextVisited = [...visited, node.id];
 		if (node.type === 'group') {
 			// グループには主入力がないため、無効時は子の出力も公開しない。
-			return node.isBypass ? this.getOutputNode(node.nodes.at(-1), outputPort, nextVisited) : undefined;
+			const lastNode = node.nodes.at(-1);
+			return node.isBypass && lastNode != null ? this.getOutputNode(lastNode, outputPort, nextVisited) : undefined;
 		}
 		if (node.isBypass) {
 			const port = outputPort ?? Object.entries(fxDefinitions[node.fx].outputs).find(([, def]) => def.primary)?.[0];
 			return port == null ? undefined : { node, outputPort: port };
 		}
 		const primary = Object.entries(fxDefinitions[node.fx].paramDefs).find(([, def]) => def.type === 'node' && def.primary);
-		const input = primary ? this.evaledNodeParams.get(node.id)?.[primary[0]] : null;
+		const input: NodeOutputReference | null = primary ? this.evaledNodeParams.get(node.id)![primary[0]] : null;
 		// バイパスでは自身の出力名ではなく、主入力が選択した出力ポートを公開する。
-		return input?.nodeId == null ? undefined : this.getOutputNode(this.findNode(input.nodeId), input.outputPort, nextVisited);
+		return input == null ? undefined : this.getOutputNode(this.findNode(input.nodeId)!, input.outputPort, nextVisited);
 	}
 
-	private getOutputTexture(node: GsNode | undefined, outputPort: string): GPUTexture | undefined {
-		if (outputPort == null) return undefined;
+	private getOutputTexture(node: GsNode, outputPort: string): GPUTexture | undefined {
 		const output = this.getOutputNode(node, outputPort);
 		if (output == null) return undefined;
-		return this.outDataMapPerNodes.get(output.node.id)?.[output.outputPort]?.texture;
+		return this.outDataMapPerNodes.get(output.node.id)![output.outputPort].texture;
 	}
 
 	private evalNodeParams(nodes: GsNode[], provideVars: Record<string, any> = {}) {
@@ -404,30 +403,24 @@ export class Renderer {
 
 				if (paramDefs[k].type === 'node') {
 					if (v) {
-						const targetNode = this.findNode(v.nodeId);
-						if (targetNode) {
-							const targetNodeCacheKey = this.evalCacheKey(targetNode, [...visited, node.id]);
-							if (targetNodeCacheKey == null) return null;
-							key += `${k}=${targetNodeCacheKey};`;
-						}
+						const targetNode = this.findNode(v.nodeId)!;
+						const targetNodeCacheKey = this.evalCacheKey(targetNode, [...visited, node.id]);
+						if (targetNodeCacheKey == null) return null;
+						key += `${k}=${targetNodeCacheKey};`;
 					}
 				} else if (paramDefs[k].type === 'nodes') {
 					for (const n of v) {
-						const targetNode = this.findNode(n);
-						if (targetNode) {
-							const targetNodeCacheKey = this.evalCacheKey(targetNode, [...visited, node.id]);
-							if (targetNodeCacheKey == null) return null;
-							key += `${k}=${targetNodeCacheKey};`;
-						}
+						const targetNode = this.findNode(n)!;
+						const targetNodeCacheKey = this.evalCacheKey(targetNode, [...visited, node.id]);
+						if (targetNodeCacheKey == null) return null;
+						key += `${k}=${targetNodeCacheKey};`;
 					}
 				} else if (paramDefs[k].canNode && node.params[k].type === 'node') {
 					if (v) {
-						const targetNode = this.findNode(v.nodeId);
-						if (targetNode) {
-							const targetNodeCacheKey = this.evalCacheKey(targetNode, [...visited, node.id]);
-							if (targetNodeCacheKey == null) return null;
-							key += `${k}=${targetNodeCacheKey};`;
-						}
+						const targetNode = this.findNode(v.nodeId)!;
+						const targetNodeCacheKey = this.evalCacheKey(targetNode, [...visited, node.id]);
+						if (targetNodeCacheKey == null) return null;
+						key += `${k}=${targetNodeCacheKey};`;
 					}
 				}
 			}
@@ -441,7 +434,10 @@ export class Renderer {
 		for (const [k, v] of Object.entries(params)) {
 			const typeDef = fxDefinitions[node.fx].paramDefs[k].type;
 			if (typeDef === 'node') {
-				resolvedParams[k] = this.getOutputTexture(v?.nodeId == null ? undefined : this.findNode(v.nodeId), v?.outputPort) ?? this.fallbackTexture;
+				const input: NodeOutputReference | null = v;
+				resolvedParams[k] = input == null
+					? this.fallbackTexture
+					: this.getOutputTexture(this.findNode(input.nodeId)!, input.outputPort) ?? this.fallbackTexture;
 			} else if (typeDef === 'image') {
 				resolvedParams[k] = this.assetTextures.get(v)!;
 			} else if (typeDef === 'player') {
@@ -452,7 +448,7 @@ export class Renderer {
 			} else {
 				if (fxDefinitions[node.fx].paramDefs[k].canNode) {
 					// 出力なしの扱いは参照側の型で決める（画像は透明、スカラー場は0）。
-					resolvedParams[k] = v == null ? this.fallbackScalarFieldTexture : node.params[k].type === 'node' ? this.getOutputTexture(this.findNode(v.nodeId), v.outputPort) ?? this.fallbackScalarFieldTexture : this.effectScalarFieldTextures.get(node.id)![k];
+					resolvedParams[k] = v == null ? this.fallbackScalarFieldTexture : node.params[k].type === 'node' ? this.getOutputTexture(this.findNode(v.nodeId)!, v.outputPort) ?? this.fallbackScalarFieldTexture : this.effectScalarFieldTextures.get(node.id)![k];
 				} else {
 					resolvedParams[k] = v;
 				}
@@ -492,16 +488,14 @@ export class Renderer {
 
 		for (const [k, _] of Object.entries(fxDefinitions[node.fx].paramDefs).filter(([, v]) => v.type === 'node')) {
 			const v = params[k];
-			if (v?.nodeId == null) {
+			if (v == null) {
 				continue;
 			}
-			const targetNode = this.findNode(v.nodeId);
-			if (targetNode) {
-				this.renderNode(targetNode, commandEncoder, {
-					visited: new Set([...context.visited, node.id]),
-					rendered: context.rendered,
-				});
-			}
+			const targetNode = this.findNode(v.nodeId)!;
+			this.renderNode(targetNode, commandEncoder, {
+				visited: new Set([...context.visited, node.id]),
+				rendered: context.rendered,
+			});
 		}
 		//for (const [k, _] of Object.entries(fx.paramDefs).filter(([k, v]) => v.type === 'nodes')) {
 		//	inputNodeTexs[k] = [];
@@ -516,16 +510,14 @@ export class Renderer {
 		//}
 		for (const [k, _] of Object.entries(fxDefinitions[node.fx].paramDefs).filter(([, v]) => v.canNode)) {
 			const v = params[k];
-			if (node.params[k].type !== 'node' || v?.nodeId == null) {
+			if (node.params[k].type !== 'node' || v == null) {
 				continue;
 			}
-			const targetNode = this.findNode(v.nodeId);
-			if (targetNode) {
-				this.renderNode(targetNode, commandEncoder, {
-					visited: new Set([...context.visited, node.id]),
-					rendered: context.rendered,
-				});
-			}
+			const targetNode = this.findNode(v.nodeId)!;
+			this.renderNode(targetNode, commandEncoder, {
+				visited: new Set([...context.visited, node.id]),
+				rendered: context.rendered,
+			});
 		}
 
 		const resolvedParams = this.resolveParams(node, params);
