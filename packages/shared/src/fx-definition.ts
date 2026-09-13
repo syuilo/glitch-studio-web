@@ -132,7 +132,7 @@ type EffectOptionsSchemaDefaultValue<T extends EffectOptionsSchema, K extends ke
 	{ type: 'literal'; value: GetEffectOptionsSchemaValues<T>[K] } |
 	{ type: 'expression'; expression: string } |
 	{ type: 'automation'; automationId: string | null } |
-	{ type: 'node'; nodeId: string | null };
+	{ type: 'node'; nodeId: string | null; outputPort?: string };
 
 // コールバックの戻り値にも、パラメータの種類に応じた型を付ける。
 type EffectOptionSchemaWithDefault<T extends EffectOptionsSchema[string]> = T extends unknown ? T & {

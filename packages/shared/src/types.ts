@@ -12,6 +12,7 @@ export type FxParamValue = {
 } | {
 	type: 'node';
 	nodeId: string | null;
+	outputPort?: string;
 };
 
 export type Macro = {
@@ -55,7 +56,7 @@ type OmitNever<T> = { [K in keyof T as T[K] extends never ? never : K]: T[K] };
 
 export type EvaledParams<T extends FxParamDefs> = {
 	[K in keyof T]:
-	T[K]['type'] extends 'node' ? string :
+	T[K]['type'] extends 'node' ? { nodeId: string | null; outputPort?: string } | null :
 	T[K]['type'] extends 'nodes' ? string[] :
 	T[K]['type'] extends 'image' ? string :
 	T[K]['type'] extends 'player' ? string :

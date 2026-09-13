@@ -30,11 +30,15 @@ export type EffectInstance<Options extends EffectOptionsSchema = any> = {
 		timeDelta: number;
 		pointerPosition: { x: number; y: number; };
 		pointerVector: { x: number; y: number; };
-		previousFrameTexture?: GPUTexture;
-		previousFrameTextureView?: GPUTextureView;
-		outputTextureView: GPUTextureView;
+		texturesContextMap: Record<string, {
+			previousFrameTexture?: GPUTexture;
+			previousFrameTextureView?: GPUTextureView;
+			outputTexture: GPUTexture;
+			outputTextureView: GPUTextureView;
+		}>;
 		commandEncoder: GPUCommandEncoder;
-		createPassEncoder: (commandEncoder: GPUCommandEncoder, descriptor?: GPURenderPassDescriptor) => GPURenderPassEncoder;
+		createPassEncoderFor: (commandEncoder: GPUCommandEncoder, view: GPUTextureView) => GPURenderPassEncoder;
+		createPassEncoder: (commandEncoder: GPUCommandEncoder, descriptor: GPURenderPassDescriptor) => GPURenderPassEncoder;
 		createComputePassEncoder: (commandEncoder: GPUCommandEncoder, descriptor?: GPUComputePassDescriptor) => GPUComputePassEncoder;
 		params: GetRuntimeEffectOptionsSchemaValues<Options>;
 	}) => void;

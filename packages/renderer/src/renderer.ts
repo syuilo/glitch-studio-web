@@ -233,25 +233,28 @@ export class Renderer {
 
 	// 無効なFXは主入力をそのまま公開する。テクスチャの所有権や履歴は元のノードに残す。
 	// 描画・入力参照・キャッシュが同じ接続関係を扱うよう、ここで共通して解決する。
-	private getOutputNode(node: GsNode | undefined, visited: GsNode['id'][] = []): GsFxNode | undefined {
+	private getOutputNode(node: GsNode | undefined, outputPort?: string, visited: GsNode['id'][] = []): { node: GsFxNode; outputPort: string } | undefined {
 		if (node == null) return;
 		if (visited.includes(node.id)) throw new Error('circular dependency detected');
 		const nextVisited = [...visited, node.id];
 		if (node.type === 'group') {
 			// グループには主入力がないため、無効時は子の出力も公開しない。
-			return node.isBypass ? this.getOutputNode(node.nodes.at(-1), nextVisited) : undefined;
+			return node.isBypass ? this.getOutputNode(node.nodes.at(-1), outputPort, nextVisited) : undefined;
 		}
-		if (node.isBypass) return node;
+		if (node.isBypass) {
+			const port = outputPort ?? Object.entries(fxDefinitions[node.fx].outputs).find(([, def]) => def.primary)?.[0];
+			return port == null ? undefined : { node, outputPort: port };
+		}
 		const primary = Object.entries(fxDefinitions[node.fx].paramDefs).find(([, def]) => def.type === 'node' && def.primary);
-		const inputId = primary ? this.evaledNodeParams.get(node.id)?.[primary[0]] : null;
-		return inputId == null ? undefined : this.getOutputNode(this.findNode(inputId), nextVisited);
+		const input = primary ? this.evaledNodeParams.get(node.id)?.[primary[0]] : null;
+		// バイパスでは自身の出力名ではなく、主入力が選択した出力ポートを公開する。
+		return input?.nodeId == null ? undefined : this.getOutputNode(this.findNode(input.nodeId), input.outputPort, nextVisited);
 	}
 
-	private getOutputTexture(node: GsNode | undefined, outputPort: string): GPUTexture | undefined {
-		const output = this.getOutputNode(node);
+	private getOutputTexture(node: GsNode | undefined, outputPort?: string): GPUTexture | undefined {
+		const output = this.getOutputNode(node, outputPort);
 		if (output == null) return undefined;
-		const outDataMap = this.outDataMapPerNodes.get(output.id);
-		return outDataMap == null ? undefined : outDataMap[outputPort].texture;
+		return this.outDataMapPerNodes.get(output.node.id)?.[output.outputPort]?.texture;
 	}
 
 	private evalNodeParams(nodes: GsNode[], provideVars: Record<string, any> = {}) {
@@ -308,7 +311,7 @@ export class Renderer {
 							: v.type === 'automation' && v.automationId
 								? evalAutomationValue(this.automations.find(a => a.id === v.automationId)!, this.frame)
 								: v.type === 'node' && v.nodeId
-									? v.nodeId
+									? { nodeId: v.nodeId, outputPort: v.outputPort }
 									: genEmptyValue(paramDefs[k]);
 			}
 
@@ -381,8 +384,8 @@ export class Renderer {
 			// 出力元のIDもキーに含め、同じパラメータの別ノードへの切り替えを検出する。
 			const output = this.getOutputNode(node);
 			if (output == null) return `${key}output=none;`;
-			const outputKey = this.evalCacheKey(output, [...visited, node.id]);
-			return outputKey == null ? null : `${key}output=${outputKey};`;
+			const outputKey = this.evalCacheKey(output.node, [...visited, node.id]);
+			return outputKey == null ? null : `${key}port=${output.outputPort};output=${outputKey};`;
 		} else {
 			if (fxImplementations[node.fx].disableCache) {
 				return null;
@@ -400,7 +403,7 @@ export class Renderer {
 
 				if (paramDefs[k].type === 'node') {
 					if (v) {
-						const targetNode = this.findNode(v);
+						const targetNode = this.findNode(v.nodeId);
 						if (targetNode) {
 							const targetNodeCacheKey = this.evalCacheKey(targetNode, [...visited, node.id]);
 							if (targetNodeCacheKey == null) return null;
@@ -418,7 +421,7 @@ export class Renderer {
 					}
 				} else if (paramDefs[k].canNode && node.params[k].type === 'node') {
 					if (v) {
-						const targetNode = this.findNode(v);
+						const targetNode = this.findNode(v.nodeId);
 						if (targetNode) {
 							const targetNodeCacheKey = this.evalCacheKey(targetNode, [...visited, node.id]);
 							if (targetNodeCacheKey == null) return null;
@@ -433,11 +436,11 @@ export class Renderer {
 	}
 
 	private resolveParams(node: GsFxNode, params: Record<string, any>): Record<string, any> {
-		const resolvedParams = {};
+		const resolvedParams: Record<string, any> = {};
 		for (const [k, v] of Object.entries(params)) {
 			const typeDef = fxDefinitions[node.fx].paramDefs[k].type;
 			if (typeDef === 'node') {
-				resolvedParams[k] = this.getOutputTexture(v.nodeId == null ? undefined : this.findNode(v.nodeId), v.outputPort) ?? this.fallbackTexture;
+				resolvedParams[k] = this.getOutputTexture(v?.nodeId == null ? undefined : this.findNode(v.nodeId), v?.outputPort) ?? this.fallbackTexture;
 			} else if (typeDef === 'image') {
 				resolvedParams[k] = this.assetTextures.get(v)!;
 			} else if (typeDef === 'player') {
@@ -469,7 +472,7 @@ export class Renderer {
 			// 無効中は自身を描画せず、主入力だけを更新する。履歴は保持して再有効化時に再開する。
 			const output = this.getOutputNode(node);
 			if (output == null) return;
-			return this.renderNode(output, commandEncoder, {
+			return this.renderNode(output.node, commandEncoder, {
 				visited: new Set([...context.visited, node.id]),
 				rendered: context.rendered,
 			});
@@ -488,10 +491,10 @@ export class Renderer {
 
 		for (const [k, _] of Object.entries(fxDefinitions[node.fx].paramDefs).filter(([, v]) => v.type === 'node')) {
 			const v = params[k];
-			if (v == null) {
+			if (v?.nodeId == null) {
 				continue;
 			}
-			const targetNode = this.findNode(v);
+			const targetNode = this.findNode(v.nodeId);
 			if (targetNode) {
 				this.renderNode(targetNode, commandEncoder, {
 					visited: new Set([...context.visited, node.id]),
@@ -502,7 +505,7 @@ export class Renderer {
 		//for (const [k, _] of Object.entries(fx.paramDefs).filter(([k, v]) => v.type === 'nodes')) {
 		//	inputNodeTexs[k] = [];
 		//	for (const v of params[k]) {
-		//		const targetNode = this.findNode(v);
+		//		const targetNode = this.findNode(v.nodeId);
 		//		if (targetNode) {
 		//			inputNodeTexs[k].push(this.renderNode(targetNode, [...visited, node.id]));
 		//		} else {
@@ -512,10 +515,10 @@ export class Renderer {
 		//}
 		for (const [k, _] of Object.entries(fxDefinitions[node.fx].paramDefs).filter(([, v]) => v.canNode)) {
 			const v = params[k];
-			if (v == null) {
+			if (node.params[k].type !== 'node' || v?.nodeId == null) {
 				continue;
 			}
-			const targetNode = this.findNode(v);
+			const targetNode = this.findNode(v.nodeId);
 			if (targetNode) {
 				this.renderNode(targetNode, commandEncoder, {
 					visited: new Set([...context.visited, node.id]),
@@ -552,7 +555,7 @@ export class Renderer {
 			previousFrameTexture: GPUTexture | undefined;
 			previousFrameTextureView: GPUTextureView | undefined;
 			outputTexture: GPUTexture;
-			outputTextureView: GPUTextureView | undefined;
+			outputTextureView: GPUTextureView;
 		}>;
 		for (const [k, v] of Object.entries(outDataMap)) {
 			texturesContextMap[k] = {
@@ -562,7 +565,7 @@ export class Renderer {
 
 				// もう1枚へ書く
 				outputTexture: effect.needsPreviousFrame ? v.previousFrameTexture! : v.texture,
-				outputTextureView: effect.needsPreviousFrame ? v.textureView : undefined,
+				outputTextureView: effect.needsPreviousFrame ? v.previousFrameTextureView! : v.textureView,
 			};
 		}
 
@@ -641,8 +644,7 @@ export class Renderer {
 
 		//#region nodeのoutをcanvasに描画
 		// 末尾が無効でもバイパス先を表示する。出力なしでも描画し、前の画像を残さない。
-		const primaryOutputPort = Object.entries(fxDefinitions[node.type].outputs).filter(([k, v]) => v.primary).map(([k, v]) => k)[0];
-		const outputTexture = this.getOutputTexture(node, primaryOutputPort) ?? this.fallbackTexture;
+		const outputTexture = this.getOutputTexture(node) ?? this.fallbackTexture;
 		if (this.finalRenderBindGroup == null || this.finalRenderInputTexture !== outputTexture) {
 			this.finalRenderInputTexture = outputTexture;
 			this.finalRenderBindGroup = this.gpuDevice.createBindGroup({
@@ -708,7 +710,7 @@ export class Renderer {
 				wgpu: { device: this.gpuDevice, enableFloat32Filtering: this.enableFloat32Filtering },
 				resolution: { width: this.resolution.width, height: this.resolution.height },
 			});
-			let previousFrameTextureMap: Record<string, GPUTexture>;
+			let previousFrameTextureMap: Record<string, GPUTexture> = {};
 			if (effect.needsPreviousFrame) {
 				previousFrameTextureMap = effect.getOut({
 					wgpu: { device: this.gpuDevice, enableFloat32Filtering: this.enableFloat32Filtering },
@@ -722,12 +724,12 @@ export class Renderer {
 				previousFrameTextureView: GPUTextureView | undefined;
 			}>;
 			for (const [k, tex] of Object.entries(outTextureMap)) {
-				outDataMap[k].texture = tex;
-				outDataMap[k].textureView = tex.createView();
-				if (effect.needsPreviousFrame) {
-					outDataMap[k].previousFrameTexture = previousFrameTextureMap[k];
-					outDataMap[k].previousFrameTextureView = previousFrameTextureMap[k].createView();
-				}
+				outDataMap[k] = {
+					texture: tex,
+					textureView: tex.createView(),
+					previousFrameTexture: previousFrameTextureMap[k],
+					previousFrameTextureView: previousFrameTextureMap[k]?.createView(),
+				};
 			}
 			this.outDataMapPerNodes.set(node.id, outDataMap);
 			const paramDefs = fxDefinitions[node.fx].paramDefs;
@@ -749,11 +751,11 @@ export class Renderer {
 			this.clearEffectStatus(node.id);
 			// 出力を破棄するため、リサイズや同じIDでの復元後は再描画が必要。
 			this.effectCacheKeys.delete(node.id);
-			const out = this.outDataMapPerNodes.get(node.id);
-			if (out) {
-				out.texture.destroy();
-				if (out.previousFrameTexture) {
-					out.previousFrameTexture.destroy();
+			const outDataMap = this.outDataMapPerNodes.get(node.id);
+			if (outDataMap) {
+				for (const data of Object.values(outDataMap)) {
+					data.texture.destroy();
+					data.previousFrameTexture?.destroy();
 				}
 				this.outDataMapPerNodes.delete(node.id);
 			}
